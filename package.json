@@ -1,0 +1,10 @@
+﻿{
+  "name": "gearup",
+  "private": true,
+  "workspaces": [
+    "backend",
+    "web",
+    "mobile",
+    "packages/*"
+  ]
+}
