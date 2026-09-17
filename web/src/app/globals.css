@@ -4,7 +4,14 @@
   --background: #ffffff;
   --foreground: #171717;
 }
-
+@theme {
+  --color-gearup-50:  #f0f9f2;
+  --color-gearup-100: #d9f0e0;
+  --color-gearup-500: #2e8b57;
+  --color-gearup-600: #1e6b3a;
+  --color-gearup-700: #165a2e;
+  --color-gearup-900: #0f3d20;
+}
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

@@ -7,9 +7,14 @@ import {
   StyleSheet,
   ActivityIndicator,
   Alert,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { auth, saveToken } from '../lib/api';
+import { colors } from '../theme';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -41,80 +46,123 @@ export default function LoginScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>GearUp</Text>
-      <Text style={styles.subtitle}>Log in to your account</Text>
-
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
-        autoCapitalize="none"
-        keyboardType="email-address"
-      />
-
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-      />
-
-      <TouchableOpacity
-        style={[styles.button, loading && styles.buttonDisabled]}
-        onPress={handleLogin}
-        disabled={loading}
+    <KeyboardAvoidingView
+      style={{ flex: 1, backgroundColor: colors.background }}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
       >
-        {loading ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text style={styles.buttonText}>Log in</Text>
-        )}
-      </TouchableOpacity>
+        <View style={styles.card}>
+          <Image
+            source={require('../assets/logo.png')}
+            style={styles.logo}
+            resizeMode="contain"
+          />
 
-      <TouchableOpacity
-        onPress={() => router.push('/signup')}
-        style={styles.linkButton}
-      >
-        <Text style={styles.linkText}>
-          Don't have an account? Sign up
-        </Text>
-      </TouchableOpacity>
-    </View>
+          <Text style={styles.title}>Welcome back to GearUp!</Text>
+          <Text style={styles.subtitle}>
+            Sign in to manage your outdoor experiences.
+          </Text>
+
+          <TextInput
+            style={styles.input}
+            placeholder="Email Address"
+            placeholderTextColor={colors.textMuted}
+            value={email}
+            onChangeText={setEmail}
+            autoCapitalize="none"
+            keyboardType="email-address"
+          />
+
+          <TextInput
+            style={styles.input}
+            placeholder="Password"
+            placeholderTextColor={colors.textMuted}
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+          />
+
+          <TouchableOpacity
+            style={[styles.button, loading && styles.buttonDisabled]}
+            onPress={handleLogin}
+            disabled={loading}
+            activeOpacity={0.85}
+          >
+            {loading ? (
+              <ActivityIndicator color={colors.white} />
+            ) : (
+              <Text style={styles.buttonText}>Sign In</Text>
+            )}
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => router.push('/signup')}
+            style={styles.linkButton}
+          >
+            <Text style={styles.linkText}>
+              Don&apos;t have an account?{' '}
+              <Text style={styles.linkTextBold}>Sign up</Text>
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 24,
+  scrollContent: {
+    flexGrow: 1,
     justifyContent: 'center',
-    backgroundColor: '#fff',
+    padding: 20,
+  },
+  card: {
+    backgroundColor: colors.white,
+    borderRadius: 20,
+    padding: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 4,
+  },
+  logo: {
+    width: 160,
+    height: 60,
+    alignSelf: 'center',
+    marginBottom: 20,
   },
   title: {
-    fontSize: 36,
+    fontSize: 22,
     fontWeight: 'bold',
-    marginBottom: 4,
+    color: colors.text,
+    textAlign: 'center',
   },
   subtitle: {
-    fontSize: 16,
-    color: '#666',
-    marginBottom: 32,
+    fontSize: 14,
+    color: colors.textMuted,
+    textAlign: 'center',
+    marginTop: 4,
+    marginBottom: 24,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
-    padding: 14,
+    borderColor: colors.border,
+    borderRadius: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
     marginBottom: 12,
-    fontSize: 16,
+    fontSize: 15,
+    color: colors.text,
+    backgroundColor: colors.white,
   },
   button: {
-    backgroundColor: '#000',
-    padding: 16,
-    borderRadius: 8,
+    backgroundColor: colors.gearupGreen,
+    paddingVertical: 16,
+    borderRadius: 12,
     alignItems: 'center',
     marginTop: 8,
   },
@@ -122,16 +170,20 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   buttonText: {
-    color: '#fff',
+    color: colors.white,
     fontSize: 16,
     fontWeight: '600',
   },
   linkButton: {
-    marginTop: 16,
+    marginTop: 20,
     alignItems: 'center',
   },
   linkText: {
-    color: '#0066cc',
+    color: colors.textMuted,
     fontSize: 14,
+  },
+  linkTextBold: {
+    color: colors.gearupGreen,
+    fontWeight: '600',
   },
 });
