@@ -1,15 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { createApiClient, authApi } from '@gearup/shared';
-
-const api = createApiClient(
-  process.env.NEXT_PUBLIC_API_URL!,
-  async () => null,
-);
-const auth = authApi(api);
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 export default function LoginPage() {
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [result, setResult] = useState('');
@@ -17,12 +13,21 @@ export default function LoginPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setResult('Logging in...');
-    try {
-      const res = await auth.login(email, password, 'next-web');
-      setResult(`Logged in as ${res.data.user.name}`);
-    } catch (err: any) {
-      setResult(`Error: ${err.response?.data?.message ?? err.message}`);
+
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      setResult(`Error: ${data.message ?? 'Login failed'}`);
+      return;
     }
+
+    router.push('/dashboard');
   };
 
   return (
@@ -51,6 +56,14 @@ export default function LoginPage() {
         </button>
       </form>
       {result && <p className="mt-4 text-sm">{result}</p>}
+
+      <p className="mt-4 text-sm text-gray-600">
+    Don&apos;t have an account?{' '}
+    <Link href="/signup" className="text-blue-600 underline">
+      Sign up
+    </Link>
+  </p>
+
     </main>
   );
 }
