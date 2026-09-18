@@ -32,7 +32,7 @@ export default function LoginScreen() {
     try {
       const res = await auth.login(email, password, 'expo-mobile');
       await saveToken(res.data.token);
-      router.replace('/dashboard');
+      router.replace('/(tabs)/profile');
     } catch (err: any) {
       const message =
         err.response?.data?.message ??

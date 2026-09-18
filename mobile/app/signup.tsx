@@ -50,7 +50,7 @@ export default function SignupScreen() {
         'expo-mobile',
       );
       await saveToken(res.data.token);
-      router.replace('/dashboard');
+      router.replace('/(tabs)/profile');
     } catch (err: any) {
       const data = err.response?.data;
       const message =
