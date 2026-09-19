@@ -32,29 +32,29 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="destinations"
+        name="explore"
         options={{
-          title: 'Destinations',
+          title: 'Explore',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="compass-outline" size={size} color={color} />
           ),
         }}
       />
       <Tabs.Screen
-        name="events"
+        name="trips"
         options={{
-          title: 'Events',
+          title: 'Trips',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="calendar-outline" size={size} color={color} />
+            <Ionicons name="map-outline" size={size} color={color} />
           ),
         }}
       />
       <Tabs.Screen
-        name="saved"
+        name="bookings"
         options={{
-          title: 'Saved',
+          title: 'Bookings',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="heart-outline" size={size} color={color} />
+            <Ionicons name="calendar-outline" size={size} color={color} />
           ),
         }}
       />

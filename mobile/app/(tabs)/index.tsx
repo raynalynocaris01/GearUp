@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import {
   View,
   Text,
@@ -6,22 +7,39 @@ import {
   TextInput,
   TouchableOpacity,
   Image,
+  Alert,
 } from 'react-native';
-import { useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../../theme';
 
-// Placeholder data — will be replaced with API calls later
 const FEATURES = [
-  { icon: 'bed-outline', label: 'Book Campsites', desc: 'Find the place to stay' },
-  { icon: 'bag-handle-outline', label: 'Rent Gear', desc: 'Quality gear for your adventure' },
-  { icon: 'person-outline', label: 'Hire Tour Guide', desc: 'Local guides, better experiences' },
-  { icon: 'calendar-outline', label: 'Join Events', desc: 'Meet up and join adventures' },
-  { icon: 'cart-outline', label: 'Buy Essentials', desc: 'Shop camping must-haves' },
-  { icon: 'map-outline', label: 'Plan Trips', desc: 'Organize your adventure' },
+  {
+    icon: 'bed-outline',
+    label: 'Book Campsites',
+    desc: 'Find the place to stay',
+    color: '#1e6b3a',
+  },
+  {
+    icon: 'bag-handle-outline',
+    label: 'Rent Gear',
+    desc: 'Quality gear for your adventure',
+    color: '#2563eb',
+  },
+  {
+    icon: 'person-outline',
+    label: 'Hire Tour Guide',
+    desc: 'Local guides, better experiences',
+    color: '#ea580c',
+  },
+  {
+    icon: 'calendar-outline',
+    label: 'Join Events',
+    desc: 'Meet up and join adventures',
+    color: '#4b5563',
+  },
 ] as const;
 
-const DESTINATIONS = [
+const CAMPSITES = [
   {
     id: 1,
     name: 'Grandi Vista Campsite',
@@ -29,30 +47,34 @@ const DESTINATIONS = [
     rating: 4.5,
     reviews: 128,
     price: '₱120 / night',
-    image: 'https://picsum.photos/seed/camp1/400/300',
+    image: 'https://picsum.photos/seed/camp1/200/200',
   },
   {
     id: 2,
-    name: 'Mt. Talinis',
-    location: 'Valencia, Negros Oriental',
-    rating: 4.8,
-    reviews: 250,
-    price: '₱200 / night',
-    image: 'https://picsum.photos/seed/camp2/400/300',
-  },
-  {
-    id: 3,
     name: 'Pulangbato Falls',
     location: 'Valencia, Negros Oriental',
     rating: 4.6,
     reviews: 194,
     price: '₱200 / entrance',
-    image: 'https://picsum.photos/seed/camp3/400/300',
+    image: 'https://picsum.photos/seed/camp2/200/200',
+  },
+  {
+    id: 3,
+    name: 'Mt. Talinis Base Camp',
+    location: 'Valencia, Negros Oriental',
+    rating: 4.8,
+    reviews: 250,
+    price: '₱200 / night',
+    image: 'https://picsum.photos/seed/camp3/200/200',
   },
 ];
 
 export default function HomeScreen() {
   const [search, setSearch] = useState('');
+
+  const handleComingSoon = () => {
+    Alert.alert('Coming soon', 'This feature is being built.');
+  };
 
   return (
     <View style={styles.container}>
@@ -69,14 +91,9 @@ export default function HomeScreen() {
             <Text style={styles.brandGreen}>Up</Text>
           </Text>
         </View>
-        <View style={styles.appBarActions}>
-          <TouchableOpacity style={styles.iconButton}>
-            <Ionicons name="search-outline" size={22} color="#111827" />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.iconButton}>
-            <Ionicons name="menu-outline" size={26} color="#111827" />
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity style={styles.iconButton} onPress={handleComingSoon}>
+          <Ionicons name="notifications-outline" size={24} color="#111827" />
+        </TouchableOpacity>
       </View>
 
       <ScrollView
@@ -94,28 +111,33 @@ export default function HomeScreen() {
             </Text>
 
             <View style={styles.searchBox}>
-              <Ionicons name="location-outline" size={18} color={colors.textMuted} />
+              <Ionicons name="search-outline" size={18} color={colors.textMuted} />
               <TextInput
                 style={styles.searchInput}
-                placeholder="Where do you want to go?"
+                placeholder="Search destinations, campsites, rent gears"
                 placeholderTextColor={colors.textMuted}
                 value={search}
                 onChangeText={setSearch}
               />
-              <TouchableOpacity style={styles.searchButton}>
-                <Text style={styles.searchButtonText}>Explore Now</Text>
+              <TouchableOpacity style={styles.searchButton} onPress={handleComingSoon}>
+                <Text style={styles.searchButtonText}>Search</Text>
               </TouchableOpacity>
             </View>
           </View>
         </View>
 
-        {/* FEATURE GRID */}
+        {/* FEATURE GRID — 4 items, 2 columns */}
         <View style={styles.section}>
           <View style={styles.featureGrid}>
             {FEATURES.map((f) => (
-              <TouchableOpacity key={f.label} style={styles.featureCard}>
+              <TouchableOpacity
+                key={f.label}
+                style={styles.featureCard}
+                onPress={handleComingSoon}
+                activeOpacity={0.85}
+              >
                 <View style={styles.featureIconWrap}>
-                  <Ionicons name={f.icon as any} size={26} color={colors.gearupGreen} />
+                  <Ionicons name={f.icon as any} size={30} color={f.color} />
                 </View>
                 <Text style={styles.featureLabel}>{f.label}</Text>
                 <Text style={styles.featureDesc}>{f.desc}</Text>
@@ -124,44 +146,51 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* POPULAR DESTINATIONS */}
+        {/* POPULAR CAMPSITES — vertical list */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Popular Destination</Text>
-            <TouchableOpacity>
+            <Text style={styles.sectionTitle}>Popular Campsites</Text>
+            <TouchableOpacity onPress={handleComingSoon}>
               <Text style={styles.sectionLink}>View All</Text>
             </TouchableOpacity>
           </View>
 
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.destinationsRow}
-          >
-            {DESTINATIONS.map((d) => (
-              <TouchableOpacity key={d.id} style={styles.destinationCard}>
-                <Image source={{ uri: d.image }} style={styles.destinationImage} />
-                <View style={styles.destinationBody}>
-                  <Text style={styles.destinationName} numberOfLines={1}>
-                    {d.name}
+          <View style={styles.campsiteList}>
+            {CAMPSITES.map((c) => (
+              <TouchableOpacity
+                key={c.id}
+                style={styles.campsiteCard}
+                onPress={handleComingSoon}
+                activeOpacity={0.85}
+              >
+                <Image source={{ uri: c.image }} style={styles.campsiteImage} />
+                <View style={styles.campsiteBody}>
+                  <Text style={styles.campsiteName} numberOfLines={1}>
+                    {c.name}
                   </Text>
-                  <View style={styles.destinationMeta}>
+                  <View style={styles.campsiteMeta}>
                     <Ionicons name="location-outline" size={12} color={colors.textMuted} />
-                    <Text style={styles.destinationLocation} numberOfLines={1}>
-                      {d.location}
+                    <Text style={styles.campsiteLocation} numberOfLines={1}>
+                      {c.location}
                     </Text>
                   </View>
-                  <View style={styles.destinationMeta}>
+                  <View style={styles.campsiteMeta}>
                     <Ionicons name="star" size={12} color="#f59e0b" />
-                    <Text style={styles.destinationRating}>
-                      {d.rating} ({d.reviews})
+                    <Text style={styles.campsiteRating}>
+                      {c.rating} ({c.reviews})
                     </Text>
                   </View>
-                  <Text style={styles.destinationPrice}>{d.price}</Text>
+                  <Text style={styles.campsitePrice}>{c.price}</Text>
                 </View>
+                <TouchableOpacity
+                  style={styles.heartButton}
+                  onPress={handleComingSoon}
+                >
+                  <Ionicons name="heart-outline" size={20} color="#111827" />
+                </TouchableOpacity>
               </TouchableOpacity>
             ))}
-          </ScrollView>
+          </View>
         </View>
 
         {/* BOTTOM CTA */}
@@ -173,7 +202,7 @@ export default function HomeScreen() {
             <Text style={styles.ctaSubtitle}>
               Everything you need for unforgettable trips is here!
             </Text>
-            <TouchableOpacity style={styles.ctaButton}>
+            <TouchableOpacity style={styles.ctaButton} onPress={handleComingSoon}>
               <Text style={styles.ctaButtonText}>Get Started</Text>
             </TouchableOpacity>
           </View>
@@ -205,7 +234,6 @@ const styles = StyleSheet.create({
   brandText: { fontSize: 22, fontWeight: '900', letterSpacing: -0.5 },
   brandDark: { color: '#111827' },
   brandGreen: { color: colors.gearupGreen },
-  appBarActions: { flexDirection: 'row', gap: 4 },
   iconButton: { padding: 8 },
 
   // Scroll
@@ -223,13 +251,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   heroOverlay: {
-  position: 'absolute',
-  top: 0,
-  left: 0,
-  right: 0,
-  bottom: 0,
-  backgroundColor: 'rgba(0,0,0,0.35)',
-},
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.35)',
+  },
   heroContent: { padding: 20, gap: 16 },
   heroTitle: {
     color: '#fff',
@@ -269,18 +297,18 @@ const styles = StyleSheet.create({
   sectionTitle: { fontSize: 18, fontWeight: '800', color: '#111827' },
   sectionLink: { fontSize: 13, color: colors.gearupGreen, fontWeight: '700' },
 
-  // Feature grid
+  // Feature grid — 2 columns
   featureGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 10,
+    gap: 12,
   },
   featureCard: {
-    width: '31%',
+    width: '48%',
     backgroundColor: '#fff',
-    borderRadius: 12,
-    paddingVertical: 14,
-    paddingHorizontal: 8,
+    borderRadius: 14,
+    paddingVertical: 18,
+    paddingHorizontal: 12,
     alignItems: 'center',
     borderWidth: 1,
     borderColor: '#f1f5f9',
@@ -291,54 +319,65 @@ const styles = StyleSheet.create({
     elevation: 1,
   },
   featureIconWrap: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: colors.gearup50,
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: '#f8fafc',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 8,
+    marginBottom: 10,
   },
   featureLabel: {
-    fontSize: 11,
+    fontSize: 13,
     fontWeight: '700',
     color: '#111827',
     textAlign: 'center',
-    marginBottom: 2,
+    marginBottom: 4,
   },
   featureDesc: {
-    fontSize: 9,
+    fontSize: 10,
     color: colors.textMuted,
     textAlign: 'center',
-    lineHeight: 12,
+    lineHeight: 13,
   },
 
-  // Destinations
-  destinationsRow: { gap: 12, paddingRight: 16 },
-  destinationCard: {
-    width: 200,
+  // Campsites list
+  campsiteList: { gap: 12 },
+  campsiteCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: '#fff',
     borderRadius: 14,
-    overflow: 'hidden',
+    padding: 10,
+    gap: 12,
     borderWidth: 1,
     borderColor: '#f1f5f9',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 3,
+    elevation: 1,
   },
-  destinationImage: { width: '100%', height: 110 },
-  destinationBody: { padding: 10, gap: 3 },
-  destinationName: { fontSize: 13, fontWeight: '700', color: '#111827' },
-  destinationMeta: { flexDirection: 'row', alignItems: 'center', gap: 3 },
-  destinationLocation: { fontSize: 10, color: colors.textMuted, flex: 1 },
-  destinationRating: { fontSize: 10, color: '#111827', fontWeight: '600' },
-  destinationPrice: {
-    fontSize: 12,
+  campsiteImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 10,
+    backgroundColor: '#e5e7eb',
+  },
+  campsiteBody: { flex: 1, gap: 3 },
+  campsiteName: { fontSize: 14, fontWeight: '700', color: '#111827' },
+  campsiteMeta: { flexDirection: 'row', alignItems: 'center', gap: 3 },
+  campsiteLocation: { fontSize: 11, color: colors.textMuted, flex: 1 },
+  campsiteRating: { fontSize: 11, color: '#111827', fontWeight: '600' },
+  campsitePrice: {
+    fontSize: 13,
     fontWeight: '800',
     color: colors.gearupGreen,
-    marginTop: 4,
+    marginTop: 3,
+  },
+  heartButton: {
+    padding: 6,
+    alignSelf: 'flex-start',
   },
 
   // CTA
