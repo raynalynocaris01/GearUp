@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -8,8 +8,13 @@ import {
   TouchableOpacity,
   Image,
   Alert,
+  ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter, useFocusEffect } from 'expo-router';
+import { campsites } from '../../lib/api';
+import type { Campsite } from '@gearup/shared';
 import { colors } from '../../theme';
 
 const FEATURES = [
@@ -39,41 +44,55 @@ const FEATURES = [
   },
 ] as const;
 
-const CAMPSITES = [
-  {
-    id: 1,
-    name: 'Grandi Vista Campsite',
-    location: 'Apolong, Valencia',
-    rating: 4.5,
-    reviews: 128,
-    price: '₱120 / night',
-    image: 'https://picsum.photos/seed/camp1/200/200',
-  },
-  {
-    id: 2,
-    name: 'Pulangbato Falls',
-    location: 'Valencia, Negros Oriental',
-    rating: 4.6,
-    reviews: 194,
-    price: '₱200 / entrance',
-    image: 'https://picsum.photos/seed/camp2/200/200',
-  },
-  {
-    id: 3,
-    name: 'Mt. Talinis Base Camp',
-    location: 'Valencia, Negros Oriental',
-    rating: 4.8,
-    reviews: 250,
-    price: '₱200 / night',
-    image: 'https://picsum.photos/seed/camp3/200/200',
-  },
-];
-
 export default function HomeScreen() {
+  const router = useRouter();
   const [search, setSearch] = useState('');
+  const [campsiteList, setCampsiteList] = useState<Campsite[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState('');
+
+  const loadCampsites = async (showSpinner = false) => {
+    if (showSpinner) setLoading(true);
+    setError('');
+    try {
+      const res = await campsites.list({ featured: true });
+      setCampsiteList(res.data);
+    } catch (err: any) {
+      setError(
+        err.response?.data?.message ??
+          err.message ??
+          'Could not load campsites.',
+      );
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  // Fetch once on mount
+  useEffect(() => {
+    loadCampsites(true);
+  }, []);
+
+  // Refresh each time the Home tab gains focus (e.g., after login)
+  useFocusEffect(
+    useCallback(() => {
+      loadCampsites();
+    }, []),
+  );
+
+  const handleRefresh = () => {
+    setRefreshing(true);
+    loadCampsites();
+  };
 
   const handleComingSoon = () => {
     Alert.alert('Coming soon', 'This feature is being built.');
+  };
+
+  const openCampsite = (id: number) => {
+    router.push(`/campsite/${id}`);
   };
 
   return (
@@ -100,6 +119,13 @@ export default function HomeScreen() {
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            tintColor={colors.gearupGreen}
+          />
+        }
       >
         {/* HERO BANNER */}
         <View style={styles.hero}>
@@ -119,14 +145,17 @@ export default function HomeScreen() {
                 value={search}
                 onChangeText={setSearch}
               />
-              <TouchableOpacity style={styles.searchButton} onPress={handleComingSoon}>
+              <TouchableOpacity
+                style={styles.searchButton}
+                onPress={handleComingSoon}
+              >
                 <Text style={styles.searchButtonText}>Search</Text>
               </TouchableOpacity>
             </View>
           </View>
         </View>
 
-        {/* FEATURE GRID — 4 items, 2 columns */}
+        {/* FEATURE GRID */}
         <View style={styles.section}>
           <View style={styles.featureGrid}>
             {FEATURES.map((f) => (
@@ -146,7 +175,7 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* POPULAR CAMPSITES — vertical list */}
+        {/* POPULAR CAMPSITES — live from API */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Popular Campsites</Text>
@@ -155,42 +184,74 @@ export default function HomeScreen() {
             </TouchableOpacity>
           </View>
 
-          <View style={styles.campsiteList}>
-            {CAMPSITES.map((c) => (
+          {loading ? (
+            <View style={styles.centerBox}>
+              <ActivityIndicator size="large" color={colors.gearupGreen} />
+              <Text style={styles.centerText}>Loading campsites…</Text>
+            </View>
+          ) : error ? (
+            <View style={styles.centerBox}>
+              <Ionicons name="warning-outline" size={40} color={colors.textMuted} />
+              <Text style={styles.centerText}>{error}</Text>
               <TouchableOpacity
-                key={c.id}
-                style={styles.campsiteCard}
-                onPress={handleComingSoon}
-                activeOpacity={0.85}
+                style={styles.retryButton}
+                onPress={() => loadCampsites(true)}
               >
-                <Image source={{ uri: c.image }} style={styles.campsiteImage} />
-                <View style={styles.campsiteBody}>
-                  <Text style={styles.campsiteName} numberOfLines={1}>
-                    {c.name}
-                  </Text>
-                  <View style={styles.campsiteMeta}>
-                    <Ionicons name="location-outline" size={12} color={colors.textMuted} />
-                    <Text style={styles.campsiteLocation} numberOfLines={1}>
-                      {c.location}
-                    </Text>
-                  </View>
-                  <View style={styles.campsiteMeta}>
-                    <Ionicons name="star" size={12} color="#f59e0b" />
-                    <Text style={styles.campsiteRating}>
-                      {c.rating} ({c.reviews})
-                    </Text>
-                  </View>
-                  <Text style={styles.campsitePrice}>{c.price}</Text>
-                </View>
-                <TouchableOpacity
-                  style={styles.heartButton}
-                  onPress={handleComingSoon}
-                >
-                  <Ionicons name="heart-outline" size={20} color="#111827" />
-                </TouchableOpacity>
+                <Text style={styles.retryButtonText}>Try Again</Text>
               </TouchableOpacity>
-            ))}
-          </View>
+            </View>
+          ) : campsiteList.length === 0 ? (
+            <View style={styles.centerBox}>
+              <Ionicons name="leaf-outline" size={40} color={colors.textMuted} />
+              <Text style={styles.centerText}>No campsites available yet.</Text>
+            </View>
+          ) : (
+            <View style={styles.campsiteList}>
+              {campsiteList.map((c) => (
+                <TouchableOpacity
+                  key={c.id}
+                  style={styles.campsiteCard}
+                  onPress={() => openCampsite(c.id)}
+                  activeOpacity={0.85}
+                >
+                  <Image
+                    source={{ uri: c.image_url }}
+                    style={styles.campsiteImage}
+                  />
+                  <View style={styles.campsiteBody}>
+                    <Text style={styles.campsiteName} numberOfLines={1}>
+                      {c.name}
+                    </Text>
+                    <View style={styles.campsiteMeta}>
+                      <Ionicons
+                        name="location-outline"
+                        size={12}
+                        color={colors.textMuted}
+                      />
+                      <Text style={styles.campsiteLocation} numberOfLines={1}>
+                        {c.location}
+                      </Text>
+                    </View>
+                    <View style={styles.campsiteMeta}>
+                      <Ionicons name="star" size={12} color="#f59e0b" />
+                      <Text style={styles.campsiteRating}>
+                        {c.rating} ({c.reviews_count})
+                      </Text>
+                    </View>
+                    <Text style={styles.campsitePrice}>
+                      ₱{c.price_per_night} / {c.price_unit}
+                    </Text>
+                  </View>
+                  <TouchableOpacity
+                    style={styles.heartButton}
+                    onPress={handleComingSoon}
+                  >
+                    <Ionicons name="heart-outline" size={20} color="#111827" />
+                  </TouchableOpacity>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
         </View>
 
         {/* BOTTOM CTA */}
@@ -202,7 +263,10 @@ export default function HomeScreen() {
             <Text style={styles.ctaSubtitle}>
               Everything you need for unforgettable trips is here!
             </Text>
-            <TouchableOpacity style={styles.ctaButton} onPress={handleComingSoon}>
+            <TouchableOpacity
+              style={styles.ctaButton}
+              onPress={handleComingSoon}
+            >
               <Text style={styles.ctaButtonText}>Get Started</Text>
             </TouchableOpacity>
           </View>
@@ -378,6 +442,33 @@ const styles = StyleSheet.create({
   heartButton: {
     padding: 6,
     alignSelf: 'flex-start',
+  },
+
+  // Loading / empty states
+  centerBox: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 40,
+    gap: 10,
+  },
+  centerText: {
+    fontSize: 13,
+    color: colors.textMuted,
+    textAlign: 'center',
+    paddingHorizontal: 20,
+  },
+  retryButton: {
+    marginTop: 6,
+    borderWidth: 1,
+    borderColor: colors.gearupGreen,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 10,
+  },
+  retryButtonText: {
+    color: colors.gearupGreen,
+    fontSize: 13,
+    fontWeight: '700',
   },
 
   // CTA

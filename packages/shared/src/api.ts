@@ -60,3 +60,33 @@ export const authApi = (client: ApiClient) => ({
 
   logout: () => client.post<{ message: string }>('/logout'),
 });
+
+
+// ──────────────────────────────────────────────────────────
+// CAMPSITES
+// ──────────────────────────────────────────────────────────
+
+export interface Campsite {
+  id: number;
+  name: string;
+  description: string;
+  location: string;
+  region: string;
+  price_per_night: string;
+  price_unit: string;
+  image_url: string;
+  rating: string;
+  reviews_count: number;
+  capacity: number;
+  is_featured: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export const campsiteApi = (client: ApiClient) => ({
+  list: (params?: { featured?: boolean }) =>
+    client.get<Campsite[]>('/campsites', { params }),
+
+  get: (id: number | string) =>
+    client.get<Campsite>(`/campsites/${id}`),
+});

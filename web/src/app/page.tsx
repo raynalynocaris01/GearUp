@@ -5,6 +5,19 @@ import { Navbar } from '@/components/Navbar';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL!;
 
+interface Campsite {
+  id: number;
+  name: string;
+  location: string;
+  region: string;
+  price_per_night: string;
+  price_unit: string;
+  image_url: string;
+  rating: string;
+  reviews_count: number;
+  is_featured: boolean;
+}
+
 async function getCurrentUser() {
   const cookieStore = await cookies();
   const token = cookieStore.get('auth_token')?.value;
@@ -25,82 +38,57 @@ async function getCurrentUser() {
   }
 }
 
+async function getFeaturedCampsites(): Promise<Campsite[]> {
+  try {
+    const res = await fetch(`${API_URL}/campsites?featured=1`, {
+      headers: { Accept: 'application/json' },
+      // Revalidate every 60 seconds — cheap freshness without a full cache bust
+      next: { revalidate: 60 },
+    });
+    if (!res.ok) return [];
+    return await res.json();
+  } catch {
+    return [];
+  }
+}
+
 const FEATURES = [
   {
     label: 'Book Campsites',
     desc: 'Find the place to stay',
     emoji: '⛺',
-    color: 'text-green-700',
     bg: 'bg-green-50',
   },
   {
     label: 'Rent Gear',
     desc: 'Quality gear for your adventure',
     emoji: '🎒',
-    color: 'text-blue-700',
     bg: 'bg-blue-50',
   },
   {
     label: 'Hire Tour Guide',
     desc: 'Local guides, better experiences',
     emoji: '🧭',
-    color: 'text-orange-700',
     bg: 'bg-orange-50',
   },
   {
     label: 'Join Events',
     desc: 'Meet up and join adventures',
     emoji: '📅',
-    color: 'text-gray-700',
     bg: 'bg-gray-100',
   },
 ];
 
-const CAMPSITES = [
-  {
-    id: 1,
-    name: 'Grandi Vista Campsite',
-    location: 'Apolong, Valencia',
-    rating: 4.5,
-    reviews: 128,
-    price: '₱120 / night',
-    image: 'https://picsum.photos/seed/camp1/400/300',
-  },
-  {
-    id: 2,
-    name: 'Pulangbato Falls',
-    location: 'Valencia, Negros Oriental',
-    rating: 4.6,
-    reviews: 194,
-    price: '₱200 / entrance',
-    image: 'https://picsum.photos/seed/camp2/400/300',
-  },
-  {
-    id: 3,
-    name: 'Mt. Talinis Base Camp',
-    location: 'Valencia, Negros Oriental',
-    rating: 4.8,
-    reviews: 250,
-    price: '₱200 / night',
-    image: 'https://picsum.photos/seed/camp3/400/300',
-  },
-  {
-    id: 4,
-    name: 'Twin Lakes Retreat',
-    location: 'Sibulan, Negros Oriental',
-    rating: 4.7,
-    reviews: 162,
-    price: '₱180 / night',
-    image: 'https://picsum.photos/seed/camp4/400/300',
-  },
-];
-
 export default async function HomePage() {
-  const user = await getCurrentUser();
+  const [user, campsites] = await Promise.all([
+    getCurrentUser(),
+    getFeaturedCampsites(),
+  ]);
 
   return (
     <div className="min-h-screen bg-white">
       <Navbar user={user} />
+
       {/* HERO */}
       <section className="relative h-[520px] text-white overflow-hidden">
         <Image
@@ -180,42 +168,48 @@ export default async function HomePage() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {CAMPSITES.map((c) => (
-            <Link
-              key={c.id}
-              href="/login"
-              className="group bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-lg transition"
-            >
-              <div className="relative h-44 overflow-hidden">
-                <Image
-                  src={c.image}
-                  alt={c.name}
-                  fill
-                  sizes="(max-width: 768px) 100vw, 25vw"
-                  className="object-cover group-hover:scale-105 transition duration-500"
-                  unoptimized
-                />
-                <button className="absolute top-3 right-3 w-9 h-9 rounded-full bg-white/90 backdrop-blur flex items-center justify-center text-gray-700 hover:text-red-500 transition">
-                  ♡
-                </button>
-              </div>
-              <div className="p-4">
-                <h3 className="font-bold text-gray-900">{c.name}</h3>
-                <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
-                  <span>📍</span> {c.location}
-                </p>
-                <p className="text-xs text-gray-700 mt-1 flex items-center gap-1">
-                  <span className="text-yellow-500">★</span>
-                  {c.rating} ({c.reviews})
-                </p>
-                <p className="text-sm font-bold text-gearup-600 mt-3">
-                  {c.price}
-                </p>
-              </div>
-            </Link>
-          ))}
-        </div>
+        {campsites.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-gray-200 p-12 text-center text-gray-500">
+            No campsites available right now. Check back soon.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {campsites.map((c) => (
+              <Link
+                key={c.id}
+                href={`/campsites/${c.id}`}
+                className="group bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-lg transition"
+              >
+                <div className="relative h-44 overflow-hidden">
+                  <Image
+                    src={c.image_url}
+                    alt={c.name}
+                    fill
+                    sizes="(max-width: 768px) 100vw, 25vw"
+                    className="object-cover group-hover:scale-105 transition duration-500"
+                    unoptimized
+                  />
+                  <button className="absolute top-3 right-3 w-9 h-9 rounded-full bg-white/90 backdrop-blur flex items-center justify-center text-gray-700 hover:text-red-500 transition">
+                    ♡
+                  </button>
+                </div>
+                <div className="p-4">
+                  <h3 className="font-bold text-gray-900">{c.name}</h3>
+                  <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                    <span>📍</span> {c.location}
+                  </p>
+                  <p className="text-xs text-gray-700 mt-1 flex items-center gap-1">
+                    <span className="text-yellow-500">★</span>
+                    {c.rating} ({c.reviews_count})
+                  </p>
+                  <p className="text-sm font-bold text-gearup-600 mt-3">
+                    ₱{c.price_per_night} / {c.price_unit}
+                  </p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
       </section>
 
       {/* CTA BANNER */}
