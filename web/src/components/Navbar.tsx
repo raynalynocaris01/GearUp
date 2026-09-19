@@ -33,7 +33,7 @@ export function Navbar({ user }: NavbarProps) {
           <Link href="#" className="hover:text-gearup-600">
             About Us
           </Link>
-          <Link href="#" className="hover:text-gearup-600">
+          <Link href="/campsites" className="hover:text-gearup-600">
             Campsites
           </Link>
           <Link href="#" className="hover:text-gearup-600">
