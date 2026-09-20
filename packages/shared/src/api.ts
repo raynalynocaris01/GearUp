@@ -23,6 +23,9 @@ export interface AuthUser {
   id: number;
   name: string;
   email: string;
+  role: 'admin' | 'owner' | 'customer';
+  is_approved: boolean;
+  is_suspended?: boolean;
   email_verified_at: string | null;
   created_at: string;
   updated_at: string;
@@ -68,6 +71,7 @@ export const authApi = (client: ApiClient) => ({
 
 export interface Campsite {
   id: number;
+  owner_id?: number | null;
   name: string;
   description: string;
   location: string;
@@ -81,6 +85,7 @@ export interface Campsite {
   is_featured: boolean;
   created_at: string;
   updated_at: string;
+  tour_guides?: TourGuide[];
 }
 
 export const campsiteApi = (client: ApiClient) => ({
@@ -108,6 +113,11 @@ export interface Booking {
   created_at: string;
   updated_at: string;
   campsite?: Campsite;
+  user?: {
+    id: number;
+    name: string;
+    email: string;
+  };
 }
 
 export interface CreateBookingPayload {

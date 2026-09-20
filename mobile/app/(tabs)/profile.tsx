@@ -13,7 +13,13 @@ import { colors } from '../../theme';
 
 export default function ProfileScreen() {
   const router = useRouter();
-  const [user, setUser] = useState<{ name: string; email: string } | null>(null);
+  const [user, setUser] = useState<{
+  name: string;
+  email: string;
+  role: 'admin' | 'owner' | 'customer';
+  is_approved: boolean;
+} | null>(null);
+
   const [loading, setLoading] = useState(true);
 
   useFocusEffect(
@@ -32,7 +38,19 @@ export default function ProfileScreen() {
         }
         try {
           const res = await auth.user();
-          if (active) setUser(res.data);
+          if (active) {
+            const data = res.data as typeof res.data & {
+              role?: 'admin' | 'owner' | 'customer';
+              is_approved?: boolean;
+            };
+
+            setUser({
+              name: data.name,
+              email: data.email,
+              role: data.role ?? 'customer',
+              is_approved: data.is_approved ?? false,
+            });
+          }
         } catch {
           await clearToken();
           if (active) setUser(null);
@@ -99,6 +117,33 @@ export default function ProfileScreen() {
         <Text style={styles.name}>{user.name}</Text>
         <Text style={styles.email}>{user.email}</Text>
       </View>
+      {/* Owner section */}
+{user.role === 'owner' && user.is_approved && (
+  <TouchableOpacity
+    style={styles.manageButton}
+    onPress={() => router.push('/owner')}
+  >
+    <View style={styles.manageButtonContent}>
+      <Ionicons name="briefcase-outline" size={20} color="#fff" />
+      <Text style={styles.manageButtonText}>Manage my business</Text>
+    </View>
+    <Ionicons name="chevron-forward" size={18} color="#fff" />
+  </TouchableOpacity>
+)}
+
+{/* Admin section */}
+{user.role === 'admin' && (
+  <TouchableOpacity
+    style={styles.manageButton}
+    onPress={() => router.push('/admin')}
+  >
+    <View style={styles.manageButtonContent}>
+      <Ionicons name="shield-outline" size={20} color="#fff" />
+      <Text style={styles.manageButtonText}>Admin panel</Text>
+    </View>
+    <Ionicons name="chevron-forward" size={18} color="#fff" />
+  </TouchableOpacity>
+)}
 
       <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
         <Ionicons name="log-out-outline" size={18} color="#dc2626" />
@@ -171,4 +216,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   secondaryButtonText: { color: colors.gearupGreen, fontSize: 15, fontWeight: '700' },
+
+  manageButton: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  backgroundColor: colors.gearupGreen,
+  paddingVertical: 16,
+  paddingHorizontal: 20,
+  borderRadius: 14,
+  marginBottom: 12,
+},
+manageButtonContent: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  gap: 12,
+},
+manageButtonText: {
+  color: '#fff',
+  fontSize: 15,
+  fontWeight: '700',
+},
 });
