@@ -90,3 +90,42 @@ export const campsiteApi = (client: ApiClient) => ({
   get: (id: number | string) =>
     client.get<Campsite>(`/campsites/${id}`),
 });
+
+// ──────────────────────────────────────────────────────────
+// BOOKINGS
+// ──────────────────────────────────────────────────────────
+
+export interface Booking {
+  id: number;
+  user_id: number;
+  campsite_id: number;
+  check_in: string;
+  check_out: string;
+  guests: number;
+  total_price: string;
+  status: 'pending' | 'confirmed' | 'cancelled';
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+  campsite?: Campsite;
+}
+
+export interface CreateBookingPayload {
+  campsite_id: number;
+  check_in: string;   // YYYY-MM-DD
+  check_out: string;  // YYYY-MM-DD
+  guests: number;
+  notes?: string;
+}
+
+export const bookingApi = (client: ApiClient) => ({
+  list: () => client.get<Booking[]>('/bookings'),
+
+  get: (id: number | string) => client.get<Booking>(`/bookings/${id}`),
+
+  create: (payload: CreateBookingPayload) =>
+    client.post<Booking>('/bookings', payload),
+
+  cancel: (id: number | string) =>
+    client.post<Booking>(`/bookings/${id}/cancel`),
+});

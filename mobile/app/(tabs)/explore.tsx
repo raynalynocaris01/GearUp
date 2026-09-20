@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -15,14 +15,36 @@ import { useRouter, useFocusEffect } from 'expo-router';
 import { campsites } from '../../lib/api';
 import type { Campsite } from '@gearup/shared';
 import { colors } from '../../theme';
+import {
+  FilterChips,
+  EMPTY_FILTERS,
+  type FilterState,
+} from '../../components/FilterChips';
+
+function matchesPriceFilter(
+  price: number,
+  range: FilterState['priceRange'],
+): boolean {
+  if (!range) return true;
+  switch (range) {
+    case 'under-150':
+      return price < 150;
+    case '150-250':
+      return price >= 150 && price < 250;
+    case '250-400':
+      return price >= 250 && price < 400;
+    case 'over-400':
+      return price >= 400;
+  }
+}
 
 export default function ExploreScreen() {
   const router = useRouter();
-  const [search, setSearch] = useState('');
   const [list, setList] = useState<Campsite[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
+  const [filters, setFilters] = useState<FilterState>(EMPTY_FILTERS);
 
   const loadCampsites = async (showSpinner = false) => {
     if (showSpinner) setLoading(true);
@@ -53,11 +75,45 @@ export default function ExploreScreen() {
     loadCampsites();
   };
 
+  // Unique regions
+  const regions = useMemo(() => {
+    const set = new Set(list.map((c) => c.region));
+    return Array.from(set).sort();
+  }, [list]);
+
+  // Filter
+  const filtered = useMemo(() => {
+    const q = filters.search.trim().toLowerCase();
+    return list.filter((c) => {
+      if (q) {
+        const haystack = `${c.name} ${c.location} ${c.region}`.toLowerCase();
+        if (!haystack.includes(q)) return false;
+      }
+      if (filters.region && c.region !== filters.region) return false;
+      if (
+        !matchesPriceFilter(
+          parseFloat(c.price_per_night),
+          filters.priceRange,
+        )
+      )
+        return false;
+      if (
+        filters.minRating !== null &&
+        parseFloat(c.rating) < filters.minRating
+      )
+        return false;
+      return true;
+    });
+  }, [list, filters]);
+
   return (
     <View style={styles.container}>
       {/* App bar */}
       <View style={styles.appBar}>
         <Text style={styles.appBarTitle}>Explore</Text>
+        <Text style={styles.resultCount}>
+          {filtered.length} {filtered.length === 1 ? 'result' : 'results'}
+        </Text>
       </View>
 
       {/* Search */}
@@ -68,11 +124,21 @@ export default function ExploreScreen() {
             style={styles.searchInput}
             placeholder="Search campsites, destinations…"
             placeholderTextColor={colors.textMuted}
-            value={search}
-            onChangeText={setSearch}
+            value={filters.search}
+            onChangeText={(v) => setFilters((f) => ({ ...f, search: v }))}
           />
+          {filters.search.length > 0 && (
+            <TouchableOpacity
+              onPress={() => setFilters((f) => ({ ...f, search: '' }))}
+            >
+              <Ionicons name="close-circle" size={18} color={colors.textMuted} />
+            </TouchableOpacity>
+          )}
         </View>
       </View>
+
+      {/* Filter chips */}
+      <FilterChips filters={filters} regions={regions} onChange={setFilters} />
 
       {/* Content */}
       {loading ? (
@@ -93,7 +159,7 @@ export default function ExploreScreen() {
         </View>
       ) : (
         <FlatList
-          data={list}
+          data={filtered}
           keyExtractor={(item) => String(item.id)}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
@@ -107,7 +173,15 @@ export default function ExploreScreen() {
           ListEmptyComponent={
             <View style={styles.centerBox}>
               <Ionicons name="leaf-outline" size={40} color={colors.textMuted} />
-              <Text style={styles.centerText}>No campsites yet.</Text>
+              <Text style={styles.centerText}>
+                No campsites match your filters.
+              </Text>
+              <TouchableOpacity
+                style={styles.retryButton}
+                onPress={() => setFilters(EMPTY_FILTERS)}
+              >
+                <Text style={styles.retryButtonText}>Clear filters</Text>
+              </TouchableOpacity>
             </View>
           }
           renderItem={({ item }) => (
@@ -161,19 +235,21 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f9fafb' },
 
   appBar: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingTop: 55,
     paddingBottom: 12,
     backgroundColor: '#fff',
   },
   appBarTitle: { fontSize: 28, fontWeight: '900', color: '#111827' },
+  resultCount: { fontSize: 13, color: colors.textMuted },
 
   searchWrap: {
     backgroundColor: '#fff',
     paddingHorizontal: 20,
     paddingBottom: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
   },
   searchBox: {
     flexDirection: 'row',
