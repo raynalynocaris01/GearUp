@@ -2,6 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { cookies } from 'next/headers';
 import { OwnerBookingActions } from '@/components/owner/OwnerBookingActions';
+export const dynamic = 'force-dynamic';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL!;
 

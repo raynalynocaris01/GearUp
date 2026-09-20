@@ -4,6 +4,7 @@ import { redirect, notFound } from 'next/navigation';
 import { cookies } from 'next/headers';
 import { Navbar } from '@/components/Navbar';
 import { CancelBookingButton } from '@/components/CancelBookingButton';
+export const dynamic = 'force-dynamic';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL!;
 
@@ -161,10 +162,16 @@ export default async function BookingsPage() {
                           className={`inline-block text-[10px] font-extrabold tracking-wider px-2 py-1 rounded ${
                             cancelled
                               ? 'bg-red-100 text-red-700'
-                              : 'bg-green-100 text-green-700'
+                              : b.status === 'pending'
+                                ? 'bg-yellow-100 text-yellow-800'
+                                : 'bg-green-100 text-green-700'
                           }`}
                         >
-                          {cancelled ? 'CANCELLED' : 'CONFIRMED'}
+                          {cancelled
+                            ? 'CANCELLED'
+                            : b.status === 'pending'
+                              ? 'PENDING'
+                              : 'CONFIRMED'}
                         </span>
                         <h3 className="text-lg font-bold text-gray-900 mt-2">
                           {b.campsite?.name ?? 'Campsite'}

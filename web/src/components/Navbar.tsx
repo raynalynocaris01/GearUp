@@ -64,7 +64,7 @@ export function Navbar({ user }: NavbarProps) {
             </Link>
           ))}
 
-          {user && (
+          {user && user.role !== 'owner' && (
             <Link
               href="/bookings"
               className={`transition ${
