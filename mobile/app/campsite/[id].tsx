@@ -46,15 +46,13 @@ export default function CampsiteDetailScreen() {
   }, [id]);
 
   const handleBook = () => {
-    if (isGuest) {
-      router.push('/login');
-      return;
-    }
-    Alert.alert(
-      'Booking',
-      'Booking flow coming soon. This will create a reservation.',
-    );
-  };
+  if (isGuest) {
+    router.push('/login');
+    return;
+  }
+  router.push(`/booking/new?campsiteId=${campsite!.id}`);
+};
+
 
   if (loading) {
     return (

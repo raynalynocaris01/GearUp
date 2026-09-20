@@ -1,5 +1,5 @@
 import * as SecureStore from 'expo-secure-store';
-import { createApiClient, authApi, campsiteApi } from '@gearup/shared';
+import { createApiClient, authApi, campsiteApi, bookingApi, } from '@gearup/shared';
 
 const TOKEN_KEY = 'auth_token';
 
@@ -12,6 +12,7 @@ export const api = createApiClient(
 
 export const auth = authApi(api);
 export const campsites = campsiteApi(api);
+export const bookings = bookingApi(api);
 
 export const saveToken = (token: string) =>
   SecureStore.setItemAsync(TOKEN_KEY, token);
