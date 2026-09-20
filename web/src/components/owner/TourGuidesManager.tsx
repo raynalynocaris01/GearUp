@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
 interface TourGuide {
   id: number;
   name: string;
@@ -72,12 +72,10 @@ export function TourGuidesManager({ campsiteId, initialGuides }: Props) {
     }
   };
 
+
+  const [confirmGuide, setConfirmGuide] = useState<TourGuide | null>(null);
+
   const handleDelete = async (id: number) => {
-    if (
-      !confirm('Remove this tour guide? They will no longer appear on this campsite.')
-    ) {
-      return;
-    }
     setDeletingId(id);
     try {
       const res = await fetch(`/api/owner/tour-guides/${id}`, {
@@ -85,6 +83,7 @@ export function TourGuidesManager({ campsiteId, initialGuides }: Props) {
       });
       if (res.ok) {
         setGuides((prev) => prev.filter((g) => g.id !== id));
+        setConfirmGuide(null);
         router.refresh();
       } else {
         setError('Could not delete tour guide.');
@@ -129,16 +128,28 @@ export function TourGuidesManager({ campsiteId, initialGuides }: Props) {
                 )}
               </div>
               <button
-                onClick={() => handleDelete(g.id)}
-                disabled={deletingId === g.id}
-                className="text-xs font-semibold text-red-600 border border-red-200 bg-red-50 hover:bg-red-100 px-3 py-2 rounded-lg transition disabled:opacity-50"
-              >
-                {deletingId === g.id ? 'Removing...' : 'Remove'}
-              </button>
+              onClick={() => setConfirmGuide(g)}
+              disabled={deletingId === g.id}
+              className="text-xs font-semibold text-red-600 border border-red-200 bg-red-50 hover:bg-red-100 px-3 py-2 rounded-lg transition disabled:opacity-50"
+            >
+              Remove
+            </button>
             </div>
           ))}
+          
         </div>
       )}
+      
+      <ConfirmModal
+              open={confirmGuide !== null}
+              title="Remove this tour guide?"
+              message={`Remove ${confirmGuide?.name}? They will no longer appear on this campsite.`}
+              confirmLabel="Remove"
+              variant="danger"
+              loading={deletingId === confirmGuide?.id}
+              onConfirm={() => confirmGuide && handleDelete(confirmGuide.id)}
+              onCancel={() => !deletingId && setConfirmGuide(null)}
+            />
 
       {error && (
         <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg p-3">

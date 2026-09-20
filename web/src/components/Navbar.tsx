@@ -89,6 +89,18 @@ export function Navbar({ user }: NavbarProps) {
               Manage
             </Link>
           )}
+          {user && user.role === 'admin' && (
+            <Link
+              href="/admin"
+              className={`transition ${
+                isActive('/admin')
+                  ? 'text-gearup-600 font-semibold'
+                  : 'hover:text-gearup-600'
+              }`}
+            >
+              Admin
+            </Link>
+          )}
         </nav>
 
         {/* Auth area */}
