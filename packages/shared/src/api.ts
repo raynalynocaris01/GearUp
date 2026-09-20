@@ -129,3 +129,82 @@ export const bookingApi = (client: ApiClient) => ({
   cancel: (id: number | string) =>
     client.post<Booking>(`/bookings/${id}/cancel`),
 });
+
+// ──────────────────────────────────────────────────────────
+// OWNER
+// ──────────────────────────────────────────────────────────
+
+export interface OwnerDashboardStats {
+  total_campsites: number;
+  total_bookings: number;
+  pending_bookings: number;
+  confirmed_bookings: number;
+  total_revenue: number;
+}
+
+export interface TourGuide {
+  id: number;
+  campsite_id: number;
+  name: string;
+  contact_number: string;
+  email: string | null;
+  description: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateCampsitePayload {
+  name: string;
+  description: string;
+  location: string;
+  region: string;
+  price_per_night: number;
+  price_unit: 'night' | 'entrance';
+  image_url: string;
+  capacity: number;
+}
+
+export interface CreateTourGuidePayload {
+  name: string;
+  contact_number: string;
+  email?: string;
+  description?: string;
+}
+
+export const ownerApi = (client: ApiClient) => ({
+  dashboard: () => client.get<OwnerDashboardStats>('/owner/dashboard'),
+
+  // Campsites
+  listCampsites: () => client.get<Campsite[]>('/owner/campsites'),
+
+  getCampsite: (id: number | string) =>
+    client.get<Campsite>(`/owner/campsites/${id}`),
+
+  createCampsite: (payload: CreateCampsitePayload) =>
+    client.post<Campsite>('/owner/campsites', payload),
+
+  updateCampsite: (id: number | string, payload: Partial<CreateCampsitePayload>) =>
+    client.put<Campsite>(`/owner/campsites/${id}`, payload),
+
+  deleteCampsite: (id: number | string) =>
+    client.delete(`/owner/campsites/${id}`),
+
+  // Tour guides
+  listTourGuides: (campsiteId: number | string) =>
+    client.get<TourGuide[]>(`/owner/campsites/${campsiteId}/tour-guides`),
+
+  createTourGuide: (campsiteId: number | string, payload: CreateTourGuidePayload) =>
+    client.post<TourGuide>(`/owner/campsites/${campsiteId}/tour-guides`, payload),
+
+  deleteTourGuide: (guideId: number | string) =>
+    client.delete(`/owner/tour-guides/${guideId}`),
+
+  // Bookings
+  listBookings: () => client.get<Booking[]>('/owner/bookings'),
+
+  confirmBooking: (id: number | string) =>
+    client.post<Booking>(`/owner/bookings/${id}/confirm`),
+
+  cancelBooking: (id: number | string) =>
+    client.post<Booking>(`/owner/bookings/${id}/cancel`),
+});
