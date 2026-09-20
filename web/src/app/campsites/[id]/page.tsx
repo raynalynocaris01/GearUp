@@ -67,7 +67,7 @@ export default async function CampsiteDetailPage({
   if (!campsite) notFound();
 
   const isGuest = !user;
-  const bookHref = isGuest ? '/login' : '/profile';
+const bookHref = isGuest ? '/login' : `/campsites/${campsite.id}/book`;
 
   return (
     <div className="min-h-screen bg-white">

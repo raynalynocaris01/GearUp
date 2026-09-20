@@ -42,6 +42,11 @@ export function Navbar({ user }: NavbarProps) {
           <Link href="#" className="hover:text-gearup-600">
             Gear Rental
           </Link>
+          {user && (
+          <Link href="/bookings" className="hover:text-gearup-600">
+            Bookings
+          </Link>
+        )}
         </nav>
 
         {/* Auth area */}
