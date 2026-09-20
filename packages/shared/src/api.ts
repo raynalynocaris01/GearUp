@@ -208,3 +208,67 @@ export const ownerApi = (client: ApiClient) => ({
   cancelBooking: (id: number | string) =>
     client.post<Booking>(`/owner/bookings/${id}/cancel`),
 });
+
+// ──────────────────────────────────────────────────────────
+// ADMIN
+// ──────────────────────────────────────────────────────────
+
+export interface AdminDashboardStats {
+  total_users: number;
+  total_owners: number;
+  pending_owners: number;
+  suspended_users: number;
+  total_campsites: number;
+  featured_campsites: number;
+  total_bookings: number;
+  pending_bookings: number;
+  confirmed_bookings: number;
+  total_revenue: number;
+}
+
+export interface AdminUser {
+  id: number;
+  name: string;
+  email: string;
+  role: 'admin' | 'owner' | 'customer';
+  is_approved: boolean;
+  is_suspended: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export const adminApi = (client: ApiClient) => ({
+  dashboard: () => client.get<AdminDashboardStats>('/admin/dashboard'),
+
+  // Users
+  listUsers: (params?: { role?: string; status?: string }) =>
+    client.get<AdminUser[]>('/admin/users', { params }),
+
+  getUser: (id: number | string) =>
+    client.get<AdminUser>(`/admin/users/${id}`),
+
+  approveUser: (id: number | string) =>
+    client.post<AdminUser>(`/admin/users/${id}/approve`),
+
+  rejectUser: (id: number | string) =>
+    client.post<AdminUser>(`/admin/users/${id}/reject`),
+
+  suspendUser: (id: number | string) =>
+    client.post<AdminUser>(`/admin/users/${id}/suspend`),
+
+  reinstateUser: (id: number | string) =>
+    client.post<AdminUser>(`/admin/users/${id}/reinstate`),
+
+  // Campsites
+  listCampsites: () => client.get<Campsite[]>('/admin/campsites'),
+
+  toggleFeatured: (id: number | string) =>
+    client.post<Campsite>(`/admin/campsites/${id}/feature`),
+
+  deleteCampsite: (id: number | string) =>
+    client.delete(`/admin/campsites/${id}`),
+
+  // Bookings
+  listBookings: (params?: { status?: string }) =>
+    client.get<Booking[]>('/admin/bookings', { params }),
+});

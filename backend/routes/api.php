@@ -7,6 +7,10 @@ use App\Http\Controllers\Owner\BookingController as OwnerBookingController;
 use App\Http\Controllers\Owner\CampsiteController as OwnerCampsiteController;
 use App\Http\Controllers\Owner\DashboardController as OwnerDashboardController;
 use App\Http\Controllers\Owner\TourGuideController as OwnerTourGuideController;
+use App\Http\Controllers\Admin\BookingController as AdminBookingController;
+use App\Http\Controllers\Admin\CampsiteController as AdminCampsiteController;
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\UserController as AdminUserController;
 use Illuminate\Support\Facades\Route;
 
 // ─── Public ──────────────────────────────────────────────
@@ -48,4 +52,28 @@ Route::middleware(['auth:sanctum', 'role:owner'])->prefix('owner')->group(functi
     Route::get('/bookings',                          [OwnerBookingController::class, 'index']);
     Route::post('/bookings/{booking}/confirm',       [OwnerBookingController::class, 'confirm']);
     Route::post('/bookings/{booking}/cancel',        [OwnerBookingController::class, 'cancel']);
+});
+
+
+// ─── Admin only ──────────────────────────────────────────
+Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(function () {
+    // Dashboard
+    Route::get('/dashboard', [AdminDashboardController::class, 'index']);
+
+    // Users
+    Route::get('/users',                [AdminUserController::class, 'index']);
+    Route::get('/users/{user}',         [AdminUserController::class, 'show']);
+    Route::put('/users/{user}',         [AdminUserController::class, 'update']);
+    Route::post('/users/{user}/approve',   [AdminUserController::class, 'approve']);
+    Route::post('/users/{user}/reject',    [AdminUserController::class, 'reject']);
+    Route::post('/users/{user}/suspend',   [AdminUserController::class, 'suspend']);
+    Route::post('/users/{user}/reinstate', [AdminUserController::class, 'reinstate']);
+
+    // Campsites
+    Route::get('/campsites',                     [AdminCampsiteController::class, 'index']);
+    Route::post('/campsites/{campsite}/feature', [AdminCampsiteController::class, 'feature']);
+    Route::delete('/campsites/{campsite}',       [AdminCampsiteController::class, 'destroy']);
+
+    // Bookings
+    Route::get('/bookings', [AdminBookingController::class, 'index']);
 });
