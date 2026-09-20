@@ -84,7 +84,7 @@ class BookingController extends Controller
             'check_out' => $data['check_out'],
             'guests' => $data['guests'],
             'total_price' => $totalPrice,
-            'status' => 'confirmed',
+            'status' => 'pending',
             'notes' => $data['notes'] ?? null,
         ]);
 
