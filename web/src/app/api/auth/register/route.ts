@@ -17,6 +17,7 @@ export async function POST(request: Request) {
       password: body.password,
       password_confirmation: body.password_confirmation,
       device_name: 'next-web',
+      role: body.role, // 'customer' or 'owner'
     }),
   });
 

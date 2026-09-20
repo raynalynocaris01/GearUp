@@ -110,6 +110,12 @@ export function Navbar({ user }: NavbarProps) {
           ) : (
             <>
               <Link
+                href="/signup/business"
+                className="hidden md:inline-block text-sm text-gray-600 hover:text-gearup-600 font-medium transition"
+              >
+                Become a Host
+              </Link>
+              <Link
                 href="/login"
                 className="hidden sm:inline-block px-5 py-2 rounded-lg border border-gearup-600 text-gearup-600 text-sm font-semibold hover:bg-gearup-50 transition"
               >

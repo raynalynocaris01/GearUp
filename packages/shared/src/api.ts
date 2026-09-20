@@ -44,20 +44,22 @@ export const authApi = (client: ApiClient) => ({
       device_name: deviceName,
     }),
 
-  register: (
-    name: string,
-    email: string,
-    password: string,
-    passwordConfirmation: string,
-    deviceName: string,
-  ) =>
-    client.post<AuthResponse>('/register', {
-      name,
-      email,
-      password,
-      password_confirmation: passwordConfirmation,
-      device_name: deviceName,
-    }),
+      register: (
+      name: string,
+      email: string,
+      password: string,
+      passwordConfirmation: string,
+      deviceName: string,
+      role: 'customer' | 'owner' = 'customer',
+    ) =>
+      client.post<AuthResponse>('/register', {
+        name,
+        email,
+        password,
+        password_confirmation: passwordConfirmation,
+        device_name: deviceName,
+        role,
+      }),
 
   user: () => client.get<AuthUser>('/user'),
 

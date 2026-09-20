@@ -102,6 +102,15 @@ export default function ProfileScreen() {
         >
           <Text style={styles.secondaryButtonText}>Create Account</Text>
         </TouchableOpacity>
+
+        <TouchableOpacity
+        style={styles.hostLink}
+        onPress={() => router.push('/signup-business')}
+      >
+        <Text style={styles.hostLinkText}>
+          Want to list your campsite? Become a host →
+        </Text>
+      </TouchableOpacity>
       </View>
     );
   }
@@ -236,5 +245,15 @@ manageButtonText: {
   color: '#fff',
   fontSize: 15,
   fontWeight: '700',
+},
+hostLink: {
+  marginTop: 20,
+  paddingVertical: 8,
+},
+hostLinkText: {
+  color: colors.gearupGreen,
+  fontSize: 13,
+  fontWeight: '600',
+  textAlign: 'center',
 },
 });
