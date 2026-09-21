@@ -12,7 +12,7 @@ interface Booking {
   check_out: string;
   guests: number;
   total_price: string;
-  status: 'pending' | 'confirmed' | 'cancelled';
+  status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
   notes: string | null;
   user?: { id: number; name: string; email: string };
   campsite?: { id: number; name: string; image_url: string; location: string };
@@ -113,7 +113,9 @@ export default async function OwnerBookingsPage() {
                             ? 'bg-red-100 text-red-700'
                             : b.status === 'pending'
                               ? 'bg-yellow-100 text-yellow-800'
-                              : 'bg-green-100 text-green-700'
+                              : b.status === 'completed'
+                                ? 'bg-blue-100 text-blue-700'
+                                : 'bg-green-100 text-green-700'
                         }`}
                       >
                         {b.status.toUpperCase()}

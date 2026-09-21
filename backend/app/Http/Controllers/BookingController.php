@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Booking;
 use App\Models\Campsite;
-use Carbon\Carbon;
+use Illuminate\Support\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
@@ -17,11 +17,11 @@ class BookingController extends Controller
     public function index(Request $request)
     {
         return response()->json(
-            Booking::with('campsite')
-                ->where('user_id', $request->user()->id)
-                ->orderByDesc('check_in')
-                ->get()
-        );
+        Booking::with(['campsite', 'review'])
+            ->where('user_id', $request->user()->id)
+            ->orderByDesc('check_in')
+            ->get()
+    );
     }
 
     /**

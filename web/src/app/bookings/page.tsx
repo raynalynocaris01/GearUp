@@ -14,7 +14,7 @@ interface Booking {
   check_out: string;
   guests: number;
   total_price: string;
-  status: 'pending' | 'confirmed' | 'cancelled';
+  status: 'pending' | 'confirmed' |'completed'| 'cancelled';
   notes: string | null;
   campsite?: {
     id: number;
@@ -22,6 +22,7 @@ interface Booking {
     location: string;
     image_url: string;
   };
+   review?: { id: number } | null;
 }
 
 async function getCurrentUser() {
@@ -164,14 +165,18 @@ export default async function BookingsPage() {
                               ? 'bg-red-100 text-red-700'
                               : b.status === 'pending'
                                 ? 'bg-yellow-100 text-yellow-800'
-                                : 'bg-green-100 text-green-700'
+                                : b.status === 'completed'
+                                  ? 'bg-blue-100 text-blue-700'
+                                  : 'bg-green-100 text-green-700'
                           }`}
                         >
                           {cancelled
                             ? 'CANCELLED'
                             : b.status === 'pending'
                               ? 'PENDING'
-                              : 'CONFIRMED'}
+                              : b.status === 'completed'
+                                ? 'COMPLETED'
+                                : 'CONFIRMED'}
                         </span>
                         <h3 className="text-lg font-bold text-gray-900 mt-2">
                           {b.campsite?.name ?? 'Campsite'}
@@ -204,11 +209,27 @@ export default async function BookingsPage() {
                       </p>
                     )}
 
-                    {!cancelled && (
+                    {/* Action buttons — depend on status */}
+                    {b.status === 'pending' || b.status === 'confirmed' ? (
                       <div className="mt-4 flex justify-end">
                         <CancelBookingButton bookingId={b.id} />
                       </div>
-                    )}
+                    ) : b.status === 'completed' ? (
+                    <div className="mt-4 flex justify-end">
+                      {b.review ? (
+                        <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-gearup-700 bg-gearup-50 border border-gearup-200 px-4 py-2 rounded-lg">
+                          ✓ Reviewed
+                        </span>
+                      ) : (
+                        <a
+                          href={`/campsites/${b.campsite?.id}`}
+                          className="inline-block text-sm font-semibold text-white bg-gearup-600 hover:bg-gearup-700 px-5 py-2.5 rounded-lg transition"
+                        >
+                          Leave a review
+                        </a>
+                      )}
+                    </div>
+                  ) : null}
                   </div>
                 </div>
               );
