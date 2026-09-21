@@ -179,11 +179,14 @@ export default async function OwnerBookingsPage() {
                   </div>
                   </div>
                   {b.tour_guide && (
-                    <div className="mt-3 flex items-center gap-2 text-xs font-semibold text-gearup-700 bg-gearup-50 border border-gearup-200 rounded-lg px-3 py-2">
+                    <Link
+                      href={`/tour-guides/${b.tour_guide.id}`}
+                      className="mt-3 flex items-center gap-2 text-xs font-semibold text-gearup-700 bg-gearup-50 hover:bg-gearup-100 border border-gearup-200 rounded-lg px-3 py-2 transition"
+                    >
                       🧭 Tour guide: {b.tour_guide.name}
-                    </div>
+                      <span className="ml-auto">View →</span>
+                    </Link>
                   )}
-
                   {b.notes && (
                     <p className="text-xs text-gray-500 mt-3 italic">
                       "{b.notes}"

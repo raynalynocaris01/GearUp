@@ -209,9 +209,12 @@ export default async function BookingsPage() {
                         👥 {b.guests} {b.guests === 1 ? 'guest' : 'guests'}
                       </span>
                       {b.tour_guide && (
-                        <span className="flex items-center gap-1 text-gearup-700 font-semibold">
+                        <Link
+                          href={`/tour-guides/${b.tour_guide.id}`}
+                          className="flex items-center gap-1 text-gearup-700 font-semibold hover:underline"
+                        >
                           🧭 Guide: {b.tour_guide.name}
-                        </span>
+                        </Link>
                       )}
                     </div>
 
