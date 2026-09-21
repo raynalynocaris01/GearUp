@@ -10,19 +10,24 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL!;
 
 interface Booking {
   id: number;
-  check_in: string;
-  check_out: string;
+  check_in: string | null;
+  check_out: string | null;
   guests: number;
   total_price: string;
-  status: 'pending' | 'confirmed' |'completed'| 'cancelled';
+  status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
   notes: string | null;
   campsite?: {
     id: number;
     name: string;
     location: string;
     image_url: string;
-  };
-   review?: { id: number } | null;
+  } | null;
+  tourGuide?: {
+    id: number;
+    name: string;
+    price_per_trip: string;
+  } | null;
+  review?: { id: number } | null;
 }
 
 async function getCurrentUser() {
@@ -69,7 +74,8 @@ function formatDate(iso: string): string {
   });
 }
 
-function nightsBetween(a: string, b: string): number {
+function nightsBetween(a: string | null, b: string | null): number {
+  if (!a || !b) return 0;
   const start = new Date(a).getTime();
   const end = new Date(b).getTime();
   return Math.max(1, Math.round((end - start) / (1000 * 60 * 60 * 24)));
@@ -193,14 +199,20 @@ export default async function BookingsPage() {
                     </div>
 
                     <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-gray-600 mt-4">
+                      {b.check_in && b.check_out && (
+                        <span>
+                          📅 {formatDate(b.check_in)} → {formatDate(b.check_out)} (
+                          {nights} {nights === 1 ? 'night' : 'nights'})
+                        </span>
+                      )}
                       <span>
-                        📅 {formatDate(b.check_in)} → {formatDate(b.check_out)}{' '}
-                        ({nights} {nights === 1 ? 'night' : 'nights'})
+                        👥 {b.guests} {b.guests === 1 ? 'guest' : 'guests'}
                       </span>
-                      <span>
-                        👥 {b.guests}{' '}
-                        {b.guests === 1 ? 'guest' : 'guests'}
-                      </span>
+                      {b.tourGuide && (
+                        <span className="flex items-center gap-1 text-gearup-700 font-semibold">
+                          🧭 Guide: {b.tourGuide.name}
+                        </span>
+                      )}
                     </div>
 
                     {b.notes && (

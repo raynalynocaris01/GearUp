@@ -69,12 +69,12 @@ const FEATURES = [
     href: '/coming-soon?feature=gear-rental',
   },
   {
-    label: 'Hire Tour Guide',
-    desc: 'Local guides, better experiences',
-    emoji: '🧭',
-    bg: 'bg-orange-50',
-    href: '/campsites',
-  },
+  label: 'Hire Tour Guide',
+  desc: 'Local guides, better experiences',
+  emoji: '🧭',
+  bg: 'bg-orange-50',
+  href: '/tour-guides',
+},
   {
     label: 'Join Events',
     desc: 'Meet up and join adventures',

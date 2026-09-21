@@ -8,14 +8,24 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL!;
 
 interface Booking {
   id: number;
-  check_in: string;
-  check_out: string;
+  check_in: string | null;
+  check_out: string | null;
   guests: number;
   total_price: string;
   status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
   notes: string | null;
   user?: { id: number; name: string; email: string };
-  campsite?: { id: number; name: string; image_url: string; location: string };
+  campsite?: {
+    id: number;
+    name: string;
+    image_url: string;
+    location: string;
+  } | null;
+  tourGuide?: {
+    id: number;
+    name: string;
+    price_per_trip: string;
+  } | null;
 }
 
 async function getBookings(token: string): Promise<Booking[]> {
@@ -43,7 +53,8 @@ function formatDate(iso: string): string {
   });
 }
 
-function nightsBetween(a: string, b: string): number {
+function nightsBetween(a: string | null, b: string | null): number {
+  if (!a || !b) return 0;
   const start = new Date(a).getTime();
   const end = new Date(b).getTime();
   return Math.max(1, Math.round((end - start) / (1000 * 60 * 60 * 24)));
@@ -121,7 +132,7 @@ export default async function OwnerBookingsPage() {
                         {b.status.toUpperCase()}
                       </span>
                       <h3 className="text-lg font-bold text-gray-900 mt-2">
-                        {b.campsite?.name ?? 'Campsite'}
+                        {b.campsite?.name ?? (b.tourGuide ? 'Tour Guide Booking' : 'Booking')}
                       </h3>
                       <p className="text-xs text-gray-500">
                         📍 {b.campsite?.location}
@@ -147,18 +158,31 @@ export default async function OwnerBookingsPage() {
                       </p>
                     </div>
                     <div className="bg-gray-50 rounded-lg p-3">
-                      <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">
-                        Dates
-                      </p>
-                      <p className="text-sm font-semibold text-gray-900">
-                        {formatDate(b.check_in)} → {formatDate(b.check_out)}
-                      </p>
+                    <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">
+                      {b.check_in && b.check_out ? 'Dates' : 'Details'}
+                    </p>
+                    {b.check_in && b.check_out ? (
+                      <>
+                        <p className="text-sm font-semibold text-gray-900">
+                          {formatDate(b.check_in)} → {formatDate(b.check_out)}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {nights} {nights === 1 ? 'night' : 'nights'} · {b.guests}{' '}
+                          {b.guests === 1 ? 'guest' : 'guests'}
+                        </p>
+                      </>
+                    ) : (
                       <p className="text-xs text-gray-500">
-                        {nights} {nights === 1 ? 'night' : 'nights'} ·{' '}
                         {b.guests} {b.guests === 1 ? 'guest' : 'guests'}
                       </p>
-                    </div>
+                    )}
                   </div>
+                  </div>
+                  {b.tourGuide && (
+                    <div className="mt-3 flex items-center gap-2 text-xs font-semibold text-gearup-700 bg-gearup-50 border border-gearup-200 rounded-lg px-3 py-2">
+                      🧭 Tour guide: {b.tourGuide.name}
+                    </div>
+                  )}
 
                   {b.notes && (
                     <p className="text-xs text-gray-500 mt-3 italic">
