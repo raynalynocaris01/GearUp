@@ -38,7 +38,22 @@ class BookingController extends Controller
 
         return response()->json($booking->load('campsite'));
     }
+    /**
+     * POST /api/owner/bookings/{booking}/complete
+     * Mark a booking as completed after the stay.
+     */
+    public function complete(Request $request, Booking $booking)
+    {
+        $this->authorizeOwner($request, $booking);
 
+        if ($booking->status !== 'confirmed') {
+            abort(422, 'Only confirmed bookings can be marked as completed.');
+        }
+
+        $booking->update(['status' => 'completed']);
+
+        return response()->json($booking->load('campsite'));
+    }
     /**
      * POST /api/owner/bookings/{booking}/cancel
      */

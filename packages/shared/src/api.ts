@@ -88,6 +88,7 @@ export interface Campsite {
   created_at: string;
   updated_at: string;
   tour_guides?: TourGuide[];
+  reviews?: Review[];
 }
 
 export const campsiteApi = (client: ApiClient) => ({
@@ -110,7 +111,7 @@ export interface Booking {
   check_out: string;
   guests: number;
   total_price: string;
-  status: 'pending' | 'confirmed' | 'cancelled';
+  status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
   notes: string | null;
   created_at: string;
   updated_at: string;
@@ -219,6 +220,9 @@ export const ownerApi = (client: ApiClient) => ({
 
   cancelBooking: (id: number | string) =>
     client.post<Booking>(`/owner/bookings/${id}/cancel`),
+
+  completeBooking: (id: number | string) =>
+    client.post<Booking>(`/owner/bookings/${id}/complete`),
 });
 
 // ──────────────────────────────────────────────────────────
@@ -283,4 +287,40 @@ export const adminApi = (client: ApiClient) => ({
   // Bookings
   listBookings: (params?: { status?: string }) =>
     client.get<Booking[]>('/admin/bookings', { params }),
+});
+
+// ──────────────────────────────────────────────────────────
+// REVIEWS
+// ──────────────────────────────────────────────────────────
+
+export interface Review {
+  id: number;
+  user_id: number;
+  campsite_id: number;
+  booking_id: number;
+  rating: number;
+  comment: string | null;
+  created_at: string;
+  updated_at: string;
+  user?: {
+    id: number;
+    name: string;
+  };
+}
+
+export interface CreateReviewPayload {
+  booking_id: number;
+  rating: number;
+  comment?: string;
+}
+
+export const reviewApi = (client: ApiClient) => ({
+  listForCampsite: (campsiteId: number | string) =>
+    client.get<Review[]>(`/campsites/${campsiteId}/reviews`),
+
+  create: (campsiteId: number | string, payload: CreateReviewPayload) =>
+    client.post<Review>(`/campsites/${campsiteId}/reviews`, payload),
+
+  delete: (reviewId: number | string) =>
+    client.delete(`/reviews/${reviewId}`),
 });

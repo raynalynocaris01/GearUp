@@ -12,12 +12,14 @@ use App\Http\Controllers\Admin\CampsiteController as AdminCampsiteController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ReviewController;
 
 // ─── Public ──────────────────────────────────────────────
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login',    [AuthController::class, 'login']);
 Route::get('/campsites', [CampsiteController::class, 'index']);
 Route::get('/campsites/{campsite}', [CampsiteController::class, 'show']);
+Route::get('/campsites/{campsite}/reviews', [ReviewController::class, 'index']);
 
 // ─── Authenticated (any role) ────────────────────────────
 Route::middleware('auth:sanctum')->group(function () {
@@ -29,6 +31,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/bookings',                  [BookingController::class, 'store']);
     Route::get('/bookings/{booking}',         [BookingController::class, 'show']);
     Route::post('/bookings/{booking}/cancel', [BookingController::class, 'cancel']);
+
+    // Reviews
+    Route::post('/campsites/{campsite}/reviews', [ReviewController::class, 'store']);
+    Route::delete('/reviews/{review}', [ReviewController::class, 'destroy']);
 });
 
 // ─── Owner only ──────────────────────────────────────────
@@ -52,6 +58,7 @@ Route::middleware(['auth:sanctum', 'role:owner'])->prefix('owner')->group(functi
     Route::get('/bookings',                          [OwnerBookingController::class, 'index']);
     Route::post('/bookings/{booking}/confirm',       [OwnerBookingController::class, 'confirm']);
     Route::post('/bookings/{booking}/cancel',        [OwnerBookingController::class, 'cancel']);
+    Route::post('/bookings/{booking}/complete',      [OwnerBookingController::class, 'complete']);
 });
 
 

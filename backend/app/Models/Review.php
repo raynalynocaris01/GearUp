@@ -6,26 +6,20 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class Booking extends Model
+class Review extends Model
 {
     use HasFactory;
 
     protected $fillable = [
         'user_id',
         'campsite_id',
-        'check_in',
-        'check_out',
-        'guests',
-        'total_price',
-        'status',
-        'notes',
+        'booking_id',
+        'rating',
+        'comment',
     ];
 
     protected $casts = [
-        'check_in' => 'date',
-        'check_out' => 'date',
-        'guests' => 'integer',
-        'total_price' => 'decimal:2',
+        'rating' => 'integer',
     ];
 
     public function user(): BelongsTo
@@ -38,8 +32,8 @@ class Booking extends Model
         return $this->belongsTo(Campsite::class);
     }
 
-    public function review()
+    public function booking(): BelongsTo
     {
-        return $this->hasOne(Review::class);
+        return $this->belongsTo(Booking::class);
     }
 }
