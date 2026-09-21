@@ -29,7 +29,7 @@ class DashboardController extends Controller
         $pendingBookings = Booking::where('status', 'pending')->count();
         $confirmedBookings = Booking::where('status', 'confirmed')->count();
 
-        $totalRevenue = Booking::where('status', 'confirmed')->sum('total_price');
+        $totalRevenue = Booking::whereIn('status', ['confirmed', 'completed'])->sum('total_price');
 
         return response()->json([
             'total_users' => $totalUsers,
