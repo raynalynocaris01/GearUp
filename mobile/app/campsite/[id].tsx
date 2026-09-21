@@ -31,17 +31,20 @@ export default function CampsiteDetailScreen() {
   const openDirections = () => {
   if (!campsite) return;
 
-  const { latitude, longitude, name, location, region } = campsite;
+  const { name, location, region, latitude, longitude } = campsite;
 
+  // Prefer searching by name + address so Google Maps shows the real
+  // place card. Fall back to coordinates if name/address are missing.
   const query =
-    latitude != null && longitude != null
-      ? `${latitude},${longitude}`
-      : encodeURIComponent(`${name}, ${location}, ${region}`);
+    name && location
+      ? encodeURIComponent(`${name}, ${location}, ${region}`)
+      : latitude != null && longitude != null
+        ? `${latitude},${longitude}`
+        : encodeURIComponent(`${location}, ${region}`);
 
   const url = `https://www.google.com/maps/search/?api=1&query=${query}`;
-
   Linking.openURL(url).catch(() => {});
-  };
+};
 
   useEffect(() => {
     (async () => {

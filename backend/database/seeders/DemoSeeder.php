@@ -195,9 +195,9 @@ class DemoSeeder extends Seeder
             Campsite::create($data);
         }
 
-        $grandiVista = Campsite::where('name', 'Grandi Vista Campsite')->first();
-        $pulangbato = Campsite::where('name', 'Pulangbato Falls Mountain Resort')->first();
-        $talinis = Campsite::where('name', 'Rancho (Mt. Talinis)')->first();
+        $grandiVista = Campsite::where('name', 'Grandi Vista Campsite')->firstOrFail();
+        $pulangbato = Campsite::where('name', 'Pulangbato Falls Mountain Resort')->firstOrFail();
+        $talinis = Campsite::where('name', 'Rancho (Mt. Talinis)')->firstOrFail();
 
         // ─── Tour Guides (attached) ─────────────────────
         TourGuide::create([
