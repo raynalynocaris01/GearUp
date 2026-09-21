@@ -2,6 +2,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { cookies } from 'next/headers';
 import { Navbar } from '@/components/Navbar';
+import { HomeSearch } from '@/components/HomeSearch';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL!;
 
@@ -58,24 +59,28 @@ const FEATURES = [
     desc: 'Find the place to stay',
     emoji: '⛺',
     bg: 'bg-green-50',
+    href: '/campsites',
   },
   {
     label: 'Rent Gear',
     desc: 'Quality gear for your adventure',
     emoji: '🎒',
     bg: 'bg-blue-50',
+    href: '/coming-soon?feature=gear-rental',
   },
   {
-    label: 'Hire Tour Guide',
-    desc: 'Local guides, better experiences',
-    emoji: '🧭',
-    bg: 'bg-orange-50',
-  },
+  label: 'Hire Tour Guide',
+  desc: 'Local guides, better experiences',
+  emoji: '🧭',
+  bg: 'bg-orange-50',
+  href: '/tour-guides',
+},
   {
     label: 'Join Events',
     desc: 'Meet up and join adventures',
     emoji: '📅',
     bg: 'bg-gray-100',
+    href: '/coming-soon?feature=events',
   },
 ];
 
@@ -110,19 +115,7 @@ export default async function HomePage() {
             <span className="text-gearup-500">Adventure.</span>
           </h1>
 
-          <div className="mt-10 max-w-xl">
-            <div className="flex items-center gap-2 bg-white rounded-xl p-2 shadow-lg">
-              <span className="pl-3 text-gray-400">🔍</span>
-              <input
-                type="text"
-                placeholder="Where do you want to go?"
-                className="flex-1 px-2 py-2 text-gray-900 placeholder-gray-500 focus:outline-none"
-              />
-              <button className="bg-gearup-600 hover:bg-gearup-700 text-white font-semibold px-5 py-2.5 rounded-lg transition">
-                Explore Now
-              </button>
-            </div>
-          </div>
+          <HomeSearch />
         </div>
       </section>
 
@@ -132,7 +125,7 @@ export default async function HomePage() {
           {FEATURES.map((f) => (
             <Link
               key={f.label}
-              href="/login"
+              href={f.href}
               className="bg-white rounded-2xl shadow-md hover:shadow-lg transition p-5 flex items-center gap-4 border border-gray-100"
             >
               <div

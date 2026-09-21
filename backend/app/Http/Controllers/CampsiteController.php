@@ -29,6 +29,13 @@ class CampsiteController extends Controller
      */
     public function show(Campsite $campsite)
     {
+        $campsite->load([
+            'tourGuides',
+            'reviews' => function ($q) {
+                $q->with('user:id,name')->orderByDesc('created_at');
+            },
+        ]);
+
         return response()->json($campsite);
     }
 }

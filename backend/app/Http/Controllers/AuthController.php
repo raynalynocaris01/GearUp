@@ -16,12 +16,18 @@ class AuthController extends Controller
             'email'        => ['required', 'email', 'unique:users,email'],
             'password'     => ['required', 'string', 'min:8', 'confirmed'],
             'device_name'  => ['required', 'string'],
+            'role'         => ['sometimes', 'in:customer,owner'],
         ]);
 
+        $role = $data['role'] ?? 'customer';
+
         $user = User::create([
-            'name'     => $data['name'],
-            'email'    => $data['email'],
-            'password' => $data['password'], // cast handles hashing
+            'name'         => $data['name'],
+            'email'        => $data['email'],
+            'password'     => $data['password'],
+            'role'         => $role,
+            'is_approved'  => $role === 'customer', // owners need approval
+            'is_suspended' => false,
         ]);
 
         $token = $user->createToken($data['device_name'])->plainTextToken;
@@ -33,28 +39,34 @@ class AuthController extends Controller
     }
 
     public function login(Request $request)
-    {
-        $data = $request->validate([
-            'email'        => ['required', 'email'],
-            'password'     => ['required', 'string'],
-            'device_name'  => ['required', 'string'],
-        ]);
+        {
+            $data = $request->validate([
+                'email'        => ['required', 'email'],
+                'password'     => ['required', 'string'],
+                'device_name'  => ['required', 'string'],
+            ]);
 
-        $user = User::where('email', $data['email'])->first();
+            $user = User::where('email', $data['email'])->first();
 
-        if (! $user || ! Hash::check($data['password'], $user->password)) {
-            throw ValidationException::withMessages([
-                'email' => ['The provided credentials are incorrect.'],
+            if (! $user || ! Hash::check($data['password'], $user->password)) {
+                throw ValidationException::withMessages([
+                    'email' => ['The provided credentials are incorrect.'],
+                ]);
+            }
+
+            if ($user->is_suspended) {
+                throw ValidationException::withMessages([
+                    'email' => ['Your account has been suspended. Contact support.'],
+                ]);
+            }
+
+            $token = $user->createToken($data['device_name'])->plainTextToken;
+
+            return response()->json([
+                'user'  => $user,
+                'token' => $token,
             ]);
         }
-
-        $token = $user->createToken($data['device_name'])->plainTextToken;
-
-        return response()->json([
-            'user'  => $user,
-            'token' => $token,
-        ]);
-    }
 
     public function user(Request $request)
     {

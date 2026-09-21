@@ -3,6 +3,8 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { cookies } from 'next/headers';
 import { Navbar } from '@/components/Navbar';
+import { ReviewsSection } from '@/components/ReviewsSection';
+import { ReviewForm } from '@/components/ReviewForm';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL!;
 
@@ -19,6 +21,13 @@ interface Campsite {
   reviews_count: number;
   capacity: number;
   is_featured: boolean;
+  reviews?: {
+    id: number;
+    rating: number;
+    comment: string | null;
+    created_at: string;
+    user?: { id: number; name: string };
+  }[];
 }
 
 async function getCurrentUser() {
@@ -53,21 +62,49 @@ async function getCampsite(id: string): Promise<Campsite | null> {
   }
 }
 
+async function getMyBookings(token: string) {
+  try {
+    const res = await fetch(`${API_URL}/bookings`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: 'application/json',
+      },
+      cache: 'no-store',
+    });
+    if (!res.ok) return [];
+    return await res.json();
+  } catch {
+    return [];
+  }
+}
+
 export default async function CampsiteDetailPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const [user, campsite] = await Promise.all([
+  const cookieStore = await cookies();
+  const token = cookieStore.get('auth_token')?.value;
+
+  const [user, campsite, myBookings] = await Promise.all([
     getCurrentUser(),
     getCampsite(id),
+    token ? getMyBookings(token) : Promise.resolve([]),
   ]);
 
   if (!campsite) notFound();
 
+  // Find a completed booking for this campsite that hasn't been reviewed yet
+  const eligibleBooking = myBookings.find(
+    (b: any) =>
+      b.campsite_id === campsite.id &&
+      b.status === 'completed' &&
+      !b.review,
+  );
+
   const isGuest = !user;
-  const bookHref = isGuest ? '/login' : '/profile';
+  const bookHref = isGuest ? '/login' : `/campsites/${campsite.id}/book`;
 
   return (
     <div className="min-h-screen bg-white">
@@ -78,6 +115,10 @@ export default async function CampsiteDetailPage({
         <div className="text-sm text-gray-500 mb-6">
           <Link href="/" className="hover:text-gearup-600">
             Home
+          </Link>
+          <span className="mx-2">/</span>
+          <Link href="/campsites" className="hover:text-gearup-600">
+            Campsites
           </Link>
           <span className="mx-2">/</span>
           <span className="text-gray-900">{campsite.name}</span>
@@ -142,6 +183,22 @@ export default async function CampsiteDetailPage({
               </h2>
               <p className="text-gray-700">{campsite.region}</p>
             </div>
+
+            {/* Reviews */}
+            <ReviewsSection
+              reviews={campsite.reviews ?? []}
+              rating={campsite.rating}
+              reviewsCount={campsite.reviews_count}
+            />
+
+            {eligibleBooking && (
+              <div className="mt-8">
+                <ReviewForm
+                  campsiteId={campsite.id}
+                  bookingId={eligibleBooking.id}
+                />
+              </div>
+            )}
           </div>
 
           {/* Right: booking card */}
@@ -160,6 +217,7 @@ export default async function CampsiteDetailPage({
 
               <hr className="my-6 border-gray-100" />
 
+              {/* Book Now / Sign in to Book */}
               <Link
                 href={bookHref}
                 className="block w-full bg-gearup-600 hover:bg-gearup-700 text-white font-semibold text-center py-3 rounded-lg transition"

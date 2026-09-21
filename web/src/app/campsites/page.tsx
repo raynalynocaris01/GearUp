@@ -50,7 +50,12 @@ async function getAllCampsites(): Promise<Campsite[]> {
   }
 }
 
-export default async function CampsitesPage() {
+export default async function CampsitesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ search?: string }>;
+}) {
+  const { search } = await searchParams;
   const [user, campsites] = await Promise.all([
     getCurrentUser(),
     getAllCampsites(),
@@ -70,7 +75,7 @@ export default async function CampsitesPage() {
           </p>
         </div>
 
-        <CampsitesGrid campsites={campsites} />
+        <CampsitesGrid campsites={campsites} initialSearch={search ?? ''} />
       </div>
     </div>
   );

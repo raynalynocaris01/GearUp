@@ -10,6 +10,7 @@ class Campsite extends Model
     use HasFactory;
 
     protected $fillable = [
+        'owner_id',
         'name',
         'description',
         'location',
@@ -30,4 +31,24 @@ class Campsite extends Model
         'capacity' => 'integer',
         'is_featured' => 'boolean',
     ];
+
+    public function owner()
+    {
+        return $this->belongsTo(User::class, 'owner_id');
+    }
+
+    public function tourGuides()
+    {
+        return $this->hasMany(TourGuide::class);
+    }
+
+    public function bookings()
+    {
+        return $this->hasMany(Booking::class);
+    }
+    
+    public function reviews()
+{
+    return $this->hasMany(Review::class);
+}
 }
