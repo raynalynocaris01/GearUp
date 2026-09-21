@@ -38,45 +38,101 @@ export function CampsiteForm({ mode, initial }: Props) {
   const [errors, setErrors] = useState<Record<string, string[]>>({});
   const [generalError, setGeneralError] = useState('');
 
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(
+    initial?.image_url ?? null,
+  );
+  const [uploadingImage, setUploadingImage] = useState(false);
+
   const update = <K extends keyof Campsite>(
     key: K,
     value: Campsite[K],
   ) => setForm((f) => ({ ...f, [key]: value }));
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setErrors({});
-    setGeneralError('');
-    setSubmitting(true);
+  e.preventDefault();
+  setErrors({});
+  setGeneralError('');
+  setSubmitting(true);
 
-    const url =
-      mode === 'create'
-        ? '/api/owner/campsites'
-        : `/api/owner/campsites/${initial!.id}`;
-    const method = mode === 'create' ? 'POST' : 'PUT';
+  try {
+    // 1. Save the campsite (create or update)
+    const payload = {
+      name: form.name,
+      description: form.description,
+      location: form.location,
+      region: form.region,
+      price_per_night: Number(form.price_per_night),
+      price_unit: form.price_unit,
+      capacity: Number(form.capacity),
+      // Only send image_url if we're NOT uploading a new one
+      image_url: imageFile ? form.image_url : form.image_url,
+    };
 
-    const res = await fetch(url, {
-      method,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        ...form,
-        price_per_night: Number(form.price_per_night),
-        capacity: Number(form.capacity),
-      }),
-    });
+    let campsiteId = initial?.id;
 
-    const data = await res.json();
-    setSubmitting(false);
+    if (mode === 'create') {
+      const url = '/api/owner/campsites';
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        if (data.errors) setErrors(data.errors);
+        else setGeneralError(data.message ?? 'Save failed');
+        return;
+      }
+      campsiteId = data.id;
+    } else if (initial) {
+      const url = `/api/owner/campsites/${initial.id}`;
+      const res = await fetch(url, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        if (data.errors) setErrors(data.errors);
+        else setGeneralError(data.message ?? 'Save failed');
+        return;
+      }
+    }
 
-    if (!res.ok) {
-      if (data.errors) setErrors(data.errors);
-      else setGeneralError(data.message ?? 'Save failed');
-      return;
+    // 2. Upload the image if one was selected
+    if (imageFile && campsiteId) {
+      setUploadingImage(true);
+      const formData = new FormData();
+      formData.append('image', imageFile);
+
+      const imgRes = await fetch(
+        `/api/owner/campsites/${campsiteId}/image`,
+        {
+          method: 'POST',
+          body: formData,
+        },
+      );
+
+      if (!imgRes.ok) {
+        const data = await imgRes.json().catch(() => ({}));
+        setGeneralError(
+          data.message ?? 'Campsite saved but image upload failed.',
+        );
+        setUploadingImage(false);
+        return;
+      }
+      setUploadingImage(false);
     }
 
     router.push('/owner/campsites');
     router.refresh();
-  };
+  } catch (err) {
+    setGeneralError('Network error. Please try again.');
+  } finally {
+    setSubmitting(false);
+  }
+};
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -164,16 +220,47 @@ export function CampsiteForm({ mode, initial }: Props) {
           />
         </Field>
 
-        <Field label="Image URL" error={errors.image_url?.[0]}>
-          <input
-            type="url"
-            value={form.image_url}
-            onChange={(e) => update('image_url', e.target.value)}
-            placeholder="https://…"
-            required
-            className={inputClass}
-          />
-        </Field>
+        <Field label="Campsite photo">
+  <div className="space-y-3">
+    {/* Preview */}
+    {imagePreview && (
+      <div className="relative w-full h-48 rounded-lg overflow-hidden border border-gray-200 bg-gray-50">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={imagePreview}
+          alt="Campsite preview"
+          className="w-full h-full object-cover"
+        />
+      </div>
+    )}
+
+    {/* File picker */}
+      <label className="flex items-center justify-center gap-2 border-2 border-dashed border-gray-300 hover:border-gearup-600 hover:bg-gearup-50 rounded-lg py-4 cursor-pointer transition">
+        <span className="text-2xl">📷</span>
+        <span className="text-sm font-semibold text-gray-700">
+          {imageFile ? imageFile.name : imagePreview ? 'Replace photo' : 'Upload photo'}
+        </span>
+        <input
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          className="hidden"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (!file) return;
+            if (file.size > 2 * 1024 * 1024) {
+              alert('File is larger than 2 MB.');
+              return;
+            }
+            setImageFile(file);
+            setImagePreview(URL.createObjectURL(file));
+          }}
+        />
+      </label>
+      <p className="text-xs text-gray-500">
+        JPG, PNG, or WebP. Max 2 MB.
+      </p>
+    </div>
+  </Field>
       </div>
 
       {generalError && (
@@ -193,8 +280,8 @@ export function CampsiteForm({ mode, initial }: Props) {
           disabled={submitting}
           className="bg-gearup-600 hover:bg-gearup-700 disabled:opacity-60 text-white font-semibold text-sm px-6 py-3 rounded-lg transition"
         >
-          {submitting
-            ? 'Saving...'
+          {submitting || uploadingImage
+            ? 'Saving…'
             : mode === 'create'
               ? 'Post Campsite'
               : 'Save Changes'}

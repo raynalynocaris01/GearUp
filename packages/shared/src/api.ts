@@ -202,6 +202,15 @@ export const ownerApi = (client: ApiClient) => ({
   deleteCampsite: (id: number | string) =>
     client.delete(`/owner/campsites/${id}`),
 
+  uploadCampsiteImage: (id: number | string, formData: FormData) =>
+    client.post<{ message: string; image_url: string; campsite: Campsite }>(
+      `/owner/campsites/${id}/image`,
+      formData,
+      {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      },
+    ),
+
   // Tour guides
   listTourGuides: (campsiteId: number | string) =>
     client.get<TourGuide[]>(`/owner/campsites/${campsiteId}/tour-guides`),

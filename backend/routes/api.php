@@ -48,6 +48,7 @@ Route::middleware(['auth:sanctum', 'role:owner'])->prefix('owner')->group(functi
     Route::get('/campsites/{campsite}',   [OwnerCampsiteController::class, 'show']);
     Route::put('/campsites/{campsite}',   [OwnerCampsiteController::class, 'update']);
     Route::delete('/campsites/{campsite}',[OwnerCampsiteController::class, 'destroy']);
+    Route::post('/campsites/{campsite}/image', [OwnerCampsiteController::class, 'uploadImage']);
 
     // Tour guides
     Route::get('/campsites/{campsite}/tour-guides',    [OwnerTourGuideController::class, 'index']);

@@ -84,6 +84,51 @@ class CampsiteController extends Controller
 
         return response()->json(['message' => 'Campsite deleted.']);
     }
+    /**
+ * POST /api/owner/campsites/{campsite}/image
+ * Accepts a single image file and replaces the campsite's image.
+ */
+public function uploadImage(Request $request, Campsite $campsite)
+{
+    $this->authorizeOwner($request, $campsite);
+
+    $request->validate([
+        'image' => [
+            'required',
+            'file',
+            'image',
+            'mimes:jpg,jpeg,png,webp',
+            'max:2048', // 2 MB
+        ],
+    ]);
+
+    // Delete the old file if it was a local storage upload
+    $oldUrl = $campsite->image_url;
+    if ($oldUrl && str_contains($oldUrl, '/storage/campsites/')) {
+        $oldPath = 'campsites/' . basename($oldUrl);
+        if (\Storage::disk('public')->exists($oldPath)) {
+            \Storage::disk('public')->delete($oldPath);
+        }
+    }
+
+    // Store the new file
+    $file = $request->file('image');
+    $extension = $file->getClientOriginalExtension();
+    $filename = 'campsite-' . $campsite->id . '-' . time() . '.' . $extension;
+
+    $file->storeAs('campsites', $filename, 'public');
+
+    // Build the public URL
+    $url = rtrim(config('app.url'), '/') . '/storage/campsites/' . $filename;
+
+    $campsite->update(['image_url' => $url]);
+
+    return response()->json([
+        'message' => 'Image uploaded.',
+        'image_url' => $url,
+        'campsite' => $campsite->fresh(),
+    ]);
+}
 
     private function authorizeOwner(Request $request, Campsite $campsite): void
     {

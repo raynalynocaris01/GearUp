@@ -8,10 +8,13 @@ import {
   ScrollView,
   ActivityIndicator,
   Alert,
+  Image,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 import { owner } from '../../lib/api';
 import type { Campsite } from '@gearup/shared';
 import { colors } from '../../theme';
@@ -34,17 +37,47 @@ const EMPTY = {
 
 export function CampsiteForm({ mode, initial }: Props) {
   const router = useRouter();
+
   const [form, setForm] = useState({
     name: initial?.name ?? EMPTY.name,
     description: initial?.description ?? EMPTY.description,
     location: initial?.location ?? EMPTY.location,
     region: initial?.region ?? EMPTY.region,
     price_per_night: initial?.price_per_night ?? EMPTY.price_per_night,
-    price_unit: (initial?.price_unit as 'night' | 'entrance') ?? EMPTY.price_unit,
+    price_unit:
+      (initial?.price_unit as 'night' | 'entrance') ?? EMPTY.price_unit,
     image_url: initial?.image_url ?? EMPTY.image_url,
     capacity: initial?.capacity ?? EMPTY.capacity,
   });
+
   const [submitting, setSubmitting] = useState(false);
+  const [imageUri, setImageUri] = useState<string | null>(
+    initial?.image_url ?? null,
+  );
+  const [uploadingImage, setUploadingImage] = useState(false);
+
+  const pickImage = async () => {
+    const { status } =
+      await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert(
+        'Permission needed',
+        'Please allow photo access to upload an image.',
+      );
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [16, 10],
+      quality: 0.8,
+    });
+
+    if (!result.canceled && result.assets[0]) {
+      setImageUri(result.assets[0].uri);
+    }
+  };
 
   const handleSubmit = async () => {
     if (!form.name.trim() || !form.description.trim() || !form.location.trim()) {
@@ -65,22 +98,45 @@ export function CampsiteForm({ mode, initial }: Props) {
         region: form.region.trim(),
         price_per_night: Number(form.price_per_night),
         price_unit: form.price_unit,
-        image_url: form.image_url.trim(),
+        image_url: form.image_url,
         capacity: Number(form.capacity),
       };
 
+      let campsiteId = initial?.id;
+
+      // 1. Save campsite
       if (mode === 'create') {
-        await owner.createCampsite(payload);
+        const res = await owner.createCampsite(payload);
+        campsiteId = res.data.id;
       } else if (initial) {
         await owner.updateCampsite(initial.id, payload);
+      }
+
+      // 2. Upload image if the user picked a new one
+      if (imageUri && campsiteId && imageUri !== initial?.image_url) {
+        setUploadingImage(true);
+
+        const formData = new FormData();
+        const filename = imageUri.split('/').pop() ?? 'photo.jpg';
+        const match = /\.(\w+)$/.exec(filename);
+        const type = match ? `image/${match[1]}` : 'image/jpeg';
+
+        formData.append('image', {
+          uri: imageUri,
+          name: filename,
+          type,
+        } as any);
+
+        await owner.uploadCampsiteImage(campsiteId, formData);
+        setUploadingImage(false);
       }
 
       router.replace('/owner/campsites');
     } catch (err: any) {
       const data = err.response?.data;
       const message =
+        data?.errors?.image?.[0] ??
         data?.errors?.name?.[0] ??
-        data?.errors?.description?.[0] ??
         data?.errors?.location?.[0] ??
         data?.errors?.price_per_night?.[0] ??
         data?.message ??
@@ -89,6 +145,7 @@ export function CampsiteForm({ mode, initial }: Props) {
       Alert.alert('Save failed', message);
     } finally {
       setSubmitting(false);
+      setUploadingImage(false);
     }
   };
 
@@ -206,15 +263,33 @@ export function CampsiteForm({ mode, initial }: Props) {
           />
         </Field>
 
-        <Field label="Image URL *">
-          <TextInput
-            style={styles.input}
-            value={form.image_url}
-            onChangeText={(v) => setForm((f) => ({ ...f, image_url: v }))}
-            placeholder="https://..."
-            placeholderTextColor={colors.textMuted}
-            autoCapitalize="none"
-          />
+        <Field label="Campsite photo">
+          {imageUri && (
+            <Image
+              source={{ uri: imageUri }}
+              style={styles.imagePreview}
+              resizeMode="cover"
+            />
+          )}
+
+          <TouchableOpacity
+            style={styles.imagePicker}
+            onPress={pickImage}
+            activeOpacity={0.8}
+          >
+            <Ionicons
+              name="camera-outline"
+              size={22}
+              color={colors.gearupGreen}
+            />
+            <Text style={styles.imagePickerText}>
+              {imageUri ? 'Replace photo' : 'Upload photo'}
+            </Text>
+          </TouchableOpacity>
+
+          <Text style={styles.imagePickerHint}>
+            JPG, PNG, or WebP. Max 2 MB.
+          </Text>
         </Field>
 
         <TouchableOpacity
@@ -226,7 +301,11 @@ export function CampsiteForm({ mode, initial }: Props) {
             <ActivityIndicator color="#fff" />
           ) : (
             <Text style={styles.submitText}>
-              {mode === 'create' ? 'Post Campsite' : 'Save Changes'}
+              {uploadingImage
+                ? 'Uploading photo…'
+                : mode === 'create'
+                  ? 'Post Campsite'
+                  : 'Save Changes'}
             </Text>
           )}
         </TouchableOpacity>
@@ -290,6 +369,37 @@ const styles = StyleSheet.create({
   },
   segmentText: { fontSize: 14, color: '#374151', fontWeight: '600' },
   segmentTextActive: { color: colors.gearupGreen },
+
+  imagePreview: {
+    width: '100%',
+    height: 180,
+    borderRadius: 10,
+    marginBottom: 12,
+    backgroundColor: '#e5e7eb',
+  },
+  imagePicker: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    borderWidth: 2,
+    borderStyle: 'dashed',
+    borderColor: '#d1d5db',
+    borderRadius: 10,
+    paddingVertical: 14,
+    backgroundColor: '#fafafa',
+  },
+  imagePickerText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.gearupGreen,
+  },
+  imagePickerHint: {
+    fontSize: 11,
+    color: colors.textMuted,
+    textAlign: 'center',
+    marginTop: 6,
+  },
 
   submit: {
     backgroundColor: colors.gearupGreen,
