@@ -16,10 +16,23 @@ class TourGuide extends Model
         'contact_number',
         'email',
         'description',
+        'price_per_trip',
+        'is_independent',
+        'location',
+    ];
+
+    protected $casts = [
+        'price_per_trip' => 'decimal:2',
+        'is_independent' => 'boolean',
     ];
 
     public function campsite(): BelongsTo
     {
         return $this->belongsTo(Campsite::class);
+    }
+
+    public function bookings()
+    {
+        return $this->hasMany(Booking::class);
     }
 }

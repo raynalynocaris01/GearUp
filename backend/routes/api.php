@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\TourGuideController;
 
 // ─── Public ──────────────────────────────────────────────
 Route::post('/register', [AuthController::class, 'register']);
@@ -20,6 +21,8 @@ Route::post('/login',    [AuthController::class, 'login']);
 Route::get('/campsites', [CampsiteController::class, 'index']);
 Route::get('/campsites/{campsite}', [CampsiteController::class, 'show']);
 Route::get('/campsites/{campsite}/reviews', [ReviewController::class, 'index']);
+Route::get('/tour-guides', [TourGuideController::class, 'index']);
+Route::get('/tour-guides/{tourGuide}', [TourGuideController::class, 'show']);
 
 // ─── Authenticated (any role) ────────────────────────────
 Route::middleware('auth:sanctum')->group(function () {
@@ -54,6 +57,8 @@ Route::middleware(['auth:sanctum', 'role:owner'])->prefix('owner')->group(functi
     Route::get('/campsites/{campsite}/tour-guides',    [OwnerTourGuideController::class, 'index']);
     Route::post('/campsites/{campsite}/tour-guides',   [OwnerTourGuideController::class, 'store']);
     Route::delete('/tour-guides/{tourGuide}',          [OwnerTourGuideController::class, 'destroy']);
+    Route::get('/tour-guides',                          [OwnerTourGuideController::class, 'all']);
+    Route::post('/tour-guides',                         [OwnerTourGuideController::class, 'storeIndependent']);
 
     // Bookings
     Route::get('/bookings',                          [OwnerBookingController::class, 'index']);

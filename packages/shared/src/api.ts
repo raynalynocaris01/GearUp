@@ -106,16 +106,19 @@ export const campsiteApi = (client: ApiClient) => ({
 export interface Booking {
   id: number;
   user_id: number;
-  campsite_id: number;
-  check_in: string;
-  check_out: string;
+  campsite_id: number | null;
+  tour_guide_id: number | null;
+  check_in: string | null;
+  check_out: string | null;
   guests: number;
   total_price: string;
   status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
   notes: string | null;
   created_at: string;
   updated_at: string;
-  campsite?: Campsite;
+  campsite?: Campsite | null;
+  tourGuide?: TourGuide | null;
+  review?: Review | null;
   user?: {
     id: number;
     name: string;
@@ -124,9 +127,10 @@ export interface Booking {
 }
 
 export interface CreateBookingPayload {
-  campsite_id: number;
-  check_in: string;   // YYYY-MM-DD
-  check_out: string;  // YYYY-MM-DD
+  campsite_id?: number | null;
+  tour_guide_id?: number | null;
+  check_in?: string | null;
+  check_out?: string | null;
   guests: number;
   notes?: string;
 }
@@ -157,13 +161,23 @@ export interface OwnerDashboardStats {
 
 export interface TourGuide {
   id: number;
-  campsite_id: number;
+  campsite_id: number | null;
   name: string;
   contact_number: string;
   email: string | null;
   description: string | null;
+  price_per_trip: string;
+  is_independent: boolean;
+  location: string | null;
   created_at: string;
   updated_at: string;
+  campsite?: {
+    id: number;
+    name: string;
+    location: string;
+    image_url: string;
+    owner_id: number | null;
+  } | null;
 }
 
 export interface CreateCampsitePayload {
@@ -182,8 +196,9 @@ export interface CreateTourGuidePayload {
   contact_number: string;
   email?: string;
   description?: string;
+  price_per_trip: number;
+  location?: string;
 }
-
 export const ownerApi = (client: ApiClient) => ({
   dashboard: () => client.get<OwnerDashboardStats>('/owner/dashboard'),
 
@@ -220,6 +235,16 @@ export const ownerApi = (client: ApiClient) => ({
 
   deleteTourGuide: (guideId: number | string) =>
     client.delete(`/owner/tour-guides/${guideId}`),
+  
+  // All guides owned by the current owner (attached + independent)
+  listAllMyGuides: () => client.get<TourGuide[]>('/owner/tour-guides'),
+
+  // Create an independent guide (no campsite)
+  createIndependentGuide: (payload: CreateTourGuidePayload) =>
+    client.post<TourGuide>('/owner/tour-guides', {
+      ...payload,
+      is_independent: true,
+    }),
 
   // Bookings
   listBookings: () => client.get<Booking[]>('/owner/bookings'),
@@ -332,4 +357,16 @@ export const reviewApi = (client: ApiClient) => ({
 
   delete: (reviewId: number | string) =>
     client.delete(`/reviews/${reviewId}`),
+});
+
+// ──────────────────────────────────────────────────────────
+// TOUR GUIDES (PUBLIC)
+// ──────────────────────────────────────────────────────────
+
+export const tourGuideApi = (client: ApiClient) => ({
+  list: (params?: { independent?: boolean; campsite_id?: number }) =>
+    client.get<TourGuide[]>('/tour-guides', { params }),
+
+  get: (id: number | string) =>
+    client.get<TourGuide>(`/tour-guides/${id}`),
 });

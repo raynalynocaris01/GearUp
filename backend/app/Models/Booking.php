@@ -13,6 +13,7 @@ class Booking extends Model
     protected $fillable = [
         'user_id',
         'campsite_id',
+        'tour_guide_id',
         'check_in',
         'check_out',
         'guests',
@@ -36,6 +37,11 @@ class Booking extends Model
     public function campsite(): BelongsTo
     {
         return $this->belongsTo(Campsite::class);
+    }
+
+    public function tourGuide(): BelongsTo
+    {
+        return $this->belongsTo(TourGuide::class);
     }
 
     public function review()
