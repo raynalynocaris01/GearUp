@@ -28,6 +28,7 @@ class DashboardController extends Controller
         $totalBookings = Booking::count();
         $pendingBookings = Booking::where('status', 'pending')->count();
         $confirmedBookings = Booking::where('status', 'confirmed')->count();
+        $completedBookings = Booking::where('status', 'completed')->count();
 
         $totalRevenue = Booking::whereIn('status', ['confirmed', 'completed'])->sum('total_price');
 
@@ -41,6 +42,7 @@ class DashboardController extends Controller
             'total_bookings' => $totalBookings,
             'pending_bookings' => $pendingBookings,
             'confirmed_bookings' => $confirmedBookings,
+            'completed_bookings' => $completedBookings,
             'total_revenue' => (float) $totalRevenue,
         ]);
     }
