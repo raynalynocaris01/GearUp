@@ -179,8 +179,8 @@ export default function AdminBookingsScreen() {
                   <View style={styles.infoItem}>
                     <Text style={styles.infoLabel}>Dates</Text>
                     <Text style={styles.infoValue} numberOfLines={1}>
-                      {formatDate(item.check_in)} →{' '}
-                      {formatDate(item.check_out)}
+                      {item.check_in ? formatDate(item.check_in) : '—'}{' '}
+                      {item.check_out ? formatDate(item.check_out) : '—'}
                     </Text>
                   </View>
                 </View>

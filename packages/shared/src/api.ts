@@ -1,9 +1,18 @@
-
 import axios from 'axios';
 
 export type TokenProvider = () => Promise<string | null>;
 
-export const createApiClient = (baseURL: string, getToken: TokenProvider) => {
+export interface ApiClientOptions {
+  baseURL: string;
+  getToken: TokenProvider;
+  onUnauthorized?: () => void | Promise<void>;
+}
+
+export const createApiClient = ({
+  baseURL,
+  getToken,
+  onUnauthorized,
+}: ApiClientOptions) => {
   const client = axios.create({ baseURL });
 
   client.interceptors.request.use(async (config) => {
@@ -13,6 +22,19 @@ export const createApiClient = (baseURL: string, getToken: TokenProvider) => {
     }
     return config;
   });
+
+  client.interceptors.response.use(
+    (response) => response,
+    async (error) => {
+      if (error.response?.status === 401) {
+        const url = error.config?.url ?? '';
+        if (!url.endsWith('/logout') && onUnauthorized) {
+          await onUnauthorized();
+        }
+      }
+      return Promise.reject(error);
+    },
+  );
 
   return client;
 };
