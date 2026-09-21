@@ -28,26 +28,40 @@ export function TourGuidesManager({ campsiteId, initialGuides }: Props) {
   const [deletingId, setDeletingId] = useState<number | null>(null);
 
   const [form, setForm] = useState({
-    name: '',
-    contact_number: '',
-    email: '',
-    description: '',
-  });
+  name: '',
+  contact_number: '',
+  price_per_trip: '',
+  email: '',
+  description: '',
+});
 
   const resetForm = () =>
-    setForm({ name: '', contact_number: '', email: '', description: '' });
+    setForm({
+      name: '',
+      contact_number: '',
+      price_per_trip: '',
+      email: '',
+      description: '',
+    });
 
   const handleAdd = async () => {
-    if (!form.name.trim() || !form.contact_number.trim()) {
-      Alert.alert('Missing fields', 'Name and contact number are required.');
-      return;
-    }
-
+    if (
+  !form.name.trim() ||
+  !form.contact_number.trim() ||
+  !form.price_per_trip.trim()
+  ) {
+    Alert.alert(
+      'Missing fields',
+      'Name, contact number, and price per trip are required.'
+    );
+    return;
+  }
     setSubmitting(true);
     try {
       const res = await owner.createTourGuide(campsiteId, {
         name: form.name.trim(),
         contact_number: form.contact_number.trim(),
+        price_per_trip: Number(form.price_per_trip),
         email: form.email.trim() || undefined,
         description: form.description.trim() || undefined,
       });
@@ -155,6 +169,20 @@ export function TourGuidesManager({ campsiteId, initialGuides }: Props) {
               placeholderTextColor={colors.textMuted}
               keyboardType="phone-pad"
             />
+           
+
+              <TextInput
+                style={styles.input}
+                placeholder="e.g. 1500"
+                keyboardType="numeric"
+                value={form.price_per_trip}
+                onChangeText={(value) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    price_per_trip: value,
+                  }))
+                }
+              />
             <TextInput
               style={styles.input}
               value={form.email}
