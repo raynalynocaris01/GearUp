@@ -7,26 +7,28 @@ import {
   Image,
   TouchableOpacity,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { campsites, hasToken } from '../../lib/api';
+import { campsites, bookings, hasToken } from '../../lib/api';
 import type { Campsite } from '@gearup/shared';
 import { colors } from '../../theme';
+import { ReviewsSection } from '../../components/ReviewsSection';
 
 export default function CampsiteDetailScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
 
   const [campsite, setCampsite] = useState<Campsite | null>(null);
+  const [eligibleBookingId, setEligibleBookingId] = useState<number | null>(
+    null,
+  );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [isGuest, setIsGuest] = useState(true);
 
   useEffect(() => {
     (async () => {
-      // Check auth state in parallel with the fetch
       const loggedIn = await hasToken();
       setIsGuest(!loggedIn);
 
@@ -45,14 +47,35 @@ export default function CampsiteDetailScreen() {
     })();
   }, [id]);
 
-  const handleBook = () => {
-  if (isGuest) {
-    router.push('/login');
-    return;
-  }
-  router.push(`/booking/new?campsiteId=${campsite!.id}`);
-};
+  // After the campsite loads, check for an eligible booking
+  useEffect(() => {
+    (async () => {
+      const loggedIn = await hasToken();
+      if (!loggedIn || !campsite) return;
 
+      try {
+        const res = await bookings.list();
+        const eligible = res.data.find(
+          (b: any) =>
+            b.campsite_id === campsite.id &&
+            b.status === 'completed' &&
+            !b.review,
+        );
+        if (eligible) setEligibleBookingId(eligible.id);
+      } catch {
+        // silent
+      }
+    })();
+  }, [campsite]);
+
+  const handleBook = () => {
+    if (isGuest) {
+      router.push('/login');
+      return;
+    }
+    if (!campsite) return;
+    router.push(`/booking/new?campsiteId=${campsite.id}`);
+  };
 
   if (loading) {
     return (
@@ -87,7 +110,6 @@ export default function CampsiteDetailScreen() {
         <View style={styles.heroWrap}>
           <Image source={{ uri: campsite.image_url }} style={styles.hero} />
 
-          {/* Back button (absolute) */}
           <TouchableOpacity
             style={styles.backIcon}
             onPress={() => router.back()}
@@ -95,7 +117,6 @@ export default function CampsiteDetailScreen() {
             <Ionicons name="chevron-back" size={24} color="#fff" />
           </TouchableOpacity>
 
-          {/* Featured badge */}
           {campsite.is_featured && (
             <View style={styles.featuredBadge}>
               <Text style={styles.featuredText}>★ Featured</Text>
@@ -108,18 +129,28 @@ export default function CampsiteDetailScreen() {
           <Text style={styles.name}>{campsite.name}</Text>
 
           <View style={styles.metaRow}>
-            <Ionicons name="location-outline" size={16} color={colors.textMuted} />
+            <Ionicons
+              name="location-outline"
+              size={16}
+              color={colors.textMuted}
+            />
             <Text style={styles.metaText}>{campsite.location}</Text>
           </View>
 
           <View style={styles.metaRow}>
             <Ionicons name="star" size={16} color="#f59e0b" />
             <Text style={styles.metaTextBold}>{campsite.rating}</Text>
-            <Text style={styles.metaText}>({campsite.reviews_count} reviews)</Text>
+            <Text style={styles.metaText}>
+              ({campsite.reviews_count} reviews)
+            </Text>
           </View>
 
           <View style={styles.metaRow}>
-            <Ionicons name="people-outline" size={16} color={colors.textMuted} />
+            <Ionicons
+              name="people-outline"
+              size={16}
+              color={colors.textMuted}
+            />
             <Text style={styles.metaText}>
               Up to {campsite.capacity} people
             </Text>
@@ -134,6 +165,28 @@ export default function CampsiteDetailScreen() {
 
           <Text style={styles.sectionTitle}>Region</Text>
           <Text style={styles.description}>{campsite.region}</Text>
+
+          {/* Reviews */}
+          <ReviewsSection
+            reviews={campsite.reviews ?? []}
+            rating={campsite.rating}
+            reviewsCount={campsite.reviews_count}
+          />
+
+          {eligibleBookingId && (
+            <TouchableOpacity
+              style={styles.reviewCta}
+              onPress={() =>
+                router.push(
+                  `/campsite/${campsite.id}/review?bookingId=${eligibleBookingId}`,
+                )
+              }
+              activeOpacity={0.85}
+            >
+              <Ionicons name="star-outline" size={20} color="#fff" />
+              <Text style={styles.reviewCtaText}>Leave a review</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </ScrollView>
 
@@ -187,7 +240,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
 
-  // Hero
   heroWrap: { position: 'relative' },
   hero: {
     width: '100%',
@@ -216,7 +268,6 @@ const styles = StyleSheet.create({
   },
   featuredText: { color: '#fff', fontSize: 12, fontWeight: '700' },
 
-  // Body
   body: { padding: 20, gap: 10 },
   name: {
     fontSize: 26,
@@ -251,7 +302,22 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
 
-  // Footer
+  reviewCta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: colors.gearupGreen,
+    paddingVertical: 16,
+    borderRadius: 12,
+    marginTop: 20,
+  },
+  reviewCtaText: {
+    color: '#fff',
+    fontSize: 15,
+    fontWeight: '800',
+  },
+
   footer: {
     position: 'absolute',
     left: 0,

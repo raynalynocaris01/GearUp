@@ -16,6 +16,10 @@ import { bookings, hasToken } from '../../lib/api';
 import type { Booking } from '@gearup/shared';
 import { colors } from '../../theme';
 
+type BookingWithReview = Booking & {
+  review?: unknown;
+};
+
 function formatDate(iso: string): string {
   const d = new Date(iso);
   return d.toLocaleDateString('en-US', {
@@ -31,9 +35,22 @@ function nightsBetween(a: string, b: string): number {
   return Math.max(1, Math.round((end - start) / (1000 * 60 * 60 * 24)));
 }
 
+function statusPill(status: Booking['status']) {
+  switch (status) {
+    case 'cancelled':
+      return { bg: '#fee2e2', fg: '#b91c1c', label: 'CANCELLED' };
+    case 'completed':
+      return { bg: '#dbeafe', fg: '#1e40af', label: 'COMPLETED' };
+    case 'pending':
+      return { bg: '#fef3c7', fg: '#92400e', label: 'PENDING' };
+    default:
+      return { bg: '#dcfce7', fg: '#15803d', label: 'CONFIRMED' };
+  }
+}
+
 export default function BookingsScreen() {
   const router = useRouter();
-  const [list, setList] = useState<Booking[]>([]);
+  const [list, setList] = useState<BookingWithReview[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
@@ -141,7 +158,11 @@ export default function BookingsScreen() {
 
       {error ? (
         <View style={styles.center}>
-          <Ionicons name="warning-outline" size={48} color={colors.textMuted} />
+          <Ionicons
+            name="warning-outline"
+            size={48}
+            color={colors.textMuted}
+          />
           <Text style={styles.emptySubtitle}>{error}</Text>
           <TouchableOpacity
             style={styles.retryButton}
@@ -178,13 +199,16 @@ export default function BookingsScreen() {
                 style={styles.primaryButton}
                 onPress={() => router.push('/(tabs)/explore')}
               >
-                <Text style={styles.primaryButtonText}>Explore Campsites</Text>
+                <Text style={styles.primaryButtonText}>
+                  Explore Campsites
+                </Text>
               </TouchableOpacity>
             </View>
           }
           renderItem={({ item }) => {
             const cancelled = item.status === 'cancelled';
             const nights = nightsBetween(item.check_in, item.check_out);
+            const pill = statusPill(item.status);
 
             return (
               <View
@@ -199,18 +223,13 @@ export default function BookingsScreen() {
                   <View
                     style={[
                       styles.statusPill,
-                      cancelled ? styles.statusCancelled : styles.statusConfirmed,
+                      { backgroundColor: pill.bg },
                     ]}
                   >
                     <Text
-                      style={[
-                        styles.statusText,
-                        cancelled
-                          ? styles.statusTextCancelled
-                          : styles.statusTextConfirmed,
-                      ]}
+                      style={[styles.statusText, { color: pill.fg }]}
                     >
-                      {cancelled ? 'CANCELLED' : 'CONFIRMED'}
+                      {pill.label}
                     </Text>
                   </View>
 
@@ -225,8 +244,9 @@ export default function BookingsScreen() {
                       color={colors.textMuted}
                     />
                     <Text style={styles.meta}>
-                      {formatDate(item.check_in)} → {formatDate(item.check_out)}{' '}
-                      ({nights} {nights === 1 ? 'night' : 'nights'})
+                      {formatDate(item.check_in)} →{' '}
+                      {formatDate(item.check_out)} ({nights}{' '}
+                      {nights === 1 ? 'night' : 'nights'})
                     </Text>
                   </View>
 
@@ -237,13 +257,17 @@ export default function BookingsScreen() {
                       color={colors.textMuted}
                     />
                     <Text style={styles.meta}>
-                      {item.guests} {item.guests === 1 ? 'guest' : 'guests'}
+                      {item.guests}{' '}
+                      {item.guests === 1 ? 'guest' : 'guests'}
                     </Text>
                   </View>
 
                   <View style={styles.footerRow}>
                     <Text style={styles.total}>₱{item.total_price}</Text>
-                    {!cancelled && (
+
+                    {/* Cancel only for pending/confirmed */}
+                    {(item.status === 'pending' ||
+                      item.status === 'confirmed') && (
                       <TouchableOpacity
                         style={styles.cancelButton}
                         onPress={() => handleCancel(item)}
@@ -252,6 +276,43 @@ export default function BookingsScreen() {
                       </TouchableOpacity>
                     )}
                   </View>
+
+                  {/* Review CTA for completed bookings */}
+                  {item.status === 'completed' && (
+                    <View style={styles.reviewRow}>
+                      {item.review ? (
+                        <View style={styles.reviewedBadge}>
+                          <Ionicons
+                            name="checkmark-circle"
+                            size={14}
+                            color={colors.gearupGreen}
+                          />
+                          <Text style={styles.reviewedText}>
+                            Reviewed
+                          </Text>
+                        </View>
+                      ) : (
+                        <TouchableOpacity
+                          style={styles.reviewButton}
+                          onPress={() =>
+                            router.push(
+                              `/campsite/${item.campsite?.id}/review?bookingId=${item.id}`,
+                            )
+                          }
+                          activeOpacity={0.85}
+                        >
+                          <Ionicons
+                            name="star-outline"
+                            size={16}
+                            color="#fff"
+                          />
+                          <Text style={styles.reviewButtonText}>
+                            Leave a review
+                          </Text>
+                        </TouchableOpacity>
+                      )}
+                    </View>
+                  )}
                 </View>
               </View>
             );
@@ -317,11 +378,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     marginBottom: 4,
   },
-  statusConfirmed: { backgroundColor: '#dcfce7' },
-  statusCancelled: { backgroundColor: '#fee2e2' },
   statusText: { fontSize: 10, fontWeight: '800', letterSpacing: 0.5 },
-  statusTextConfirmed: { color: '#15803d' },
-  statusTextCancelled: { color: '#b91c1c' },
 
   name: { fontSize: 14, fontWeight: '800', color: '#111827' },
   metaRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
@@ -348,6 +405,42 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
 
+  reviewRow: {
+    marginTop: 10,
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+  },
+  reviewButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: colors.gearupGreen,
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+    borderRadius: 10,
+  },
+  reviewButtonText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  reviewedBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: colors.gearup50,
+    borderWidth: 1,
+    borderColor: '#bbf7d0',
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 10,
+  },
+  reviewedText: {
+    color: colors.gearupGreen,
+    fontSize: 12,
+    fontWeight: '700',
+  },
+
   emptyTitle: {
     fontSize: 18,
     fontWeight: '800',
@@ -361,7 +454,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     paddingHorizontal: 24,
   },
-
   primaryButton: {
     marginTop: 16,
     backgroundColor: colors.gearupGreen,
@@ -370,7 +462,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   primaryButtonText: { color: '#fff', fontSize: 15, fontWeight: '700' },
-
   retryButton: {
     marginTop: 8,
     borderWidth: 1,

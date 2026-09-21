@@ -12,17 +12,21 @@ import { colors } from '../../theme';
 
 interface Props {
   bookingId: number;
-  status: 'pending' | 'confirmed' | 'cancelled';
+  status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
   onSuccess?: () => void;
 }
 
 export function BookingActions({ bookingId, status, onSuccess }: Props) {
-  const [loading, setLoading] = useState<'confirm' | 'cancel' | null>(null);
+  const [loading, setLoading] = useState<
+    'confirm' | 'cancel' | 'complete' | null
+  >(null);
 
-  const handleConfirm = async () => {
-    setLoading('confirm');
+  const act = async (action: 'confirm' | 'cancel' | 'complete') => {
+    setLoading(action);
     try {
-      await owner.confirmBooking(bookingId);
+      if (action === 'confirm') await owner.confirmBooking(bookingId);
+      else if (action === 'cancel') await owner.cancelBooking(bookingId);
+      else if (action === 'complete') await owner.completeBooking(bookingId);
       onSuccess?.();
     } catch (err: any) {
       Alert.alert('Error', err.response?.data?.message ?? 'Please try again.');
@@ -31,7 +35,7 @@ export function BookingActions({ bookingId, status, onSuccess }: Props) {
     }
   };
 
-  const handleCancel = () => {
+  const confirmCancel = () => {
     Alert.alert(
       'Cancel this booking?',
       'The customer will see the booking as cancelled.',
@@ -40,20 +44,21 @@ export function BookingActions({ bookingId, status, onSuccess }: Props) {
         {
           text: 'Cancel booking',
           style: 'destructive',
-          onPress: async () => {
-            setLoading('cancel');
-            try {
-              await owner.cancelBooking(bookingId);
-              onSuccess?.();
-            } catch (err: any) {
-              Alert.alert(
-                'Error',
-                err.response?.data?.message ?? 'Please try again.',
-              );
-            } finally {
-              setLoading(null);
-            }
-          },
+          onPress: () => act('cancel'),
+        },
+      ],
+    );
+  };
+
+  const confirmComplete = () => {
+    Alert.alert(
+      'Mark as completed?',
+      'Use this after the guest has checked out. This unlocks the review flow for the customer.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Mark completed',
+          onPress: () => act('complete'),
         },
       ],
     );
@@ -61,8 +66,20 @@ export function BookingActions({ bookingId, status, onSuccess }: Props) {
 
   if (status === 'cancelled') {
     return (
-      <View style={styles.statusPill}>
-        <Text style={styles.statusText}>CANCELLED</Text>
+      <View style={[styles.pill, { backgroundColor: '#fee2e2' }]}>
+        <Text style={[styles.pillText, { color: '#b91c1c' }]}>
+          CANCELLED
+        </Text>
+      </View>
+    );
+  }
+
+  if (status === 'completed') {
+    return (
+      <View style={[styles.pill, { backgroundColor: '#dbeafe' }]}>
+        <Text style={[styles.pillText, { color: '#1e40af' }]}>
+          COMPLETED
+        </Text>
       </View>
     );
   }
@@ -72,8 +89,9 @@ export function BookingActions({ bookingId, status, onSuccess }: Props) {
       {status === 'pending' && (
         <TouchableOpacity
           style={styles.confirmButton}
-          onPress={handleConfirm}
+          onPress={() => act('confirm')}
           disabled={loading !== null}
+          activeOpacity={0.85}
         >
           {loading === 'confirm' ? (
             <ActivityIndicator color="#fff" size="small" />
@@ -82,10 +100,27 @@ export function BookingActions({ bookingId, status, onSuccess }: Props) {
           )}
         </TouchableOpacity>
       )}
+
+      {status === 'confirmed' && (
+        <TouchableOpacity
+          style={styles.completeButton}
+          onPress={confirmComplete}
+          disabled={loading !== null}
+          activeOpacity={0.85}
+        >
+          {loading === 'complete' ? (
+            <ActivityIndicator color="#fff" size="small" />
+          ) : (
+            <Text style={styles.completeText}>Mark completed</Text>
+          )}
+        </TouchableOpacity>
+      )}
+
       <TouchableOpacity
         style={styles.cancelButton}
-        onPress={handleCancel}
+        onPress={confirmCancel}
         disabled={loading !== null}
+        activeOpacity={0.85}
       >
         {loading === 'cancel' ? (
           <ActivityIndicator color="#dc2626" size="small" />
@@ -98,7 +133,12 @@ export function BookingActions({ bookingId, status, onSuccess }: Props) {
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: 'row', gap: 8, justifyContent: 'flex-end' },
+  row: {
+    flexDirection: 'row',
+    gap: 8,
+    justifyContent: 'flex-end',
+    flexWrap: 'wrap',
+  },
   confirmButton: {
     backgroundColor: colors.gearupGreen,
     paddingHorizontal: 16,
@@ -106,6 +146,13 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   confirmText: { color: '#fff', fontSize: 12, fontWeight: '700' },
+  completeButton: {
+    backgroundColor: '#2563eb',
+    paddingHorizontal: 16,
+    paddingVertical: 9,
+    borderRadius: 8,
+  },
+  completeText: { color: '#fff', fontSize: 12, fontWeight: '700' },
   cancelButton: {
     borderWidth: 1,
     borderColor: '#fecaca',
@@ -115,16 +162,14 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   cancelText: { color: '#dc2626', fontSize: 12, fontWeight: '700' },
-  statusPill: {
-    backgroundColor: '#fee2e2',
+  pill: {
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 6,
   },
-  statusText: {
+  pillText: {
     fontSize: 10,
     fontWeight: '800',
     letterSpacing: 0.5,
-    color: '#b91c1c',
   },
 });
