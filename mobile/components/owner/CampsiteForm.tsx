@@ -68,11 +68,11 @@ export function CampsiteForm({ mode, initial }: Props) {
     }
 
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [16, 10],
-      quality: 0.8,
-    });
+    mediaTypes: ['images'],
+    allowsEditing: true,
+    aspect: [16, 10],
+    quality: 0.8,
+  });
 
     if (!result.canceled && result.assets[0]) {
       setImageUri(result.assets[0].uri);
