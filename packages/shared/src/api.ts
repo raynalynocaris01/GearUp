@@ -100,6 +100,8 @@ export interface Campsite {
   description: string;
   location: string;
   region: string;
+  latitude: number | null;    
+  longitude: number | null;   
   price_per_night: string;
   price_unit: string;
   image_url: string;

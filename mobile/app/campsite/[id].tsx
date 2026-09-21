@@ -7,6 +7,8 @@ import {
   Image,
   TouchableOpacity,
   ActivityIndicator,
+  Linking,      
+  Platform, 
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -26,6 +28,20 @@ export default function CampsiteDetailScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [isGuest, setIsGuest] = useState(true);
+  const openDirections = () => {
+  if (!campsite) return;
+
+  const { latitude, longitude, name, location, region } = campsite;
+
+  const query =
+    latitude != null && longitude != null
+      ? `${latitude},${longitude}`
+      : encodeURIComponent(`${name}, ${location}, ${region}`);
+
+  const url = `https://www.google.com/maps/search/?api=1&query=${query}`;
+
+  Linking.openURL(url).catch(() => {});
+  };
 
   useEffect(() => {
     (async () => {
@@ -116,6 +132,7 @@ export default function CampsiteDetailScreen() {
           >
             <Ionicons name="chevron-back" size={24} color="#fff" />
           </TouchableOpacity>
+          
 
           {campsite.is_featured && (
             <View style={styles.featuredBadge}>
@@ -134,8 +151,17 @@ export default function CampsiteDetailScreen() {
               size={16}
               color={colors.textMuted}
             />
-            <Text style={styles.metaText}>{campsite.location}</Text>
-          </View>
+              <Text style={styles.metaText}>{campsite.location}</Text>
+              </View>
+
+              <TouchableOpacity
+                style={styles.directionsButton}
+                onPress={openDirections}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="navigate-outline" size={16} color="#15803d" />
+                <Text style={styles.directionsButtonText}>Directions</Text>
+              </TouchableOpacity>
 
           <View style={styles.metaRow}>
             <Ionicons name="star" size={16} color="#f59e0b" />
@@ -359,4 +385,22 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '800',
   },
+  directionsButton: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  alignSelf: 'flex-start',
+  gap: 6,
+  backgroundColor: '#f0fdf4',
+  borderWidth: 1,
+  borderColor: '#86efac',
+  borderRadius: 10,
+  paddingHorizontal: 14,
+  paddingVertical: 8,
+  marginTop: 8,
+},
+directionsButtonText: {
+  color: '#15803d',
+  fontWeight: '700',
+  fontSize: 13,
+},
 });
