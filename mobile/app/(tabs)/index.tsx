@@ -23,24 +23,28 @@ const FEATURES = [
     label: 'Book Campsites',
     desc: 'Find the place to stay',
     color: '#1e6b3a',
+    action: 'explore',
   },
   {
     icon: 'bag-handle-outline',
     label: 'Rent Gear',
     desc: 'Quality gear for your adventure',
     color: '#2563eb',
+    action: 'coming-soon',
   },
   {
     icon: 'person-outline',
     label: 'Hire Tour Guide',
     desc: 'Local guides, better experiences',
     color: '#ea580c',
+    action: 'explore',
   },
   {
     icon: 'calendar-outline',
     label: 'Join Events',
     desc: 'Meet up and join adventures',
     color: '#4b5563',
+    action: 'coming-soon',
   },
 ] as const;
 
@@ -70,12 +74,10 @@ export default function HomeScreen() {
     }
   };
 
-  // Fetch once on mount
   useEffect(() => {
     loadCampsites(true);
   }, []);
 
-  // Refresh each time the Home tab gains focus (e.g., after login)
   useFocusEffect(
     useCallback(() => {
       loadCampsites();
@@ -89,6 +91,29 @@ export default function HomeScreen() {
 
   const handleComingSoon = () => {
     Alert.alert('Coming soon', 'This feature is being built.');
+  };
+
+  const handleFeaturePress = (
+    action: 'explore' | 'coming-soon',
+    label: string,
+  ) => {
+    if (action === 'explore') {
+      router.push('/(tabs)/explore');
+      return;
+    }
+    Alert.alert(
+      `${label} — Coming Soon`,
+      'This feature is being built. Check back soon!',
+    );
+  };
+
+  const handleSearch = () => {
+    const q = search.trim();
+    if (q) {
+      router.push(`/(tabs)/explore?search=${encodeURIComponent(q)}`);
+    } else {
+      router.push('/(tabs)/explore');
+    }
   };
 
   const openCampsite = (id: number) => {
@@ -137,7 +162,11 @@ export default function HomeScreen() {
             </Text>
 
             <View style={styles.searchBox}>
-              <Ionicons name="search-outline" size={18} color={colors.textMuted} />
+              <Ionicons
+                name="search-outline"
+                size={18}
+                color={colors.textMuted}
+              />
               <TextInput
                 style={styles.searchInput}
                 placeholder="Search destinations, campsites, rent gears"
@@ -147,7 +176,7 @@ export default function HomeScreen() {
               />
               <TouchableOpacity
                 style={styles.searchButton}
-                onPress={handleComingSoon}
+                onPress={handleSearch}
               >
                 <Text style={styles.searchButtonText}>Search</Text>
               </TouchableOpacity>
@@ -162,11 +191,15 @@ export default function HomeScreen() {
               <TouchableOpacity
                 key={f.label}
                 style={styles.featureCard}
-                onPress={handleComingSoon}
+                onPress={() => handleFeaturePress(f.action, f.label)}
                 activeOpacity={0.85}
               >
                 <View style={styles.featureIconWrap}>
-                  <Ionicons name={f.icon as any} size={30} color={f.color} />
+                  <Ionicons
+                    name={f.icon as any}
+                    size={30}
+                    color={f.color}
+                  />
                 </View>
                 <Text style={styles.featureLabel}>{f.label}</Text>
                 <Text style={styles.featureDesc}>{f.desc}</Text>
@@ -175,7 +208,7 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* POPULAR CAMPSITES — live from API */}
+        {/* POPULAR CAMPSITES */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Popular Campsites</Text>
@@ -191,7 +224,11 @@ export default function HomeScreen() {
             </View>
           ) : error ? (
             <View style={styles.centerBox}>
-              <Ionicons name="warning-outline" size={40} color={colors.textMuted} />
+              <Ionicons
+                name="warning-outline"
+                size={40}
+                color={colors.textMuted}
+              />
               <Text style={styles.centerText}>{error}</Text>
               <TouchableOpacity
                 style={styles.retryButton}
@@ -202,7 +239,11 @@ export default function HomeScreen() {
             </View>
           ) : campsiteList.length === 0 ? (
             <View style={styles.centerBox}>
-              <Ionicons name="leaf-outline" size={40} color={colors.textMuted} />
+              <Ionicons
+                name="leaf-outline"
+                size={40}
+                color={colors.textMuted}
+              />
               <Text style={styles.centerText}>No campsites available yet.</Text>
             </View>
           ) : (
@@ -228,7 +269,10 @@ export default function HomeScreen() {
                         size={12}
                         color={colors.textMuted}
                       />
-                      <Text style={styles.campsiteLocation} numberOfLines={1}>
+                      <Text
+                        style={styles.campsiteLocation}
+                        numberOfLines={1}
+                      >
                         {c.location}
                       </Text>
                     </View>
@@ -246,7 +290,11 @@ export default function HomeScreen() {
                     style={styles.heartButton}
                     onPress={handleComingSoon}
                   >
-                    <Ionicons name="heart-outline" size={20} color="#111827" />
+                    <Ionicons
+                      name="heart-outline"
+                      size={20}
+                      color="#111827"
+                    />
                   </TouchableOpacity>
                 </TouchableOpacity>
               ))}
@@ -281,7 +329,6 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
 
-  // Top app bar
   appBar: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -300,11 +347,9 @@ const styles = StyleSheet.create({
   brandGreen: { color: colors.gearupGreen },
   iconButton: { padding: 8 },
 
-  // Scroll
   scroll: { flex: 1 },
   scrollContent: { paddingBottom: 16 },
 
-  // Hero
   hero: {
     height: 260,
     marginHorizontal: 16,
@@ -350,7 +395,6 @@ const styles = StyleSheet.create({
   },
   searchButtonText: { color: '#fff', fontSize: 12, fontWeight: '700' },
 
-  // Sections
   section: { marginTop: 20, paddingHorizontal: 16 },
   sectionHeader: {
     flexDirection: 'row',
@@ -361,7 +405,6 @@ const styles = StyleSheet.create({
   sectionTitle: { fontSize: 18, fontWeight: '800', color: '#111827' },
   sectionLink: { fontSize: 13, color: colors.gearupGreen, fontWeight: '700' },
 
-  // Feature grid — 2 columns
   featureGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -405,7 +448,6 @@ const styles = StyleSheet.create({
     lineHeight: 13,
   },
 
-  // Campsites list
   campsiteList: { gap: 12 },
   campsiteCard: {
     flexDirection: 'row',
@@ -444,7 +486,6 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
 
-  // Loading / empty states
   centerBox: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -471,7 +512,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
 
-  // CTA
   cta: {
     backgroundColor: '#0f3d20',
     borderRadius: 16,

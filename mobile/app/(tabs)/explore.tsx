@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,7 +11,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter, useFocusEffect } from 'expo-router';
+import { useRouter, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { campsites } from '../../lib/api';
 import type { Campsite } from '@gearup/shared';
 import { colors } from '../../theme';
@@ -40,11 +40,16 @@ function matchesPriceFilter(
 
 export default function ExploreScreen() {
   const router = useRouter();
+  const { search: searchParam } = useLocalSearchParams<{ search?: string }>();
+
   const [list, setList] = useState<Campsite[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
-  const [filters, setFilters] = useState<FilterState>(EMPTY_FILTERS);
+  const [filters, setFilters] = useState<FilterState>({
+    ...EMPTY_FILTERS,
+    search: searchParam ?? '',
+  });
 
   const loadCampsites = async (showSpinner = false) => {
     if (showSpinner) setLoading(true);
@@ -63,6 +68,12 @@ export default function ExploreScreen() {
       setRefreshing(false);
     }
   };
+
+  useEffect(() => {
+    if (searchParam !== undefined) {
+      setFilters((f) => ({ ...f, search: searchParam }));
+    }
+  }, [searchParam]);
 
   useFocusEffect(
     useCallback(() => {
@@ -131,7 +142,11 @@ export default function ExploreScreen() {
             <TouchableOpacity
               onPress={() => setFilters((f) => ({ ...f, search: '' }))}
             >
-              <Ionicons name="close-circle" size={18} color={colors.textMuted} />
+              <Ionicons
+                name="close-circle"
+                size={18}
+                color={colors.textMuted}
+              />
             </TouchableOpacity>
           )}
         </View>
@@ -148,7 +163,11 @@ export default function ExploreScreen() {
         </View>
       ) : error ? (
         <View style={styles.centerBox}>
-          <Ionicons name="warning-outline" size={40} color={colors.textMuted} />
+          <Ionicons
+            name="warning-outline"
+            size={40}
+            color={colors.textMuted}
+          />
           <Text style={styles.centerText}>{error}</Text>
           <TouchableOpacity
             style={styles.retryButton}
@@ -172,7 +191,11 @@ export default function ExploreScreen() {
           }
           ListEmptyComponent={
             <View style={styles.centerBox}>
-              <Ionicons name="leaf-outline" size={40} color={colors.textMuted} />
+              <Ionicons
+                name="leaf-outline"
+                size={40}
+                color={colors.textMuted}
+              />
               <Text style={styles.centerText}>
                 No campsites match your filters.
               </Text>

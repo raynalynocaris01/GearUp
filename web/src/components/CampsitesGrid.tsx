@@ -26,6 +26,7 @@ export interface Campsite {
 
 interface CampsitesGridProps {
   campsites: Campsite[];
+  initialSearch?: string;
 }
 
 function matchesPriceFilter(
@@ -45,9 +46,15 @@ function matchesPriceFilter(
   }
 }
 
-export function CampsitesGrid({ campsites }: CampsitesGridProps) {
+export function CampsitesGrid({
+  campsites,
+  initialSearch = '',
+}: CampsitesGridProps) {
   const [sort, setSort] = useState<SortOption>('rating');
-  const [filters, setFilters] = useState<FilterState>(EMPTY_FILTERS);
+  const [filters, setFilters] = useState<FilterState>({
+    ...EMPTY_FILTERS,
+    search: initialSearch,
+  });
 
   // Extract unique regions from the full list (once)
   const regions = useMemo(() => {
