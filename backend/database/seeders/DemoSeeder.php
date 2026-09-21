@@ -106,12 +106,12 @@ class DemoSeeder extends Seeder
                 'reviews_count' => 0,
                 'capacity' => 4,
                 'is_featured' => true,
-                'latitude' => 9.2647,
-                'longitude' => 123.2420, 
+                'latitude' => 9.28344105,      
+                'longitude' => 123.21428879,   
             ],
             [
                 'owner_id' => $owner1->id,
-                'name' => 'Pulangbato Falls',
+                'name' => 'Pulangbato Falls Mountain Resort',
                 'description' => 'Riverside camping next to a stunning red-rock waterfall. Swim in natural pools, hike nearby trails, and fall asleep to the sound of running water.',
                 'location' => 'Valencia, Negros Oriental',
                 'region' => 'Negros Oriental',
@@ -122,12 +122,12 @@ class DemoSeeder extends Seeder
                 'reviews_count' => 0,
                 'capacity' => 6,
                 'is_featured' => true,
-                'latitude' => 9.2784,
-                'longitude' => 123.2178,
+                'latitude' => 9.32104554,     
+                 'longitude' => 123.19391425,  
             ],
             [
                 'owner_id' => $owner2->id,
-                'name' => 'Mt. Talinis Base Camp',
+                'name' => 'Rancho (Mt. Talinis)',
                 'description' => 'Base camp for the Mt. Talinis trek. Overnight stay includes tent setup, meals, and a local guide briefing. Ideal for first-time mountain campers.',
                 'location' => 'Valencia, Negros Oriental',
                 'region' => 'Negros Oriental',
@@ -138,12 +138,12 @@ class DemoSeeder extends Seeder
                 'reviews_count' => 0,
                 'capacity' => 8,
                 'is_featured' => true,
-                'latitude' => 9.2549,
-                'longitude' => 123.1745,
+                'latitude' => 9.26435591,     
+                'longitude' => 123.17823712,  
             ],
             [
                 'owner_id' => $owner2->id,
-                'name' => 'Twin Lakes Retreat',
+                'name' => 'Balinsasayao Twin Lakes View Deck ',
                 'description' => 'A serene campsite between two crater lakes. Kayaking, birdwatching, and quiet evenings by the fire. Great for couples and small families.',
                 'location' => 'Sibulan, Negros Oriental',
                 'region' => 'Negros Oriental',
@@ -154,14 +154,14 @@ class DemoSeeder extends Seeder
                 'reviews_count' => 0,
                 'capacity' => 4,
                 'is_featured' => true,
-                'latitude' => 9.3581,
-                'longitude' => 123.2137,
+                'latitude' => 9.36072020,     
+                 'longitude' => 123.17965770,  
             ],
             [
                 'owner_id' => $owner3->id,
-                'name' => 'Balinsasayao Forest Camp',
+                'name' => 'Forest Camp Resort',
                 'description' => 'Deep-forest camping inside a protected natural park. Guided night hikes, firefly watching, and dense canopy shade. Book well in advance.',
-                'location' => 'Tanjay, Negros Oriental',
+                'location' => 'Apolong, Valencia',
                 'region' => 'Negros Oriental',
                 'price_per_night' => 250.00,
                 'price_unit' => 'night',
@@ -170,12 +170,12 @@ class DemoSeeder extends Seeder
                 'reviews_count' => 0,
                 'capacity' => 4,
                 'is_featured' => false,
-                'latitude' => 9.3582,
-                'longitude' => 123.1809,
+                'latitude' => 9.28783632,     
+                'longitude' => 123.23066541,  
             ],
             [
                 'owner_id' => $owner3->id,
-                'name' => 'Apo Island Beach Camp',
+                'name' => 'Apo Island Beach Resort',
                 'description' => 'Beachfront camping on a marine-protected island. Snorkeling, sea turtles, and sunrise over the Bohol Sea. Boat transfer included.',
                 'location' => 'Dauin, Negros Oriental',
                 'region' => 'Negros Oriental',
@@ -186,8 +186,8 @@ class DemoSeeder extends Seeder
                 'reviews_count' => 0,
                 'capacity' => 6,
                 'is_featured' => true,
-                'latitude' => 9.0769,
-                'longitude' => 123.2703,
+                'latitude' => 9.07983787,     
+                'longitude' => 123.26809256,  
             ],
         ];
 
@@ -196,8 +196,8 @@ class DemoSeeder extends Seeder
         }
 
         $grandiVista = Campsite::where('name', 'Grandi Vista Campsite')->first();
-        $pulangbato = Campsite::where('name', 'Pulangbato Falls')->first();
-        $talinis = Campsite::where('name', 'Mt. Talinis Base Camp')->first();
+        $pulangbato = Campsite::where('name', 'Pulangbato Falls Mountain Resort')->first();
+        $talinis = Campsite::where('name', 'Rancho (Mt. Talinis)')->first();
 
         // ─── Tour Guides (attached) ─────────────────────
         TourGuide::create([
