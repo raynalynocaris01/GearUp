@@ -15,6 +15,8 @@ class Campsite extends Model
         'description',
         'location',
         'region',
+        'latitude',     
+        'longitude', 
         'price_per_night',
         'price_unit',
         'image_url',
@@ -25,11 +27,13 @@ class Campsite extends Model
     ];
 
     protected $casts = [
-        'price_per_night' => 'decimal:2',
-        'rating' => 'decimal:2',
-        'reviews_count' => 'integer',
-        'capacity' => 'integer',
-        'is_featured' => 'boolean',
+    'price_per_night' => 'decimal:2',
+    'rating' => 'decimal:2',
+    'reviews_count' => 'integer',
+    'capacity' => 'integer',
+    'is_featured' => 'boolean',
+    'latitude' => 'float',    
+    'longitude' => 'float',   
     ];
 
     public function owner()

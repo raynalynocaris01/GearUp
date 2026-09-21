@@ -106,6 +106,8 @@ class DemoSeeder extends Seeder
                 'reviews_count' => 0,
                 'capacity' => 4,
                 'is_featured' => true,
+                'latitude' => 9.2647,
+                'longitude' => 123.2420, 
             ],
             [
                 'owner_id' => $owner1->id,
@@ -120,6 +122,8 @@ class DemoSeeder extends Seeder
                 'reviews_count' => 0,
                 'capacity' => 6,
                 'is_featured' => true,
+                'latitude' => 9.2784,
+                'longitude' => 123.2178,
             ],
             [
                 'owner_id' => $owner2->id,
@@ -134,6 +138,8 @@ class DemoSeeder extends Seeder
                 'reviews_count' => 0,
                 'capacity' => 8,
                 'is_featured' => true,
+                'latitude' => 9.2549,
+                'longitude' => 123.1745,
             ],
             [
                 'owner_id' => $owner2->id,
@@ -148,6 +154,8 @@ class DemoSeeder extends Seeder
                 'reviews_count' => 0,
                 'capacity' => 4,
                 'is_featured' => true,
+                'latitude' => 9.3581,
+                'longitude' => 123.2137,
             ],
             [
                 'owner_id' => $owner3->id,
@@ -162,6 +170,8 @@ class DemoSeeder extends Seeder
                 'reviews_count' => 0,
                 'capacity' => 4,
                 'is_featured' => false,
+                'latitude' => 9.3582,
+                'longitude' => 123.1809,
             ],
             [
                 'owner_id' => $owner3->id,
@@ -176,6 +186,8 @@ class DemoSeeder extends Seeder
                 'reviews_count' => 0,
                 'capacity' => 6,
                 'is_featured' => true,
+                'latitude' => 9.0769,
+                'longitude' => 123.2703,
             ],
         ];
 
