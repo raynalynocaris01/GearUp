@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { campsites, bookings } from '../../lib/api';
+import { campsites, bookings ,tourGuides} from '../../lib/api';
 import type { Campsite } from '@gearup/shared';
 import { colors } from '../../theme';
 
@@ -57,6 +57,22 @@ export default function NewBookingScreen() {
   const [checkOut, setCheckOut] = useState(toDateString(dayAfter));
   const [guests, setGuests] = useState(1);
   const [notes, setNotes] = useState('');
+  const [availableGuides, setAvailableGuides] = useState<
+  { id: number; name: string; description: string | null; price_per_trip: string }[]
+  >([]);
+  const [selectedGuideId, setSelectedGuideId] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!campsite) return;
+    (async () => {
+      try {
+        const res = await tourGuides.list({ campsite_id: campsite.id });
+        setAvailableGuides(res.data);
+      } catch {
+        // silent
+      }
+    })();
+  }, [campsite]);
 
   useEffect(() => {
     (async () => {
@@ -73,19 +89,31 @@ export default function NewBookingScreen() {
   }, [campsiteId]);
 
   // Live price preview
-  const totalPrice = useMemo(() => {
-    if (!campsite) return 0;
-    const start = new Date(checkIn + 'T00:00:00');
-    const end = new Date(checkOut + 'T00:00:00');
-    const diffMs = end.getTime() - start.getTime();
-    const nights = Math.max(1, Math.round(diffMs / (1000 * 60 * 60 * 24)));
-    const unit = parseFloat(campsite.price_per_night);
+ const { nights, campsitePrice, guidePrice, totalPrice } = useMemo(() => {
+  if (!campsite) {
+    return { nights: 0, campsitePrice: 0, guidePrice: 0, totalPrice: 0 };
+  }
+  const start = new Date(checkIn + 'T00:00:00');
+  const end = new Date(checkOut + 'T00:00:00');
+  const diffMs = end.getTime() - start.getTime();
+  const n = Math.max(1, Math.round(diffMs / (1000 * 60 * 60 * 24)));
+  const unit = parseFloat(campsite.price_per_night);
 
-    if (campsite.price_unit === 'entrance') {
-      return unit * guests;
-    }
-    return unit * nights * guests;
-  }, [campsite, checkIn, checkOut, guests]);
+  const cPrice =
+    campsite.price_unit === 'entrance' ? unit * guests : unit * n * guests;
+
+  const selectedGuide = availableGuides.find((g) => g.id === selectedGuideId);
+  const gPrice = selectedGuide
+    ? parseFloat(selectedGuide.price_per_trip)
+    : 0;
+
+  return {
+    nights: campsite.price_unit === 'entrance' ? 0 : n,
+    campsitePrice: cPrice,
+    guidePrice: gPrice,
+    totalPrice: cPrice + gPrice,
+  };
+}, [campsite, checkIn, checkOut, guests, availableGuides, selectedGuideId]);
 
   const handleSubmit = async () => {
     if (!campsite) return;
@@ -106,12 +134,13 @@ export default function NewBookingScreen() {
     setSubmitting(true);
     try {
       const res = await bookings.create({
-        campsite_id: campsite.id,
-        check_in: checkIn,
-        check_out: checkOut,
-        guests,
-        notes: notes.trim() || undefined,
-      });
+      campsite_id: campsite.id,
+      tour_guide_id: selectedGuideId ?? undefined,
+      check_in: checkIn,
+      check_out: checkOut,
+      guests,
+      notes: notes.trim() || undefined,
+    });
 
       Alert.alert(
         'Booking confirmed!',
@@ -258,27 +287,98 @@ export default function NewBookingScreen() {
             maxLength={500}
           />
         </View>
+        {/* Tour guide picker */}
+{availableGuides.length > 0 && (
+  <View>
+    <Text style={styles.sectionTitle}>
+      Add a tour guide? (optional)
+    </Text>
+    <View style={{ gap: 8 }}>
+      <TouchableOpacity
+        style={[
+          styles.guideOption,
+          selectedGuideId === null && styles.guideOptionActive,
+        ]}
+        onPress={() => setSelectedGuideId(null)}
+        activeOpacity={0.8}
+      >
+        <Ionicons
+          name={selectedGuideId === null ? 'radio-button-on' : 'radio-button-off'}
+          size={20}
+          color={selectedGuideId === null ? colors.gearupGreen : '#9ca3af'}
+        />
+        <View style={{ flex: 1 }}>
+          <Text style={styles.guideName}>No guide</Text>
+          <Text style={styles.guideDesc}>Just book the campsite.</Text>
+        </View>
+      </TouchableOpacity>
+
+      {availableGuides.map((g) => {
+        const price = parseFloat(g.price_per_trip);
+        const active = selectedGuideId === g.id;
+        return (
+          <TouchableOpacity
+            key={g.id}
+            style={[
+              styles.guideOption,
+              active && styles.guideOptionActive,
+            ]}
+            onPress={() => setSelectedGuideId(g.id)}
+            activeOpacity={0.8}
+          >
+            <Ionicons
+              name={active ? 'radio-button-on' : 'radio-button-off'}
+              size={20}
+              color={active ? colors.gearupGreen : '#9ca3af'}
+            />
+            <View style={{ flex: 1 }}>
+              <View style={styles.guideRow}>
+                <Text style={styles.guideName}>{g.name}</Text>
+                <Text style={styles.guidePrice}>
+                  {price > 0 ? `+₱${price.toFixed(0)}` : 'Free'}
+                </Text>
+              </View>
+              {g.description && (
+                <Text style={styles.guideDesc} numberOfLines={2}>
+                  {g.description}
+                </Text>
+              )}
+            </View>
+          </TouchableOpacity>
+        );
+      })}
+    </View>
+  </View>
+)}
 
         {/* Price summary */}
-        <View style={styles.summaryCard}>
+        <View style={styles.summary}>
           <View style={styles.summaryRow}>
             <Text style={styles.summaryLabel}>
               {campsite.price_unit === 'entrance'
-                ? `₱${campsite.price_per_night} × ${guests} ${guests === 1 ? 'guest' : 'guests'}`
-                : `₱${campsite.price_per_night} × ${guests} ${guests === 1 ? 'guest' : 'guests'}`}
+                ? `Campsite: ₱${campsite.price_per_night} × ${guests} ${guests === 1 ? 'guest' : 'guests'}`
+                : `Campsite: ₱${campsite.price_per_night} × ${nights} ${nights === 1 ? 'night' : 'nights'} × ${guests} ${guests === 1 ? 'guest' : 'guests'}`}
             </Text>
             <Text style={styles.summaryValue}>
-              ₱{Number(campsite.price_per_night) * guests}
+              ₱{campsitePrice.toFixed(2)}
             </Text>
           </View>
-          {campsite.price_unit !== 'entrance' && (
-            <Text style={styles.summaryNote}>
-              Multiplied by number of nights on the server
-            </Text>
+
+          {selectedGuideId !== null && (
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>
+                Guide: {availableGuides.find((g) => g.id === selectedGuideId)?.name}
+              </Text>
+              <Text style={styles.summaryValue}>
+                ₱{guidePrice.toFixed(2)}
+              </Text>
+            </View>
           )}
+
           <View style={styles.summaryDivider} />
+
           <View style={styles.summaryRow}>
-            <Text style={styles.summaryTotalLabel}>Estimated total</Text>
+            <Text style={styles.summaryTotal}>Total</Text>
             <Text style={styles.summaryTotalValue}>
               ₱{totalPrice.toFixed(2)}
             </Text>
@@ -429,7 +529,41 @@ const styles = StyleSheet.create({
     padding: 0,
   },
 
-  summaryCard: {
+  // Tour guide picker
+  guideOption: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    padding: 14,
+  },
+  guideOptionActive: {
+    borderColor: colors.gearupGreen,
+    backgroundColor: colors.gearup50,
+  },
+  guideRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: 8,
+  },
+  guideName: { fontSize: 14, fontWeight: '700', color: '#111827' },
+  guidePrice: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: colors.gearupGreen,
+  },
+  guideDesc: {
+    fontSize: 11,
+    color: colors.textMuted,
+    marginTop: 3,
+  },
+
+  // Price summary
+  summary: {
     backgroundColor: '#f0fdf4',
     borderRadius: 14,
     borderWidth: 1,
@@ -441,22 +575,34 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    paddingVertical: 4,
   },
-  summaryLabel: { fontSize: 13, color: '#166534' },
-  summaryValue: { fontSize: 13, color: '#166534', fontWeight: '700' },
-  summaryNote: {
-    fontSize: 11,
+  summaryLabel: {
+    fontSize: 12,
     color: '#166534',
-    opacity: 0.7,
-    marginTop: 4,
+    flex: 1,
+    paddingRight: 8,
+  },
+  summaryValue: {
+    fontSize: 12,
+    color: '#166534',
+    fontWeight: '700',
   },
   summaryDivider: {
     height: 1,
     backgroundColor: '#86efac',
-    marginVertical: 12,
+    marginVertical: 10,
   },
-  summaryTotalLabel: { fontSize: 15, fontWeight: '800', color: '#14532d' },
-  summaryTotalValue: { fontSize: 22, fontWeight: '900', color: '#14532d' },
+  summaryTotal: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#14532d',
+  },
+  summaryTotalValue: {
+    fontSize: 22,
+    fontWeight: '900',
+    color: '#14532d',
+  },
 
   submitButton: {
     backgroundColor: colors.gearupGreen,

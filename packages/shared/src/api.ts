@@ -117,7 +117,7 @@ export interface Booking {
   created_at: string;
   updated_at: string;
   campsite?: Campsite | null;
-  tourGuide?: TourGuide | null;
+  tour_guide?: TourGuide | null;
   review?: Review | null;
   user?: {
     id: number;

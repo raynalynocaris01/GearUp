@@ -29,7 +29,8 @@ function formatDate(iso: string): string {
   });
 }
 
-function nightsBetween(a: string, b: string): number {
+function nightsBetween(a: string | null, b: string | null): number {
+  if (!a || !b) return 0;
   const start = new Date(a).getTime();
   const end = new Date(b).getTime();
   return Math.max(1, Math.round((end - start) / (1000 * 60 * 60 * 24)));
@@ -234,21 +235,24 @@ export default function BookingsScreen() {
                   </View>
 
                   <Text style={styles.name} numberOfLines={1}>
-                    {item.campsite?.name ?? 'Campsite'}
-                  </Text>
+                  {item.campsite?.name ??
+                    (item.tour_guide ? 'Tour Guide Booking' : 'Booking')}
+                </Text>
 
-                  <View style={styles.metaRow}>
-                    <Ionicons
-                      name="calendar-outline"
-                      size={12}
-                      color={colors.textMuted}
-                    />
-                    <Text style={styles.meta}>
-                      {formatDate(item.check_in)} →{' '}
-                      {formatDate(item.check_out)} ({nights}{' '}
-                      {nights === 1 ? 'night' : 'nights'})
-                    </Text>
-                  </View>
+                  {item.check_in && item.check_out && (
+                    <View style={styles.metaRow}>
+                      <Ionicons
+                        name="calendar-outline"
+                        size={12}
+                        color={colors.textMuted}
+                      />
+                      <Text style={styles.meta}>
+                        {formatDate(item.check_in)} →{' '}
+                        {formatDate(item.check_out)} ({nights}{' '}
+                        {nights === 1 ? 'night' : 'nights'})
+                      </Text>
+                    </View>
+                  )}
 
                   <View style={styles.metaRow}>
                     <Ionicons
@@ -262,22 +266,48 @@ export default function BookingsScreen() {
                     </Text>
                   </View>
 
+                  {/* Guide link — separate row, NOT inside Text */}
+                  {item.tour_guide && (
+                    <TouchableOpacity
+                      onPress={() =>
+                        router.push(
+                          `/tour-guides/${item.tour_guide!.id}`,
+                        )
+                      }
+                      activeOpacity={0.7}
+                    >
+                      <View style={styles.metaRow}>
+                        <Ionicons
+                          name="compass-outline"
+                          size={12}
+                          color={colors.gearupGreen}
+                        />
+                        <Text
+                          style={styles.guideLink}
+                          numberOfLines={1}
+                        >
+                          Guide: {item.tour_guide.name}
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                  )}
+
                   <View style={styles.footerRow}>
                     <Text style={styles.total}>₱{item.total_price}</Text>
 
-                    {/* Cancel only for pending/confirmed */}
                     {(item.status === 'pending' ||
                       item.status === 'confirmed') && (
                       <TouchableOpacity
                         style={styles.cancelButton}
                         onPress={() => handleCancel(item)}
                       >
-                        <Text style={styles.cancelButtonText}>Cancel</Text>
+                        <Text style={styles.cancelButtonText}>
+                          Cancel
+                        </Text>
                       </TouchableOpacity>
                     )}
                   </View>
 
-                  {/* Review CTA for completed bookings */}
                   {item.status === 'completed' && (
                     <View style={styles.reviewRow}>
                       {item.review ? (
@@ -383,6 +413,14 @@ const styles = StyleSheet.create({
   name: { fontSize: 14, fontWeight: '800', color: '#111827' },
   metaRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   meta: { fontSize: 11, color: colors.textMuted, flex: 1 },
+
+  guideLink: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: colors.gearupGreen,
+    textDecorationLine: 'underline',
+    flex: 1,
+  },
 
   footerRow: {
     flexDirection: 'row',

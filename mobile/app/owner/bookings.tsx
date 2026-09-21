@@ -25,7 +25,8 @@ function formatDate(iso: string): string {
   });
 }
 
-function nightsBetween(a: string, b: string): number {
+function nightsBetween(a: string | null, b: string | null): number {
+  if (!a || !b) return 0;
   const start = new Date(a).getTime();
   const end = new Date(b).getTime();
   return Math.max(1, Math.round((end - start) / (1000 * 60 * 60 * 24)));
@@ -114,7 +115,6 @@ export default function OwnerBookingsScreen() {
             renderItem={({ item }) => {
               const cancelled = item.status === 'cancelled';
               const nights = nightsBetween(item.check_in, item.check_out);
-            
 
               return (
                 <View
@@ -131,47 +131,104 @@ export default function OwnerBookingsScreen() {
                   <View style={styles.cardBody}>
                     <View style={styles.cardTop}>
                       <Text style={styles.cardName} numberOfLines={1}>
-                        {item.campsite?.name ?? 'Campsite'}
+                        {item.campsite?.name ??
+                          (item.tour_guide
+                            ? 'Tour Guide Booking'
+                            : 'Campsite')}
                       </Text>
                       <Text style={styles.cardTotal}>
                         ₱{item.total_price}
                       </Text>
                     </View>
 
-                    <Text style={styles.cardLocation} numberOfLines={1}>
-                      📍 {item.campsite?.location}
-                    </Text>
+                    {item.campsite?.location && (
+                      <Text
+                        style={styles.cardLocation}
+                        numberOfLines={1}
+                      >
+                        📍 {item.campsite.location}
+                      </Text>
+                    )}
 
                     <View style={styles.infoGrid}>
                       <View style={styles.infoItem}>
                         <Text style={styles.infoLabel}>Customer</Text>
-                        <Text style={styles.infoValue} numberOfLines={1}>
+                        <Text
+                          style={styles.infoValue}
+                          numberOfLines={1}
+                        >
                           {item.user?.name ?? 'Unknown'}
                         </Text>
-                        <Text style={styles.infoHint} numberOfLines={1}>
+                        <Text
+                          style={styles.infoHint}
+                          numberOfLines={1}
+                        >
                           {item.user?.email}
                         </Text>
                       </View>
                       <View style={styles.infoItem}>
-                        <Text style={styles.infoLabel}>Dates</Text>
-                        <Text style={styles.infoValue}>
-                          {formatDate(item.check_in)} →{' '}
-                          {formatDate(item.check_out)}
+                        <Text style={styles.infoLabel}>
+                          {item.check_in && item.check_out
+                            ? 'Dates'
+                            : 'Details'}
                         </Text>
-                        <Text style={styles.infoHint}>
-                          {nights} {nights === 1 ? 'night' : 'nights'} ·{' '}
-                          {item.guests}{' '}
-                          {item.guests === 1 ? 'guest' : 'guests'}
-                        </Text>
+                        {item.check_in && item.check_out ? (
+                          <>
+                            <Text style={styles.infoValue}>
+                              {formatDate(item.check_in)} →{' '}
+                              {formatDate(item.check_out)}
+                            </Text>
+                            <Text style={styles.infoHint}>
+                              {nights}{' '}
+                              {nights === 1 ? 'night' : 'nights'} ·{' '}
+                              {item.guests}{' '}
+                              {item.guests === 1 ? 'guest' : 'guests'}
+                            </Text>
+                          </>
+                        ) : (
+                          <Text style={styles.infoHint}>
+                            {item.guests}{' '}
+                            {item.guests === 1 ? 'guest' : 'guests'}
+                          </Text>
+                        )}
                       </View>
                     </View>
+
+                    {item.tour_guide && (
+                      <TouchableOpacity
+                        style={styles.guideRow}
+                        onPress={() =>
+                          router.push(
+                            `/tour-guides/${item.tour_guide!.id}`,
+                          )
+                        }
+                        activeOpacity={0.8}
+                      >
+                        <Ionicons
+                          name="compass-outline"
+                          size={14}
+                          color={colors.gearupGreen}
+                        />
+                        <Text
+                          style={styles.guideRowText}
+                          numberOfLines={1}
+                        >
+                          Tour guide: {item.tour_guide.name}
+                        </Text>
+                        <Ionicons
+                          name="chevron-forward"
+                          size={14}
+                          color={colors.gearupGreen}
+                        />
+                      </TouchableOpacity>
+                    )}
 
                     <View style={styles.actionsRow}>
                       <BookingActions
                         bookingId={item.id}
                         status={item.status}
                         onSuccess={() => load()}
-                        />
+                      />
                     </View>
                   </View>
                 </View>
@@ -254,6 +311,25 @@ const styles = StyleSheet.create({
   },
   infoValue: { fontSize: 12, fontWeight: '700', color: '#111827' },
   infoHint: { fontSize: 10, color: colors.textMuted, marginTop: 2 },
+
+  guideRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 10,
+    backgroundColor: colors.gearup50,
+    borderWidth: 1,
+    borderColor: '#bbf7d0',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  guideRowText: {
+    flex: 1,
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.gearupGreen,
+  },
 
   actionsRow: { marginTop: 12 },
 

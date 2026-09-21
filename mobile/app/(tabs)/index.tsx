@@ -37,7 +37,7 @@ const FEATURES = [
     label: 'Hire Tour Guide',
     desc: 'Local guides, better experiences',
     color: '#ea580c',
-    action: 'explore',
+    action: 'tour-guides',
   },
   {
     icon: 'calendar-outline',
@@ -93,12 +93,16 @@ export default function HomeScreen() {
     Alert.alert('Coming soon', 'This feature is being built.');
   };
 
-  const handleFeaturePress = (
-    action: 'explore' | 'coming-soon',
+    const handleFeaturePress = (
+    action: 'explore' | 'coming-soon' | 'tour-guides',
     label: string,
   ) => {
     if (action === 'explore') {
       router.push('/(tabs)/explore');
+      return;
+    }
+    if (action === 'tour-guides') {
+      router.push('/tour-guides');
       return;
     }
     Alert.alert(
