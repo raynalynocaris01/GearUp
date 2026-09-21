@@ -21,11 +21,11 @@ interface Booking {
     image_url: string;
     location: string;
   } | null;
-  tourGuide?: {
-    id: number;
-    name: string;
-    price_per_trip: string;
-  } | null;
+  tour_guide?: {
+  id: number;
+  name: string;
+  price_per_trip: string;
+} | null;
 }
 
 async function getBookings(token: string): Promise<Booking[]> {
@@ -132,7 +132,7 @@ export default async function OwnerBookingsPage() {
                         {b.status.toUpperCase()}
                       </span>
                       <h3 className="text-lg font-bold text-gray-900 mt-2">
-                        {b.campsite?.name ?? (b.tourGuide ? 'Tour Guide Booking' : 'Booking')}
+                        {b.campsite?.name ?? (b.tour_guide ? 'Tour Guide Booking' : 'Booking')}
                       </h3>
                       <p className="text-xs text-gray-500">
                         📍 {b.campsite?.location}
@@ -178,9 +178,9 @@ export default async function OwnerBookingsPage() {
                     )}
                   </div>
                   </div>
-                  {b.tourGuide && (
+                  {b.tour_guide && (
                     <div className="mt-3 flex items-center gap-2 text-xs font-semibold text-gearup-700 bg-gearup-50 border border-gearup-200 rounded-lg px-3 py-2">
-                      🧭 Tour guide: {b.tourGuide.name}
+                      🧭 Tour guide: {b.tour_guide.name}
                     </div>
                   )}
 

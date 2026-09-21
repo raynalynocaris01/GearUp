@@ -152,9 +152,7 @@ export default async function TourGuidesPage() {
 
 function GuideCard({ guide }: { guide: TourGuide }) {
   const price = parseFloat(guide.price_per_trip);
-  const href = guide.campsite
-    ? `/campsites/${guide.campsite.id}`
-    : `/tour-guides/${guide.id}`;
+  const href = `/tour-guides/${guide.id}`;
 
   return (
     <Link

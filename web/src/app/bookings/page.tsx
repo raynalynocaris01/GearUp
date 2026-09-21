@@ -22,11 +22,11 @@ interface Booking {
     location: string;
     image_url: string;
   } | null;
-  tourGuide?: {
-    id: number;
-    name: string;
-    price_per_trip: string;
-  } | null;
+  tour_guide?: {
+  id: number;
+  name: string;
+  price_per_trip: string;
+} | null;
   review?: { id: number } | null;
 }
 
@@ -208,9 +208,9 @@ export default async function BookingsPage() {
                       <span>
                         👥 {b.guests} {b.guests === 1 ? 'guest' : 'guests'}
                       </span>
-                      {b.tourGuide && (
+                      {b.tour_guide && (
                         <span className="flex items-center gap-1 text-gearup-700 font-semibold">
-                          🧭 Guide: {b.tourGuide.name}
+                          🧭 Guide: {b.tour_guide.name}
                         </span>
                       )}
                     </div>
