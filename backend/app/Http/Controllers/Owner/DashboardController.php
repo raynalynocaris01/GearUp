@@ -30,8 +30,12 @@ class DashboardController extends Controller
             ->where('status', 'confirmed')
             ->count();
 
+        $completedBookings = Booking::whereIn('campsite_id', $campsiteIds)
+            ->where('status', 'completed')
+            ->count();
+
         $totalRevenue = Booking::whereIn('campsite_id', $campsiteIds)
-            ->where('status', 'confirmed')
+            ->whereIn('status', ['confirmed', 'completed'])
             ->sum('total_price');
 
         return response()->json([
@@ -39,6 +43,7 @@ class DashboardController extends Controller
             'total_bookings' => $totalBookings,
             'pending_bookings' => $pendingBookings,
             'confirmed_bookings' => $confirmedBookings,
+             'completed_bookings' => $completedBookings,
             'total_revenue' => (float) $totalRevenue,
         ]);
     }
