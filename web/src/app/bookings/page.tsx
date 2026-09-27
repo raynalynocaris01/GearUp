@@ -1,6 +1,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import { redirect, notFound } from 'next/navigation';
+import { redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
 import { Navbar } from '@/components/Navbar';
 import { CancelBookingButton } from '@/components/CancelBookingButton';
@@ -23,10 +23,20 @@ interface Booking {
     image_url: string;
   } | null;
   tour_guide?: {
-  id: number;
-  name: string;
-  price_per_trip: string;
-} | null;
+    id: number;
+    name: string;
+    price_per_trip: string;
+  } | null;
+  gear_item?: {
+    id: number;
+    name: string;
+    category: string;
+    price_per_day: string;
+    image_url: string | null;
+  } | null;
+  gear_quantity: number | null;
+  gear_start_date: string | null;
+  gear_end_date: string | null;
   review?: { id: number } | null;
 }
 
@@ -74,7 +84,7 @@ function formatDate(iso: string): string {
   });
 }
 
-function nightsBetween(a: string | null, b: string | null): number {
+function daysBetween(a: string | null, b: string | null): number {
   if (!a || !b) return 0;
   const start = new Date(a).getTime();
   const end = new Date(b).getTime();
@@ -136,7 +146,26 @@ export default async function BookingsPage() {
           <div className="space-y-4">
             {bookings.map((b) => {
               const cancelled = b.status === 'cancelled';
-              const nights = nightsBetween(b.check_in, b.check_out);
+              const isGearOnly = !b.campsite && b.gear_item;
+              const isCampsiteGear = b.campsite && b.gear_item;
+
+              // Dates: prefer gear dates if gear-only, else campsite dates
+              const startDate =
+                isGearOnly && b.gear_start_date
+                  ? b.gear_start_date
+                  : b.check_in;
+              const endDate =
+                isGearOnly && b.gear_end_date ? b.gear_end_date : b.check_out;
+              const nights = daysBetween(startDate, endDate);
+
+              // Title logic
+              const title = b.campsite?.name ?? b.gear_item?.name ?? 'Booking';
+
+              // Image: prefer campsite, then gear
+              const imageUrl = b.campsite?.image_url ?? b.gear_item?.image_url;
+
+              // Location: only campsites have this
+              const location = b.campsite?.location;
 
               return (
                 <div
@@ -146,18 +175,20 @@ export default async function BookingsPage() {
                   }`}
                 >
                   {/* Image */}
-                  <div className="relative w-40 shrink-0">
-                    {b.campsite?.image_url ? (
+                  <div className="relative w-40 shrink-0 bg-gray-100">
+                    {imageUrl ? (
                       <Image
-                        src={b.campsite.image_url}
-                        alt={b.campsite.name}
+                        src={imageUrl}
+                        alt={title}
                         fill
                         sizes="160px"
                         className="object-cover"
                         unoptimized
                       />
                     ) : (
-                      <div className="w-full h-full bg-gray-100" />
+                      <div className="w-full h-full flex items-center justify-center text-4xl">
+                        {isGearOnly ? '🎒' : '⛺'}
+                      </div>
                     )}
                   </div>
 
@@ -185,11 +216,18 @@ export default async function BookingsPage() {
                                 : 'CONFIRMED'}
                         </span>
                         <h3 className="text-lg font-bold text-gray-900 mt-2">
-                          {b.campsite?.name ?? 'Campsite'}
+                          {title}
                         </h3>
-                        <p className="text-xs text-gray-500">
-                          📍 {b.campsite?.location}
-                        </p>
+                        {location && (
+                          <p className="text-xs text-gray-500">
+                            📍 {location}
+                          </p>
+                        )}
+                        {isGearOnly && (
+                          <p className="text-xs text-gearup-600 font-semibold mt-0.5">
+                            {b.gear_item?.category} · Rental only
+                          </p>
+                        )}
                       </div>
                       <div className="text-right">
                         <p className="text-2xl font-black text-gearup-600">
@@ -199,15 +237,17 @@ export default async function BookingsPage() {
                     </div>
 
                     <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-gray-600 mt-4">
-                      {b.check_in && b.check_out && (
+                      {startDate && endDate && (
                         <span>
-                          📅 {formatDate(b.check_in)} → {formatDate(b.check_out)} (
-                          {nights} {nights === 1 ? 'night' : 'nights'})
+                          📅 {formatDate(startDate)} → {formatDate(endDate)} (
+                          {nights} {nights === 1 ? 'day' : 'days'})
                         </span>
                       )}
-                      <span>
-                        👥 {b.guests} {b.guests === 1 ? 'guest' : 'guests'}
-                      </span>
+                      {!isGearOnly && (
+                        <span>
+                          👥 {b.guests} {b.guests === 1 ? 'guest' : 'guests'}
+                        </span>
+                      )}
                       {b.tour_guide && (
                         <Link
                           href={`/tour-guides/${b.tour_guide.id}`}
@@ -218,9 +258,27 @@ export default async function BookingsPage() {
                       )}
                     </div>
 
+                    {/* Gear line for campsite+gear bookings */}
+                    {isCampsiteGear && b.gear_item && (
+                      <div className="mt-2 text-sm text-gray-600 flex items-center gap-2">
+                        <span>🎒</span>
+                        <span>
+                          <span className="font-semibold text-gray-900">
+                            {b.gear_item.name}
+                          </span>
+                          {b.gear_quantity && (
+                            <span className="text-gray-500">
+                              {' '}
+                              × {b.gear_quantity}
+                            </span>
+                          )}
+                        </span>
+                      </div>
+                    )}
+
                     {b.notes && (
                       <p className="text-xs text-gray-500 mt-3 italic">
-                        "{b.notes}"
+                        &quot;{b.notes}&quot;
                       </p>
                     )}
 
@@ -229,22 +287,22 @@ export default async function BookingsPage() {
                       <div className="mt-4 flex justify-end">
                         <CancelBookingButton bookingId={b.id} />
                       </div>
-                    ) : b.status === 'completed' ? (
-                    <div className="mt-4 flex justify-end">
-                      {b.review ? (
-                        <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-gearup-700 bg-gearup-50 border border-gearup-200 px-4 py-2 rounded-lg">
-                          ✓ Reviewed
-                        </span>
-                      ) : (
-                        <a
-                          href={`/campsites/${b.campsite?.id}`}
-                          className="inline-block text-sm font-semibold text-white bg-gearup-600 hover:bg-gearup-700 px-5 py-2.5 rounded-lg transition"
-                        >
-                          Leave a review
-                        </a>
-                      )}
-                    </div>
-                  ) : null}
+                    ) : b.status === 'completed' && b.campsite ? (
+                      <div className="mt-4 flex justify-end">
+                        {b.review ? (
+                          <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-gearup-700 bg-gearup-50 border border-gearup-200 px-4 py-2 rounded-lg">
+                            ✓ Reviewed
+                          </span>
+                        ) : (
+                          <Link
+                            href={`/campsites/${b.campsite.id}`}
+                            className="inline-block text-sm font-semibold text-white bg-gearup-600 hover:bg-gearup-700 px-5 py-2.5 rounded-lg transition"
+                          >
+                            Leave a review
+                          </Link>
+                        )}
+                      </div>
+                    ) : null}
                   </div>
                 </div>
               );

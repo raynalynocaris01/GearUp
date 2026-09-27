@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 
 interface Campsite {
   id: number;
+  owner_id: number | null;
   name: string;
   location: string;
   price_per_night: string;
@@ -12,8 +13,29 @@ interface Campsite {
   capacity: number;
 }
 
+interface GearItem {
+  id: number;
+  owner_id: number;
+  name: string;
+  description: string | null;
+  category: string;
+  price_per_day: string;
+  image_url: string | null;
+  stock: number;
+  is_available: boolean;
+}
+
+interface TourGuide {
+  id: number;
+  name: string;
+  description: string | null;
+  price_per_trip: string;
+}
+
 interface BookingFormProps {
-  campsite: Campsite;
+  campsite?: Campsite;
+  presetGearItem?: GearItem;
+  initialGearItemId?: number;
 }
 
 function toDateInput(d: Date): string {
@@ -29,68 +51,138 @@ function addDays(d: Date, days: number): Date {
   return copy;
 }
 
-export function BookingForm({ campsite }: BookingFormProps) {
+function nightsBetween(start: string, end: string): number {
+  const s = new Date(start + 'T00:00:00');
+  const e = new Date(end + 'T00:00:00');
+  const diffMs = e.getTime() - s.getTime();
+  return Math.max(0, Math.round(diffMs / (1000 * 60 * 60 * 24)));
+}
+
+export function BookingForm({
+  campsite,
+  presetGearItem,
+  initialGearItemId,
+}: BookingFormProps) {
   const router = useRouter();
 
   const tomorrow = useMemo(() => toDateInput(addDays(new Date(), 1)), []);
   const dayAfter = useMemo(() => toDateInput(addDays(new Date(), 2)), []);
 
+  const isGearOnly = !campsite;
+
+  // Dates (used for campsite OR gear-only)
   const [checkIn, setCheckIn] = useState(tomorrow);
   const [checkOut, setCheckOut] = useState(dayAfter);
+
   const [guests, setGuests] = useState(1);
   const [notes, setNotes] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string[]>>({});
   const [generalError, setGeneralError] = useState('');
-  const [guides, setGuides] = useState<
-  {
-    id: number;
-    name: string;
-      description: string | null;
-      price_per_trip: string;
-    }[]
-  >([]);
 
+  // Tour guides (only relevant when campsite is present)
+  const [guides, setGuides] = useState<TourGuide[]>([]);
   const [selectedGuideId, setSelectedGuideId] = useState<number | null>(null);
+
+  // Gear picker (only relevant when campsite is present)
+  const [availableGear, setAvailableGear] = useState<GearItem[]>([]);
+  const [selectedGearId, setSelectedGearId] = useState<number | null>(
+    initialGearItemId ?? null,
+  );
+  const [gearQuantity, setGearQuantity] = useState(1);
+
+  // Fetch tour guides if we have a campsite
+    // Fetch gear if we have a campsite (only gear from the campsite's owner)
   useEffect(() => {
+    if (!campsite) return;
     (async () => {
       try {
-        const res = await fetch(`/api/tour-guides?campsite_id=${campsite.id}`);
+        const res = await fetch(`/api/gear`);
         if (!res.ok) return;
-        const data = await res.json();
-        setGuides(data);
+        const data: GearItem[] = await res.json();
+        // Only show gear owned by the same owner as this campsite
+        const sameOwner = data.filter(
+          (g) => g.owner_id === campsite.owner_id,
+        );
+        setAvailableGear(sameOwner);
       } catch {
         // silent
       }
     })();
-  }, [campsite.id]);
+  }, [campsite]);
 
+  // Fetch gear if we have a campsite (to offer as add-on)
+  useEffect(() => {
+    if (!campsite) return;
+    (async () => {
+      try {
+        const res = await fetch(`/api/gear`);
+        if (!res.ok) return;
+        const data = await res.json();
+        setAvailableGear(data);
+      } catch {
+        // silent
+      }
+    })();
+  }, [campsite]);
 
-  // Live price preview
-  const { nights, campsitePrice, guidePrice, totalPrice } = useMemo(() => {
-  const start = new Date(checkIn + 'T00:00:00');
-  const end = new Date(checkOut + 'T00:00:00');
-  const diffMs = end.getTime() - start.getTime();
-  const n = Math.max(0, Math.round(diffMs / (1000 * 60 * 60 * 24)));
-  const unit = parseFloat(campsite.price_per_night);
+  // The gear item to use for pricing (either preset or picked from list)
+  const activeGear: GearItem | null = useMemo(() => {
+    if (presetGearItem) return presetGearItem;
+    if (!selectedGearId) return null;
+    return availableGear.find((g) => g.id === selectedGearId) ?? null;
+  }, [presetGearItem, selectedGearId, availableGear]);
 
-  const cPrice =
-    campsite.price_unit === 'entrance'
-      ? unit * guests
-      : unit * n * guests;
+  // Price preview
+  const {
+    nights,
+    campsitePrice,
+    guidePrice,
+    gearPrice,
+    totalPrice,
+  } = useMemo(() => {
+    const n = nightsBetween(checkIn, checkOut);
 
-  const selectedGuide = guides.find((g) => g.id === selectedGuideId);
-  const gPrice = selectedGuide
-    ? parseFloat(selectedGuide.price_per_trip)
-    : 0;
+    // Campsite price (0 if none)
+    let cPrice = 0;
+    if (campsite) {
+      const unit = parseFloat(campsite.price_per_night);
+      cPrice =
+        campsite.price_unit === 'entrance'
+          ? unit * guests
+          : unit * n * guests;
+    }
 
-  return {
-    nights: campsite.price_unit === 'entrance' ? 0 : n,
-    campsitePrice: cPrice,
-    guidePrice: gPrice,
-    totalPrice: cPrice + gPrice,
-  };
-}, [campsite, checkIn, checkOut, guests, guides, selectedGuideId]);
+    // Guide price
+    const selectedGuide = guides.find((g) => g.id === selectedGuideId);
+    const gPrice = selectedGuide
+      ? parseFloat(selectedGuide.price_per_trip)
+      : 0;
+
+    // Gear price: price_per_day × days × quantity
+    let gearTotal = 0;
+    if (activeGear) {
+      const unit = parseFloat(activeGear.price_per_day);
+      gearTotal = unit * Math.max(n, 1) * gearQuantity;
+    }
+
+    return {
+      nights: campsite?.price_unit === 'entrance' ? 0 : n,
+      campsitePrice: cPrice,
+      guidePrice: gPrice,
+      gearPrice: gearTotal,
+      totalPrice: cPrice + gPrice + gearTotal,
+    };
+  }, [
+    campsite,
+    checkIn,
+    checkOut,
+    guests,
+    guides,
+    selectedGuideId,
+    activeGear,
+    gearQuantity,
+  ]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -98,27 +190,47 @@ export function BookingForm({ campsite }: BookingFormProps) {
     setGeneralError('');
 
     if (checkIn >= checkOut) {
-      setGeneralError('Check-out must be after check-in.');
+      setGeneralError('Return date must be after start date.');
       return;
     }
-    if (guests > campsite.capacity) {
+    if (campsite && guests > campsite.capacity) {
       setGeneralError(`This campsite allows up to ${campsite.capacity} guests.`);
+      return;
+    }
+    if (isGearOnly && !presetGearItem) {
+      setGeneralError('No gear item selected.');
+      return;
+    }
+    if (activeGear && gearQuantity > activeGear.stock) {
+      setGeneralError(`Only ${activeGear.stock} units available.`);
       return;
     }
 
     setSubmitting(true);
 
+    const payload: Record<string, unknown> = {
+      guests: campsite ? guests : 1,
+      check_in: checkIn,
+      check_out: checkOut,
+      notes: notes.trim() || null,
+    };
+
+    if (campsite) {
+      payload.campsite_id = campsite.id;
+      payload.tour_guide_id = selectedGuideId;
+    }
+
+    if (activeGear) {
+      payload.gear_item_id = activeGear.id;
+      payload.gear_quantity = gearQuantity;
+      payload.gear_start_date = checkIn;
+      payload.gear_end_date = checkOut;
+    }
+
     const res = await fetch('/api/bookings', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-      campsite_id: campsite.id,
-      tour_guide_id: selectedGuideId,
-      check_in: checkIn,
-      check_out: checkOut,
-      guests,
-      notes: notes.trim() || null,
-    }),
+      body: JSON.stringify(payload),
     });
 
     const data = await res.json();
@@ -134,17 +246,19 @@ export function BookingForm({ campsite }: BookingFormProps) {
     router.refresh();
   };
 
+  const maxGuests = campsite?.capacity ?? 1;
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Dates */}
       <div>
         <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
-          Dates
+          {isGearOnly ? 'Rental Dates' : 'Dates'}
         </h3>
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="block text-xs text-gray-600 mb-1">
-              Check-in
+              {isGearOnly ? 'Pick-up' : 'Check-in'}
             </label>
             <input
               type="date"
@@ -160,7 +274,7 @@ export function BookingForm({ campsite }: BookingFormProps) {
           </div>
           <div>
             <label className="block text-xs text-gray-600 mb-1">
-              Check-out
+              {isGearOnly ? 'Return' : 'Check-out'}
             </label>
             <input
               type="date"
@@ -177,48 +291,50 @@ export function BookingForm({ campsite }: BookingFormProps) {
         </div>
       </div>
 
-      {/* Guests */}
-      <div>
-        <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
-          Guests
-        </h3>
-        <div className="flex items-center justify-between border border-gray-300 rounded-lg px-4 py-3">
-          <div>
-            <p className="text-sm font-medium text-gray-900">
-              Number of guests
-            </p>
-            <p className="text-xs text-gray-500">
-              Max {campsite.capacity} for this campsite
-            </p>
+      {/* Guests — only if campsite */}
+      {campsite && (
+        <div>
+          <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
+            Guests
+          </h3>
+          <div className="flex items-center justify-between border border-gray-300 rounded-lg px-4 py-3">
+            <div>
+              <p className="text-sm font-medium text-gray-900">
+                Number of guests
+              </p>
+              <p className="text-xs text-gray-500">
+                Max {campsite.capacity} for this campsite
+              </p>
+            </div>
+            <div className="flex items-center gap-4">
+              <button
+                type="button"
+                onClick={() => setGuests((g) => Math.max(1, g - 1))}
+                className="w-9 h-9 rounded-full border-2 border-gearup-600 text-gearup-600 text-xl font-bold hover:bg-gearup-50 transition flex items-center justify-center"
+                aria-label="Decrease guests"
+              >
+                −
+              </button>
+              <span className="text-lg font-bold text-gray-900 min-w-[2ch] text-center">
+                {guests}
+              </span>
+              <button
+                type="button"
+                onClick={() =>
+                  setGuests((g) => Math.min(maxGuests, g + 1))
+                }
+                className="w-9 h-9 rounded-full border-2 border-gearup-600 text-gearup-600 text-xl font-bold hover:bg-gearup-50 transition flex items-center justify-center"
+                aria-label="Increase guests"
+              >
+                +
+              </button>
+            </div>
           </div>
-          <div className="flex items-center gap-4">
-            <button
-              type="button"
-              onClick={() => setGuests((g) => Math.max(1, g - 1))}
-              className="w-9 h-9 rounded-full border-2 border-gearup-600 text-gearup-600 text-xl font-bold hover:bg-gearup-50 transition flex items-center justify-center"
-              aria-label="Decrease guests"
-            >
-              −
-            </button>
-            <span className="text-lg font-bold text-gray-900 min-w-[2ch] text-center">
-              {guests}
-            </span>
-            <button
-              type="button"
-              onClick={() =>
-                setGuests((g) => Math.min(campsite.capacity, g + 1))
-              }
-              className="w-9 h-9 rounded-full border-2 border-gearup-600 text-gearup-600 text-xl font-bold hover:bg-gearup-50 transition flex items-center justify-center"
-              aria-label="Increase guests"
-            >
-              +
-            </button>
-          </div>
+          {errors.guests && (
+            <p className="text-red-600 text-xs mt-1">{errors.guests[0]}</p>
+          )}
         </div>
-        {errors.guests && (
-          <p className="text-red-600 text-xs mt-1">{errors.guests[0]}</p>
-        )}
-      </div>
+      )}
 
       {/* Notes */}
       <div>
@@ -234,121 +350,305 @@ export function BookingForm({ campsite }: BookingFormProps) {
           className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gearup-600 focus:border-transparent resize-none"
         />
       </div>
-      {/* Tour guide picker — only if this campsite has guides */}
-{guides.length > 0 && (
-  <div>
-    <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
-      Add a tour guide? (optional)
-    </h3>
-    <div className="space-y-2">
-      {/* No guide option */}
-      <label
-        className={`block border rounded-lg p-4 cursor-pointer transition ${
-          selectedGuideId === null
-            ? 'border-gearup-600 bg-gearup-50'
-            : 'border-gray-200 hover:border-gray-300'
-        }`}
-      >
-        <div className="flex items-start gap-3">
-          <input
-            type="radio"
-            name="guide"
-            checked={selectedGuideId === null}
-            onChange={() => setSelectedGuideId(null)}
-            className="mt-1 h-4 w-4 accent-gearup-600"
-          />
-          <div className="flex-1">
-            <p className="font-semibold text-gray-900 text-sm">
-              No guide
-            </p>
-            <p className="text-xs text-gray-500">
-              Just book the campsite.
-            </p>
-          </div>
-        </div>
-      </label>
 
-      {/* Each guide option */}
-      {guides.map((g) => {
-        const price = parseFloat(g.price_per_trip);
-        const active = selectedGuideId === g.id;
-        return (
-          <label
-            key={g.id}
-            className={`block border rounded-lg p-4 cursor-pointer transition ${
-              active
-                ? 'border-gearup-600 bg-gearup-50'
-                : 'border-gray-200 hover:border-gray-300'
-            }`}
-          >
-            <div className="flex items-start gap-3">
-              <input
-                type="radio"
-                name="guide"
-                checked={active}
-                onChange={() => setSelectedGuideId(g.id)}
-                className="mt-1 h-4 w-4 accent-gearup-600"
-              />
-              <div className="flex-1">
-                <div className="flex items-center justify-between gap-3">
+      {/* Tour guide picker — only if campsite AND has guides */}
+      {campsite && guides.length > 0 && (
+        <div>
+          <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
+            Add a tour guide? (optional)
+          </h3>
+          <div className="space-y-2">
+            <label
+              className={`block border rounded-lg p-4 cursor-pointer transition ${
+                selectedGuideId === null
+                  ? 'border-gearup-600 bg-gearup-50'
+                  : 'border-gray-200 hover:border-gray-300'
+              }`}
+            >
+              <div className="flex items-start gap-3">
+                <input
+                  type="radio"
+                  name="guide"
+                  checked={selectedGuideId === null}
+                  onChange={() => setSelectedGuideId(null)}
+                  className="mt-1 h-4 w-4 accent-gearup-600"
+                />
+                <div className="flex-1">
                   <p className="font-semibold text-gray-900 text-sm">
-                    {g.name}
+                    No guide
                   </p>
-                  <p className="text-sm font-bold text-gearup-600 shrink-0">
-                    {price > 0 ? `+₱${price.toFixed(0)}` : 'Free'}
+                  <p className="text-xs text-gray-500">
+                    Just book the campsite.
                   </p>
                 </div>
-                {g.description && (
-                  <p className="text-xs text-gray-500 mt-1 line-clamp-2">
-                    {g.description}
+              </div>
+            </label>
+
+            {guides.map((g) => {
+              const price = parseFloat(g.price_per_trip);
+              const active = selectedGuideId === g.id;
+              return (
+                <label
+                  key={g.id}
+                  className={`block border rounded-lg p-4 cursor-pointer transition ${
+                    active
+                      ? 'border-gearup-600 bg-gearup-50'
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  <div className="flex items-start gap-3">
+                    <input
+                      type="radio"
+                      name="guide"
+                      checked={active}
+                      onChange={() => setSelectedGuideId(g.id)}
+                      className="mt-1 h-4 w-4 accent-gearup-600"
+                    />
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between gap-3">
+                        <p className="font-semibold text-gray-900 text-sm">
+                          {g.name}
+                        </p>
+                        <p className="text-sm font-bold text-gearup-600 shrink-0">
+                          {price > 0 ? `+₱${price.toFixed(0)}` : 'Free'}
+                        </p>
+                      </div>
+                      {g.description && (
+                        <p className="text-xs text-gray-500 mt-1 line-clamp-2">
+                          {g.description}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </label>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Gear picker — only if campsite (add-on mode) */}
+      {campsite && availableGear.length > 0 && (
+        <div>
+          <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
+            Add gear to your trip? (optional)
+          </h3>
+          <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
+            <label
+              className={`block border rounded-lg p-4 cursor-pointer transition ${
+                selectedGearId === null
+                  ? 'border-gearup-600 bg-gearup-50'
+                  : 'border-gray-200 hover:border-gray-300'
+              }`}
+            >
+              <div className="flex items-start gap-3">
+                <input
+                  type="radio"
+                  name="gear"
+                  checked={selectedGearId === null}
+                  onChange={() => {
+                    setSelectedGearId(null);
+                    setGearQuantity(1);
+                  }}
+                  className="mt-1 h-4 w-4 accent-gearup-600"
+                />
+                <div className="flex-1">
+                  <p className="font-semibold text-gray-900 text-sm">
+                    No gear
                   </p>
-                )}
+                  <p className="text-xs text-gray-500">
+                    Just the campsite.
+                  </p>
+                </div>
+              </div>
+            </label>
+
+            {availableGear
+              .filter((g) => g.is_available && g.stock > 0)
+              .map((g) => {
+                const price = parseFloat(g.price_per_day);
+                const active = selectedGearId === g.id;
+                return (
+                  <label
+                    key={g.id}
+                    className={`block border rounded-lg p-4 cursor-pointer transition ${
+                      active
+                        ? 'border-gearup-600 bg-gearup-50'
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <input
+                        type="radio"
+                        name="gear"
+                        checked={active}
+                        onChange={() => {
+                          setSelectedGearId(g.id);
+                          setGearQuantity(1);
+                        }}
+                        className="mt-1 h-4 w-4 accent-gearup-600"
+                      />
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between gap-3">
+                          <div>
+                            <p className="font-semibold text-gray-900 text-sm">
+                              {g.name}
+                            </p>
+                            <p className="text-xs text-gearup-600 font-semibold">
+                              {g.category} · {g.stock} in stock
+                            </p>
+                          </div>
+                          <p className="text-sm font-bold text-gearup-600 shrink-0">
+                            +₱{price.toFixed(0)}/day
+                          </p>
+                        </div>
+                        {g.description && (
+                          <p className="text-xs text-gray-500 mt-1 line-clamp-2">
+                            {g.description}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </label>
+                );
+              })}
+          </div>
+
+          {/* Quantity picker — only when a gear is selected */}
+          {activeGear && !presetGearItem && (
+            <div className="mt-3 flex items-center justify-between border border-gray-300 rounded-lg px-4 py-3">
+              <div>
+                <p className="text-sm font-medium text-gray-900">Quantity</p>
+                <p className="text-xs text-gray-500">
+                  Max {activeGear.stock}
+                </p>
+              </div>
+              <div className="flex items-center gap-4">
+                <button
+                  type="button"
+                  onClick={() => setGearQuantity((q) => Math.max(1, q - 1))}
+                  className="w-9 h-9 rounded-full border-2 border-gearup-600 text-gearup-600 text-xl font-bold hover:bg-gearup-50 transition flex items-center justify-center"
+                  aria-label="Decrease quantity"
+                >
+                  −
+                </button>
+                <span className="text-lg font-bold text-gray-900 min-w-[2ch] text-center">
+                  {gearQuantity}
+                </span>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setGearQuantity((q) => Math.min(activeGear.stock, q + 1))
+                  }
+                  className="w-9 h-9 rounded-full border-2 border-gearup-600 text-gearup-600 text-xl font-bold hover:bg-gearup-50 transition flex items-center justify-center"
+                  aria-label="Increase quantity"
+                >
+                  +
+                </button>
               </div>
             </div>
-          </label>
-        );
-      })}
-    </div>
-  </div>
-)}
+          )}
+        </div>
+      )}
+
+      {/* Gear quantity picker in gear-only mode */}
+      {isGearOnly && presetGearItem && (
+        <div>
+          <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
+            Quantity
+          </h3>
+          <div className="flex items-center justify-between border border-gray-300 rounded-lg px-4 py-3">
+            <div>
+              <p className="text-sm font-medium text-gray-900">
+                Units to rent
+              </p>
+              <p className="text-xs text-gray-500">
+                Max {presetGearItem.stock} available
+              </p>
+            </div>
+            <div className="flex items-center gap-4">
+              <button
+                type="button"
+                onClick={() => setGearQuantity((q) => Math.max(1, q - 1))}
+                className="w-9 h-9 rounded-full border-2 border-gearup-600 text-gearup-600 text-xl font-bold hover:bg-gearup-50 transition flex items-center justify-center"
+                aria-label="Decrease quantity"
+              >
+                −
+              </button>
+              <span className="text-lg font-bold text-gray-900 min-w-[2ch] text-center">
+                {gearQuantity}
+              </span>
+              <button
+                type="button"
+                onClick={() =>
+                  setGearQuantity((q) =>
+                    Math.min(presetGearItem.stock, q + 1),
+                  )
+                }
+                className="w-9 h-9 rounded-full border-2 border-gearup-600 text-gearup-600 text-xl font-bold hover:bg-gearup-50 transition flex items-center justify-center"
+                aria-label="Increase quantity"
+              >
+                +
+              </button>
+            </div>
+          </div>
+          {errors.gear_quantity && (
+            <p className="text-red-600 text-xs mt-1">
+              {errors.gear_quantity[0]}
+            </p>
+          )}
+        </div>
+      )}
 
       {/* Price summary */}
       <div className="bg-green-50 border border-green-200 rounded-xl p-5">
-      <div className="space-y-2 text-sm text-green-900">
-        {/* Campsite line */}
-        <div className="flex justify-between items-center">
-          <span>
-            {campsite.price_unit === 'entrance'
-              ? `Campsite: ₱${campsite.price_per_night} × ${guests} ${guests === 1 ? 'guest' : 'guests'}`
-              : `Campsite: ₱${campsite.price_per_night} × ${nights} ${nights === 1 ? 'night' : 'nights'} × ${guests} ${guests === 1 ? 'guest' : 'guests'}`}
-          </span>
-          <span className="font-semibold">
-            ₱{campsitePrice.toFixed(2)}
-          </span>
+        <div className="space-y-2 text-sm text-green-900">
+          {campsite && (
+            <div className="flex justify-between items-center">
+              <span>
+                {campsite.price_unit === 'entrance'
+                  ? `Campsite: ₱${campsite.price_per_night} × ${guests} ${guests === 1 ? 'guest' : 'guests'}`
+                  : `Campsite: ₱${campsite.price_per_night} × ${nights} ${nights === 1 ? 'night' : 'nights'} × ${guests} ${guests === 1 ? 'guest' : 'guests'}`}
+              </span>
+              <span className="font-semibold">
+                ₱{campsitePrice.toFixed(2)}
+              </span>
+            </div>
+          )}
+
+          {selectedGuideId !== null && (
+            <div className="flex justify-between items-center">
+              <span>
+                Tour guide:{' '}
+                {guides.find((g) => g.id === selectedGuideId)?.name}
+              </span>
+              <span className="font-semibold">
+                ₱{guidePrice.toFixed(2)}
+              </span>
+            </div>
+          )}
+
+          {activeGear && (
+            <div className="flex justify-between items-center">
+              <span>
+                {activeGear.name}: ₱{activeGear.price_per_day} ×{' '}
+                {Math.max(nights, 1)}{' '}
+                {Math.max(nights, 1) === 1 ? 'day' : 'days'} × {gearQuantity}
+              </span>
+              <span className="font-semibold">₱{gearPrice.toFixed(2)}</span>
+            </div>
+          )}
         </div>
 
-        {/* Guide line — only if selected */}
-        {selectedGuideId !== null && (
-          <div className="flex justify-between items-center">
-            <span>
-              Tour guide: {guides.find((g) => g.id === selectedGuideId)?.name}
-            </span>
-            <span className="font-semibold">
-              ₱{guidePrice.toFixed(2)}
-            </span>
-          </div>
-        )}
-      </div>
+        <div className="border-t border-green-300 my-4" />
 
-      <div className="border-t border-green-300 my-4" />
-
-      <div className="flex justify-between items-center">
-        <span className="text-base font-bold text-green-900">Total</span>
-        <span className="text-2xl font-black text-green-900">
-          ₱{totalPrice.toFixed(2)}
-        </span>
+        <div className="flex justify-between items-center">
+          <span className="text-base font-bold text-green-900">Total</span>
+          <span className="text-2xl font-black text-green-900">
+            ₱{totalPrice.toFixed(2)}
+          </span>
+        </div>
       </div>
-    </div>
 
       {generalError && (
         <p className="text-red-600 text-sm text-center">{generalError}</p>
@@ -359,7 +659,11 @@ export function BookingForm({ campsite }: BookingFormProps) {
         disabled={submitting}
         className="w-full bg-gearup-600 hover:bg-gearup-700 disabled:opacity-60 text-white font-semibold py-4 rounded-xl transition"
       >
-        {submitting ? 'Confirming...' : 'Confirm Booking'}
+        {submitting
+          ? 'Confirming...'
+          : isGearOnly
+            ? 'Confirm Rental'
+            : 'Confirm Booking'}
       </button>
     </form>
   );
