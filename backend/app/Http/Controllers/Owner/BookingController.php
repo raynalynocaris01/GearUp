@@ -14,12 +14,15 @@ class BookingController extends Controller
      */
     public function index(Request $request)
     {
-        $campsiteIds = $request->user()
-            ->campsites()
-            ->pluck('id');
+        $user = $request->user();
+        $campsiteIds = $user->campsites()->pluck('id');
+        $gearItemIds = $user->gearItems()->pluck('id');
 
-        $bookings = Booking::with(['campsite', 'user:id,name,email'])
-            ->whereIn('campsite_id', $campsiteIds)
+        $bookings = Booking::with(['campsite', 'tourGuide', 'gearItem', 'user:id,name,email'])
+            ->where(function ($q) use ($campsiteIds, $gearItemIds) {
+                $q->whereIn('campsite_id', $campsiteIds)
+                ->orWhereIn('gear_item_id', $gearItemIds);
+            })
             ->orderByDesc('created_at')
             ->get();
 
@@ -68,13 +71,16 @@ class BookingController extends Controller
 
     private function authorizeOwner(Request $request, Booking $booking): void
     {
-        $ownsIt = $request->user()
-            ->campsites()
-            ->where('id', $booking->campsite_id)
-            ->exists();
+        $user = $request->user();
 
-        if (! $ownsIt) {
-            abort(403, 'This booking is not for one of your campsites.');
+        $ownsCampsite = $booking->campsite_id
+            && $user->campsites()->where('id', $booking->campsite_id)->exists();
+
+        $ownsGear = $booking->gear_item_id
+            && $user->gearItems()->where('id', $booking->gear_item_id)->exists();
+
+        if (! $ownsCampsite && ! $ownsGear) {
+            abort(403, 'This booking is not for one of your listings.');
         }
     }
 }
