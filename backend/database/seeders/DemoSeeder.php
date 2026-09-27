@@ -9,6 +9,7 @@ use App\Models\TourGuide;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use App\Models\GearItem;
 
 class DemoSeeder extends Seeder
 {
@@ -252,6 +253,74 @@ class DemoSeeder extends Seeder
             'is_independent' => true,
             'location' => 'Negros Oriental',
         ]);
+
+        // ─── Gear Items ────────────────────────────────
+$gearItems = [
+    [
+        'owner_id' => $owner1->id,
+        'name' => '4-Person Camping Tent',
+        'description' => 'Spacious waterproof tent, sleeps up to 4 adults. Includes poles, pegs, and rainfly.',
+        'category' => 'Tent',
+        'price_per_day' => 350.00,
+        'image_url' => 'https://picsum.photos/seed/gear1/600/400',
+        'stock' => 5,
+        'is_available' => true,
+    ],
+    [
+        'owner_id' => $owner1->id,
+        'name' => 'Camping Backpack 60L',
+        'description' => 'Heavy-duty hiking backpack with rain cover and padded straps. Great for multi-day treks.',
+        'category' => 'Backpack',
+        'price_per_day' => 250.00,
+        'image_url' => 'https://picsum.photos/seed/gear2/600/400',
+        'stock' => 3,
+        'is_available' => true,
+    ],
+    [
+        'owner_id' => $owner2->id,
+        'name' => 'Sleeping Bag (Cold Weather)',
+        'description' => 'Rated for -5°C. Compact, warm, and comes with a stuff sack.',
+        'category' => 'Sleeping Bag',
+        'price_per_day' => 200.00,
+        'image_url' => 'https://picsum.photos/seed/gear3/600/400',
+        'stock' => 6,
+        'is_available' => true,
+    ],
+    [
+        'owner_id' => $owner2->id,
+        'name' => 'Portable Camping Stove',
+        'description' => 'Two-burner propane stove with carrying case. Fuel canisters sold separately.',
+        'category' => 'Cooking',
+        'price_per_day' => 180.00,
+        'image_url' => 'https://picsum.photos/seed/gear4/600/400',
+        'stock' => 4,
+        'is_available' => true,
+    ],
+    [
+        'owner_id' => $owner3->id,
+        'name' => 'LED Camping Lantern',
+        'description' => 'Rechargeable lantern with 3 brightness modes. Up to 12 hours per charge.',
+        'category' => 'Lighting',
+        'price_per_day' => 80.00,
+        'image_url' => 'https://picsum.photos/seed/gear5/600/400',
+        'stock' => 8,
+        'is_available' => true,
+    ],
+    [
+        'owner_id' => $owner3->id,
+        'name' => 'Folding Camp Chair',
+        'description' => 'Lightweight aluminum chair with cup holder. Supports up to 120kg.',
+        'category' => 'Furniture',
+        'price_per_day' => 100.00,
+        'image_url' => 'https://picsum.photos/seed/gear6/600/400',
+        'stock' => 10,
+        'is_available' => true,
+    ],
+    ];
+
+    foreach ($gearItems as $item) {
+        GearItem::create($item);
+    }
 
         // ─── Bookings (varied states) ───────────────────
         $ray = TourGuide::where('name', 'Raynalyn Ocaris')->first();

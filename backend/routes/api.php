@@ -14,6 +14,8 @@ use App\Http\Controllers\Admin\UserController as AdminUserController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\TourGuideController;
+use App\Http\Controllers\GearItemController;
+use App\Http\Controllers\Owner\GearItemController as OwnerGearItemController;
 
 // ─── Public ──────────────────────────────────────────────
 Route::post('/register', [AuthController::class, 'register']);
@@ -23,6 +25,8 @@ Route::get('/campsites/{campsite}', [CampsiteController::class, 'show']);
 Route::get('/campsites/{campsite}/reviews', [ReviewController::class, 'index']);
 Route::get('/tour-guides', [TourGuideController::class, 'index']);
 Route::get('/tour-guides/{tourGuide}', [TourGuideController::class, 'show']);
+Route::get('/gear', [GearItemController::class, 'index']);
+Route::get('/gear/{gearItem}', [GearItemController::class, 'show']);
 
 // ─── Authenticated (any role) ────────────────────────────
 Route::middleware('auth:sanctum')->group(function () {
@@ -65,6 +69,13 @@ Route::middleware(['auth:sanctum', 'role:owner'])->prefix('owner')->group(functi
     Route::post('/bookings/{booking}/confirm',       [OwnerBookingController::class, 'confirm']);
     Route::post('/bookings/{booking}/cancel',        [OwnerBookingController::class, 'cancel']);
     Route::post('/bookings/{booking}/complete',      [OwnerBookingController::class, 'complete']);
+    
+    // Gear
+    Route::get('/gear',                [OwnerGearItemController::class, 'index']);
+    Route::post('/gear',               [OwnerGearItemController::class, 'store']);
+    Route::get('/gear/{gearItem}',     [OwnerGearItemController::class, 'show']);
+    Route::put('/gear/{gearItem}',     [OwnerGearItemController::class, 'update']);
+    Route::delete('/gear/{gearItem}',  [OwnerGearItemController::class, 'destroy']);
 });
 
 

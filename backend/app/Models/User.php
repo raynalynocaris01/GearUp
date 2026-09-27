@@ -39,6 +39,11 @@ class User extends Authenticatable
     {
         return $this->hasMany(Campsite::class, 'owner_id');
     }
+    
+    public function gearItems()
+    {
+        return $this->hasMany(GearItem::class, 'owner_id');
+    }
 
     public function bookings()
     {

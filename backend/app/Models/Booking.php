@@ -14,8 +14,12 @@ class Booking extends Model
         'user_id',
         'campsite_id',
         'tour_guide_id',
+        'gear_item_id',
         'check_in',
         'check_out',
+        'gear_start_date',
+        'gear_end_date',
+        'gear_quantity',
         'guests',
         'total_price',
         'status',
@@ -25,7 +29,10 @@ class Booking extends Model
     protected $casts = [
         'check_in' => 'date',
         'check_out' => 'date',
+        'gear_start_date' => 'date',
+        'gear_end_date' => 'date',
         'guests' => 'integer',
+        'gear_quantity' => 'integer',
         'total_price' => 'decimal:2',
     ];
 
@@ -42,6 +49,11 @@ class Booking extends Model
     public function tourGuide(): BelongsTo
     {
         return $this->belongsTo(TourGuide::class);
+    }
+
+    public function gearItem(): BelongsTo
+    {
+        return $this->belongsTo(GearItem::class);
     }
 
     public function review()
