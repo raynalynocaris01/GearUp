@@ -132,6 +132,10 @@ export interface Booking {
   user_id: number;
   campsite_id: number | null;
   tour_guide_id: number | null;
+  gear_item_id: number | null;
+  gear_start_date: string | null;
+  gear_end_date: string | null;
+  gear_quantity: number | null;
   check_in: string | null;
   check_out: string | null;
   guests: number;
@@ -142,6 +146,7 @@ export interface Booking {
   updated_at: string;
   campsite?: Campsite | null;
   tour_guide?: TourGuide | null;
+  gear_item?: GearItem | null;
   review?: Review | null;
   user?: {
     id: number;
@@ -153,8 +158,12 @@ export interface Booking {
 export interface CreateBookingPayload {
   campsite_id?: number | null;
   tour_guide_id?: number | null;
+  gear_item_id?: number | null;
   check_in?: string | null;
   check_out?: string | null;
+  gear_start_date?: string | null;
+  gear_end_date?: string | null;
+  gear_quantity?: number | null;
   guests: number;
   notes?: string;
 }
@@ -282,6 +291,22 @@ export const ownerApi = (client: ApiClient) => ({
 
   completeBooking: (id: number | string) =>
     client.post<Booking>(`/owner/bookings/${id}/complete`),
+
+  // Gear items
+  listGear: () => client.get<GearItem[]>('/owner/gear'),
+
+  getGear: (id: number | string) =>
+    client.get<GearItem>(`/owner/gear/${id}`),
+
+  createGear: (payload: CreateGearItemPayload) =>
+    client.post<GearItem>('/owner/gear', payload),
+
+  updateGear: (id: number | string, payload: UpdateGearItemPayload) =>
+    client.put<GearItem>(`/owner/gear/${id}`, payload),
+
+  deleteGear: (id: number | string) =>
+    client.delete<{ message: string }>(`/owner/gear/${id}`),
+
 });
 
 // ──────────────────────────────────────────────────────────
@@ -383,6 +408,48 @@ export const reviewApi = (client: ApiClient) => ({
 
   delete: (reviewId: number | string) =>
     client.delete(`/reviews/${reviewId}`),
+});
+
+// ──────────────────────────────────────────────────────────
+// GEAR ITEMS (PUBLIC)
+// ──────────────────────────────────────────────────────────
+
+export interface GearItem {
+  id: number;
+  owner_id: number;
+  name: string;
+  description: string | null;
+  category: string;
+  price_per_day: string;
+  image_url: string | null;
+  stock: number;
+  is_available: boolean;
+  created_at: string;
+  updated_at: string;
+  owner?: {
+    id: number;
+    name: string;
+    email: string;
+  };
+}
+
+export interface CreateGearItemPayload {
+  name: string;
+  description: string;
+  category: string;
+  price_per_day: number;
+  image_url: string;
+  stock: number;
+  is_available?: boolean;
+}
+
+export type UpdateGearItemPayload = Partial<CreateGearItemPayload>;
+
+export const gearApi = (client: ApiClient) => ({
+  list: (params?: { category?: string; owner_id?: number }) =>
+    client.get<GearItem[]>('/gear', { params }),
+
+  get: (id: number | string) => client.get<GearItem>(`/gear/${id}`),
 });
 
 // ──────────────────────────────────────────────────────────
