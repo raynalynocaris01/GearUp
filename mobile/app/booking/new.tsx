@@ -14,8 +14,8 @@ import {
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { campsites, bookings ,tourGuides} from '../../lib/api';
-import type { Campsite } from '@gearup/shared';
+import { campsites, bookings, tourGuides, gear } from '../../lib/api';
+import type { Campsite, GearItem } from '@gearup/shared';
 import { colors } from '../../theme';
 
 function toDateString(d: Date): string {
@@ -62,12 +62,35 @@ export default function NewBookingScreen() {
   >([]);
   const [selectedGuideId, setSelectedGuideId] = useState<number | null>(null);
 
-  useEffect(() => {
+  // Gear picker
+  const [availableGear, setAvailableGear] = useState<GearItem[]>([]);
+  const [selectedGearId, setSelectedGearId] = useState<number | null>(null);
+  const [gearQuantity, setGearQuantity] = useState(1);
+
+    useEffect(() => {
     if (!campsite) return;
     (async () => {
       try {
         const res = await tourGuides.list({ campsite_id: campsite.id });
         setAvailableGuides(res.data);
+      } catch {
+        // silent
+      }
+    })();
+  }, [campsite]);
+
+  // Fetch gear owned by the campsite's owner
+  useEffect(() => {
+    if (!campsite) return;
+    (async () => {
+      try {
+        const res = await gear.list();
+        const sameOwner = res.data.filter(
+          (g: GearItem) => g.owner_id === campsite.owner_id,
+        );
+        setAvailableGear(
+          sameOwner.filter((g) => g.is_available && g.stock > 0),
+        );
       } catch {
         // silent
       }
@@ -89,9 +112,15 @@ export default function NewBookingScreen() {
   }, [campsiteId]);
 
   // Live price preview
- const { nights, campsitePrice, guidePrice, totalPrice } = useMemo(() => {
+  const { nights, campsitePrice, guidePrice, gearPrice, totalPrice } = useMemo(() => {
   if (!campsite) {
-    return { nights: 0, campsitePrice: 0, guidePrice: 0, totalPrice: 0 };
+    return {
+      nights: 0,
+      campsitePrice: 0,
+      guidePrice: 0,
+      gearPrice: 0,
+      totalPrice: 0,
+    };
   }
   const start = new Date(checkIn + 'T00:00:00');
   const end = new Date(checkOut + 'T00:00:00');
@@ -107,13 +136,30 @@ export default function NewBookingScreen() {
     ? parseFloat(selectedGuide.price_per_trip)
     : 0;
 
+  // Gear: price_per_day × days × quantity
+  const selectedGear = availableGear.find((g) => g.id === selectedGearId);
+  const grPrice = selectedGear
+    ? parseFloat(selectedGear.price_per_day) * n * gearQuantity
+    : 0;
+
   return {
     nights: campsite.price_unit === 'entrance' ? 0 : n,
     campsitePrice: cPrice,
     guidePrice: gPrice,
-    totalPrice: cPrice + gPrice,
+    gearPrice: grPrice,
+    totalPrice: cPrice + gPrice + grPrice,
   };
-}, [campsite, checkIn, checkOut, guests, availableGuides, selectedGuideId]);
+}, [
+  campsite,
+  checkIn,
+  checkOut,
+  guests,
+  availableGuides,
+  selectedGuideId,
+  availableGear,
+  selectedGearId,
+  gearQuantity,
+]);
 
   const handleSubmit = async () => {
     if (!campsite) return;
@@ -133,14 +179,23 @@ export default function NewBookingScreen() {
 
     setSubmitting(true);
     try {
-      const res = await bookings.create({
-      campsite_id: campsite.id,
-      tour_guide_id: selectedGuideId ?? undefined,
-      check_in: checkIn,
-      check_out: checkOut,
-      guests,
-      notes: notes.trim() || undefined,
-    });
+            const payload: Parameters<typeof bookings.create>[0] = {
+        campsite_id: campsite.id,
+        tour_guide_id: selectedGuideId ?? undefined,
+        check_in: checkIn,
+        check_out: checkOut,
+        guests,
+        notes: notes.trim() || undefined,
+      };
+
+      if (selectedGearId) {
+        payload.gear_item_id = selectedGearId;
+        payload.gear_quantity = gearQuantity;
+        payload.gear_start_date = checkIn;
+        payload.gear_end_date = checkOut;
+      }
+
+      await bookings.create(payload);
 
       Alert.alert(
         'Booking confirmed!',
@@ -346,10 +401,139 @@ export default function NewBookingScreen() {
             </View>
           </TouchableOpacity>
         );
-      })}
+            })}
     </View>
   </View>
 )}
+
+        {/* Gear picker — only if this owner has gear */}
+        {availableGear.length > 0 && (
+          <View>
+            <Text style={styles.sectionTitle}>
+              Add gear to your trip? (optional)
+            </Text>
+            <View style={{ gap: 8 }}>
+              <TouchableOpacity
+                style={[
+                  styles.guideOption,
+                  selectedGearId === null && styles.guideOptionActive,
+                ]}
+                onPress={() => {
+                  setSelectedGearId(null);
+                  setGearQuantity(1);
+                }}
+                activeOpacity={0.8}
+              >
+                <Ionicons
+                  name={
+                    selectedGearId === null
+                      ? 'radio-button-on'
+                      : 'radio-button-off'
+                  }
+                  size={20}
+                  color={
+                    selectedGearId === null ? colors.gearupGreen : '#9ca3af'
+                  }
+                />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.guideName}>No gear</Text>
+                  <Text style={styles.guideDesc}>
+                    Just the campsite.
+                  </Text>
+                </View>
+              </TouchableOpacity>
+
+              {availableGear.map((g) => {
+                const price = parseFloat(g.price_per_day);
+                const active = selectedGearId === g.id;
+                return (
+                  <TouchableOpacity
+                    key={g.id}
+                    style={[
+                      styles.guideOption,
+                      active && styles.guideOptionActive,
+                    ]}
+                    onPress={() => {
+                      setSelectedGearId(g.id);
+                      setGearQuantity(1);
+                    }}
+                    activeOpacity={0.8}
+                  >
+                    <Ionicons
+                      name={active ? 'radio-button-on' : 'radio-button-off'}
+                      size={20}
+                      color={active ? colors.gearupGreen : '#9ca3af'}
+                    />
+                    <View style={{ flex: 1 }}>
+                      <View style={styles.guideRow}>
+                        <Text style={styles.guideName}>{g.name}</Text>
+                        <Text style={styles.guidePrice}>
+                          +₱{price.toFixed(0)}/day
+                        </Text>
+                      </View>
+                      <Text style={styles.guideDesc} numberOfLines={2}>
+                        {g.category} · {g.stock} in stock
+                        {g.description ? ` — ${g.description}` : ''}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
+            {/* Quantity stepper — only when a gear is picked */}
+            {selectedGearId !== null && (
+              <View style={[styles.fieldCard, { marginTop: 8 }]}>
+                <View style={styles.stepperRow}>
+                  <View>
+                    <Text style={styles.fieldLabel}>Quantity</Text>
+                    <Text style={styles.hint}>
+                      Max{' '}
+                      {
+                        availableGear.find((g) => g.id === selectedGearId)
+                          ?.stock
+                      }{' '}
+                      available
+                    </Text>
+                  </View>
+                  <View style={styles.stepper}>
+                    <TouchableOpacity
+                      style={styles.stepperButton}
+                      onPress={() =>
+                        setGearQuantity((q) => Math.max(1, q - 1))
+                      }
+                    >
+                      <Ionicons
+                        name="remove"
+                        size={20}
+                        color={colors.gearupGreen}
+                      />
+                    </TouchableOpacity>
+                    <Text style={styles.stepperValue}>{gearQuantity}</Text>
+                    <TouchableOpacity
+                      style={styles.stepperButton}
+                      onPress={() =>
+                        setGearQuantity((q) => {
+                          const max =
+                            availableGear.find(
+                              (g) => g.id === selectedGearId,
+                            )?.stock ?? 1;
+                          return Math.min(max, q + 1);
+                        })
+                      }
+                    >
+                      <Ionicons
+                        name="add"
+                        size={20}
+                        color={colors.gearupGreen}
+                      />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </View>
+            )}
+          </View>
+        )}
 
         {/* Price summary */}
         <View style={styles.summary}>
@@ -364,13 +548,26 @@ export default function NewBookingScreen() {
             </Text>
           </View>
 
-          {selectedGuideId !== null && (
+                    {selectedGuideId !== null && (
             <View style={styles.summaryRow}>
               <Text style={styles.summaryLabel}>
                 Guide: {availableGuides.find((g) => g.id === selectedGuideId)?.name}
               </Text>
               <Text style={styles.summaryValue}>
                 ₱{guidePrice.toFixed(2)}
+              </Text>
+            </View>
+          )}
+
+          {selectedGearId !== null && (
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>
+                {availableGear.find((g) => g.id === selectedGearId)?.name}: ₱
+                {availableGear.find((g) => g.id === selectedGearId)?.price_per_day} × {nights}{' '}
+                {nights === 1 ? 'day' : 'days'} × {gearQuantity}
+              </Text>
+              <Text style={styles.summaryValue}>
+                ₱{gearPrice.toFixed(2)}
               </Text>
             </View>
           )}
