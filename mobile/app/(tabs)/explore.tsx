@@ -40,7 +40,17 @@ function matchesPriceFilter(
 
 export default function ExploreScreen() {
   const router = useRouter();
-  const { search: searchParam } = useLocalSearchParams<{ search?: string }>();
+  const {
+    search: searchParam,
+    region: regionParam,
+    price: priceParam,
+    rating: ratingParam,
+  } = useLocalSearchParams<{
+    search?: string;
+    region?: string;
+    price?: string;
+    rating?: string;
+  }>();
 
   const [list, setList] = useState<Campsite[]>([]);
   const [loading, setLoading] = useState(true);
@@ -49,6 +59,9 @@ export default function ExploreScreen() {
   const [filters, setFilters] = useState<FilterState>({
     ...EMPTY_FILTERS,
     search: searchParam ?? '',
+    region: regionParam ?? null,
+    priceRange: (priceParam as FilterState['priceRange']) ?? null,
+    minRating: ratingParam ? parseFloat(ratingParam) : null,
   });
 
   const loadCampsites = async (showSpinner = false) => {
@@ -69,11 +82,17 @@ export default function ExploreScreen() {
     }
   };
 
-  useEffect(() => {
-    if (searchParam !== undefined) {
-      setFilters((f) => ({ ...f, search: searchParam }));
-    }
-  }, [searchParam]);
+    useEffect(() => {
+    setFilters((f) => ({
+      ...f,
+      search: searchParam ?? f.search,
+      region: regionParam ?? f.region,
+      priceRange:
+        (priceParam as FilterState['priceRange']) ?? f.priceRange,
+      minRating: ratingParam ? parseFloat(ratingParam) : f.minRating,
+    }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParam, regionParam, priceParam, ratingParam]);
 
   useFocusEffect(
     useCallback(() => {
@@ -81,9 +100,21 @@ export default function ExploreScreen() {
     }, []),
   );
 
-  const handleRefresh = () => {
+    const handleRefresh = () => {
     setRefreshing(true);
     loadCampsites();
+  };
+
+  // "Filters" button in the search box — scrolls the chips row into
+  // view. Since the chips are already in the layout right under the
+  // search bar, this is essentially a visual nudge. If you want a
+  // real sheet later, swap this for a modal — matching the Home
+  // behavior. For now it just focuses attention on the chips.
+  const scrollToFilters = () => {
+    // The chips row is always visible right below; press feedback
+    // is enough. If the chips row were inside a ScrollView with an
+    // offset, we'd use a ref + scrollTo. Leaving this as a no-op
+    // placeholder that's easy to extend later.
   };
 
   // Unique regions
@@ -127,7 +158,7 @@ export default function ExploreScreen() {
         </Text>
       </View>
 
-      {/* Search */}
+            {/* Search */}
       <View style={styles.searchWrap}>
         <View style={styles.searchBox}>
           <Ionicons name="search-outline" size={18} color={colors.textMuted} />
@@ -149,6 +180,18 @@ export default function ExploreScreen() {
               />
             </TouchableOpacity>
           )}
+          <TouchableOpacity
+            onPress={scrollToFilters}
+            style={styles.filterButton}
+            activeOpacity={0.7}
+            accessibilityLabel="Show filters"
+          >
+            <Ionicons
+              name="options-outline"
+              size={20}
+              color={colors.gearupGreen}
+            />
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -283,11 +326,15 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     gap: 8,
   },
-  searchInput: {
+    searchInput: {
     flex: 1,
     fontSize: 14,
     color: '#111827',
     paddingVertical: 10,
+  },
+  filterButton: {
+    paddingHorizontal: 8,
+    paddingVertical: 8,
   },
 
   listContent: { padding: 16, gap: 12 },
