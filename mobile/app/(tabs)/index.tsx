@@ -16,6 +16,11 @@ import { useRouter, useFocusEffect } from 'expo-router';
 import { campsites } from '../../lib/api';
 import type { Campsite } from '@gearup/shared';
 import { colors } from '../../theme';
+import { FilterModal } from '../../components/FilterModal';
+import {
+  EMPTY_FILTERS,
+  type FilterState,
+} from '../../components/FilterChips';
 
 const FEATURES = [
   {
@@ -56,6 +61,13 @@ export default function HomeScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
 
+  // Filter modal
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [filters, setFilters] = useState<FilterState>({
+    ...EMPTY_FILTERS,
+    search: '',
+  });
+
   const loadCampsites = async (showSpinner = false) => {
     if (showSpinner) setLoading(true);
     setError('');
@@ -84,9 +96,26 @@ export default function HomeScreen() {
     }, []),
   );
 
-  const handleRefresh = () => {
+    const handleRefresh = () => {
     setRefreshing(true);
     loadCampsites();
+  };
+
+  // Unique regions for the filter modal
+  const regions = Array.from(
+    new Set(campsiteList.map((c) => c.region).filter(Boolean)),
+  ).sort();
+
+  const handleApplyFilters = (next: FilterState) => {
+    const params = new URLSearchParams();
+    const q = search.trim();
+    if (q) params.set('search', q);
+    if (next.region) params.set('region', next.region);
+    if (next.priceRange) params.set('price', next.priceRange);
+    if (next.minRating !== null) params.set('rating', String(next.minRating));
+
+    const qs = params.toString();
+    router.push(qs ? `/(tabs)/explore?${qs}` : '/(tabs)/explore');
   };
 
   const handleComingSoon = () => {
@@ -169,7 +198,7 @@ export default function HomeScreen() {
               <Text style={styles.heroAccent}>ADVENTURE.</Text>
             </Text>
 
-            <View style={styles.searchBox}>
+                        <View style={styles.searchBox}>
               <Ionicons
                 name="search-outline"
                 size={18}
@@ -182,6 +211,23 @@ export default function HomeScreen() {
                 value={search}
                 onChangeText={setSearch}
               />
+              <TouchableOpacity
+                style={styles.filterButton}
+                onPress={() => setFilterOpen(true)}
+                activeOpacity={0.7}
+                accessibilityLabel="Open filters"
+              >
+                <Ionicons
+                  name="options-outline"
+                  size={20}
+                  color={colors.gearupGreen}
+                />
+                {filters.region !== null ||
+                filters.priceRange !== null ||
+                filters.minRating !== null ? (
+                  <View style={styles.filterDot} />
+                ) : null}
+              </TouchableOpacity>
               <TouchableOpacity
                 style={styles.searchButton}
                 onPress={handleSearch}
@@ -328,8 +374,16 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        <View style={{ height: 24 }} />
+                <View style={{ height: 24 }} />
       </ScrollView>
+
+      <FilterModal
+        visible={filterOpen}
+        initial={filters}
+        regions={regions}
+        onApply={handleApplyFilters}
+        onClose={() => setFilterOpen(false)}
+      />
     </View>
   );
 }
@@ -395,13 +449,27 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   searchInput: { flex: 1, fontSize: 13, color: '#111827', paddingVertical: 8 },
-  searchButton: {
+    searchButton: {
     backgroundColor: colors.gearupGreen,
     paddingHorizontal: 14,
     paddingVertical: 10,
     borderRadius: 8,
   },
   searchButtonText: { color: '#fff', fontSize: 12, fontWeight: '700' },
+  filterButton: {
+    paddingHorizontal: 8,
+    paddingVertical: 8,
+    position: 'relative',
+  },
+  filterDot: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#dc2626',
+  },
 
   section: { marginTop: 20, paddingHorizontal: 16 },
   sectionHeader: {
