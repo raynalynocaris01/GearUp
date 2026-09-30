@@ -24,6 +24,8 @@ export default function BusinessSignupScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [passwordConfirmation, setPasswordConfirmation] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showPasswordConfirmation, setShowPasswordConfirmation] = useState(false);
   const [agreed, setAgreed] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -134,23 +136,51 @@ export default function BusinessSignupScreen() {
             keyboardType="email-address"
           />
 
-          <TextInput
-            style={styles.input}
-            placeholder="Password"
-            placeholderTextColor={colors.textMuted}
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-          />
+                    <View style={styles.passwordWrap}>
+            <TextInput
+              style={styles.passwordInput}
+              placeholder="Password"
+              placeholderTextColor={colors.textMuted}
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry={!showPassword}
+            />
+            <TouchableOpacity
+              style={styles.eyeButton}
+              onPress={() => setShowPassword((v) => !v)}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Ionicons
+                name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                size={22}
+                color={colors.textMuted}
+              />
+            </TouchableOpacity>
+          </View>
 
-          <TextInput
-            style={styles.input}
-            placeholder="Confirm password"
-            placeholderTextColor={colors.textMuted}
-            value={passwordConfirmation}
-            onChangeText={setPasswordConfirmation}
-            secureTextEntry
-          />
+          <View style={styles.passwordWrap}>
+            <TextInput
+              style={styles.passwordInput}
+              placeholder="Confirm password"
+              placeholderTextColor={colors.textMuted}
+              value={passwordConfirmation}
+              onChangeText={setPasswordConfirmation}
+              secureTextEntry={!showPasswordConfirmation}
+            />
+            <TouchableOpacity
+              style={styles.eyeButton}
+              onPress={() => setShowPasswordConfirmation((v) => !v)}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Ionicons
+                name={
+                  showPasswordConfirmation ? 'eye-off-outline' : 'eye-outline'
+                }
+                size={22}
+                color={colors.textMuted}
+              />
+            </TouchableOpacity>
+          </View>
 
           <TouchableOpacity
             style={styles.termsRow}
@@ -260,7 +290,7 @@ const styles = StyleSheet.create({
   },
   nameRow: { flexDirection: 'row', gap: 10 },
   nameInput: { flex: 1 },
-  input: {
+    input: {
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: 12,
@@ -270,6 +300,27 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: colors.text,
     backgroundColor: '#fff',
+  },
+  passwordWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 12,
+    marginBottom: 12,
+    backgroundColor: '#fff',
+  },
+  passwordInput: {
+    flex: 1,
+    paddingVertical: 14,
+    paddingLeft: 16,
+    paddingRight: 8,
+    fontSize: 15,
+    color: colors.text,
+  },
+  eyeButton: {
+    paddingHorizontal: 14,
+    paddingVertical: 14,
   },
   termsRow: {
     flexDirection: 'row',
