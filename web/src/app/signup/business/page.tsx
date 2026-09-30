@@ -5,6 +5,48 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 
+// ──────────────────────────────────────────────────────────
+// Icon components (module-level, defined once per module)
+// ──────────────────────────────────────────────────────────
+
+function EyeIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  );
+}
+
+function EyeOffIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+      <line x1="1" y1="1" x2="23" y2="23" />
+    </svg>
+  );
+}
+
 export default function BusinessSignupPage() {
   const router = useRouter();
   const [firstName, setFirstName] = useState('');
@@ -12,6 +54,8 @@ export default function BusinessSignupPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [passwordConfirmation, setPasswordConfirmation] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showPasswordConfirmation, setShowPasswordConfirmation] = useState(false);
   const [agreed, setAgreed] = useState(false);
   const [errors, setErrors] = useState<Record<string, string[]>>({});
   const [generalError, setGeneralError] = useState('');
@@ -69,7 +113,7 @@ export default function BusinessSignupPage() {
           className="object-cover"
         />
         <div className="absolute inset-0 bg-black/40" />
-        <div className="relative z-10 flex flex-col justify-end p-14 w-full">
+        <div className="relative z-10 flex flex-col justify-center p-14 w-full">
           <h1 className="text-5xl xl:text-6xl font-black leading-[1.05] uppercase tracking-tight max-w-lg">
             Turn your campsite into a business.
           </h1>
@@ -105,8 +149,8 @@ export default function BusinessSignupPage() {
               List your campsite
             </h2>
             <p className="text-sm text-gray-500 mt-2">
-              Sign up to become a host. We'll review your account and get you
-              live within 24 hours.
+              Sign up to become a host. We&apos;ll review your account and get
+              you live within 24 hours.
             </p>
           </div>
 
@@ -142,31 +186,50 @@ export default function BusinessSignupPage() {
               )}
             </div>
 
-            <div>
+            <div className="relative">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg">
+                🔒
+              </span>
               <input
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Password"
                 required
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gearup-600 focus:border-transparent"
+                className="w-full pl-12 pr-12 py-4 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gearup-600 focus:border-transparent"
               />
-              {errors.password && (
-                <p className="text-red-600 text-xs mt-1">
-                  {errors.password[0]}
-                </p>
-              )}
+              <button
+                type="button"
+                onClick={() => setShowPassword((v) => !v)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? <EyeOffIcon /> : <EyeIcon />}
+              </button>
             </div>
 
-            <div>
+            <div className="relative">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg">
+                🔒
+              </span>
               <input
-                type="password"
+                type={showPasswordConfirmation ? 'text' : 'password'}
                 value={passwordConfirmation}
                 onChange={(e) => setPasswordConfirmation(e.target.value)}
-                placeholder="Confirm password"
+                placeholder="Confirmed Password"
                 required
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gearup-600 focus:border-transparent"
+                className="w-full pl-12 pr-12 py-4 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gearup-600 focus:border-transparent"
               />
+              <button
+                type="button"
+                onClick={() => setShowPasswordConfirmation((v) => !v)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                aria-label={
+                  showPasswordConfirmation ? 'Hide password' : 'Show password'
+                }
+              >
+                {showPasswordConfirmation ? <EyeOffIcon /> : <EyeIcon />}
+              </button>
             </div>
 
             <label className="flex items-start gap-2 text-sm text-gray-700">
