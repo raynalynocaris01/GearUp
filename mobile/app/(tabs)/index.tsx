@@ -30,7 +30,7 @@ const FEATURES = [
     label: 'Rent Gear',
     desc: 'Quality gear for your adventure',
     color: '#2563eb',
-    action: 'coming-soon',
+    action: 'gear-rental',
   },
   {
     icon: 'person-outline',
@@ -94,22 +94,26 @@ export default function HomeScreen() {
   };
 
     const handleFeaturePress = (
-    action: 'explore' | 'coming-soon' | 'tour-guides',
-    label: string,
-  ) => {
-    if (action === 'explore') {
-      router.push('/(tabs)/explore');
-      return;
-    }
-    if (action === 'tour-guides') {
-      router.push('/tour-guides');
-      return;
-    }
-    Alert.alert(
-      `${label} — Coming Soon`,
-      'This feature is being built. Check back soon!',
-    );
-  };
+  action: 'explore' | 'coming-soon' | 'tour-guides' | 'gear-rental',
+  label: string,
+) => {
+  if (action === 'explore') {
+    router.push('/(tabs)/explore');
+    return;
+  }
+  if (action === 'tour-guides') {
+    router.push('/tour-guides');
+    return;
+  }
+  if (action === 'gear-rental') {
+    router.push('/gear-rental');
+    return;
+  }
+  Alert.alert(
+    `${label} — Coming Soon`,
+    'This feature is being built. Check back soon!',
+  );
+};
 
   const handleSearch = () => {
     const q = search.trim();
