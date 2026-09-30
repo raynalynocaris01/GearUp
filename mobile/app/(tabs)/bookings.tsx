@@ -98,10 +98,13 @@ export default function BookingsScreen() {
   };
 
   const handleCancel = (booking: Booking) => {
-    Alert.alert(
-      'Cancel booking?',
-      `Cancel your reservation at ${booking.campsite?.name ?? 'this campsite'}?`,
-      [
+  const label = booking.campsite?.name ?? booking.gear_item?.name ?? 'this booking';
+  const type = booking.campsite ? 'reservation at' : 'rental of';
+
+  Alert.alert(
+    'Cancel booking?',
+    `Cancel your ${type} ${label}?`,
+    [
         { text: 'Keep it', style: 'cancel' },
         {
           text: 'Cancel booking',
@@ -206,19 +209,51 @@ export default function BookingsScreen() {
               </TouchableOpacity>
             </View>
           }
-          renderItem={({ item }) => {
+                    renderItem={({ item }) => {
             const cancelled = item.status === 'cancelled';
-            const nights = nightsBetween(item.check_in, item.check_out);
+            const isGearOnly = !item.campsite && item.gear_item;
+            const isCampsiteGear = item.campsite && item.gear_item;
+
+            // Pick the right dates: gear bookings use gear_start/end_date
+            const startDate = isGearOnly
+              ? item.gear_start_date
+              : item.check_in;
+            const endDate = isGearOnly
+              ? item.gear_end_date
+              : item.check_out;
+
+            const nights = nightsBetween(startDate, endDate);
             const pill = statusPill(item.status);
+
+            // Title + image precedence: campsite first, then gear, then fallback
+            const title =
+              item.campsite?.name ??
+              item.gear_item?.name ??
+              (item.tour_guide ? 'Tour Guide Booking' : 'Booking');
+
+            const imageUrl =
+              item.campsite?.image_url ?? item.gear_item?.image_url ?? null;
+
+            // Tint for date units
+            const dateUnit = isGearOnly ? 'day' : 'night';
+            const dateUnitPlural = isGearOnly ? 'days' : 'nights';
 
             return (
               <View
                 style={[styles.card, cancelled && styles.cardCancelled]}
               >
-                <Image
-                  source={{ uri: item.campsite?.image_url }}
-                  style={styles.image}
-                />
+                                {imageUrl ? (
+                  <Image
+                    source={{ uri: imageUrl }}
+                    style={styles.image}
+                  />
+                ) : (
+                  <View style={[styles.image, styles.imageFallback]}>
+                    <Text style={{ fontSize: 40 }}>
+                      {isGearOnly ? '🎒' : '⛺'}
+                    </Text>
+                  </View>
+                )}
                 <View style={styles.body}>
                   {/* Status pill */}
                   <View
@@ -234,12 +269,17 @@ export default function BookingsScreen() {
                     </Text>
                   </View>
 
-                  <Text style={styles.name} numberOfLines={1}>
-                  {item.campsite?.name ??
-                    (item.tour_guide ? 'Tour Guide Booking' : 'Booking')}
-                </Text>
+                                    <Text style={styles.name} numberOfLines={1}>
+                    {title}
+                  </Text>
 
-                  {item.check_in && item.check_out && (
+                  {isGearOnly && (
+                    <Text style={styles.rentalOnlyLabel}>
+                      {item.gear_item?.category} · Rental only
+                    </Text>
+                  )}
+
+                  {startDate && endDate && (
                     <View style={styles.metaRow}>
                       <Ionicons
                         name="calendar-outline"
@@ -247,24 +287,41 @@ export default function BookingsScreen() {
                         color={colors.textMuted}
                       />
                       <Text style={styles.meta}>
-                        {formatDate(item.check_in)} →{' '}
-                        {formatDate(item.check_out)} ({nights}{' '}
-                        {nights === 1 ? 'night' : 'nights'})
+                        {formatDate(startDate)} → {formatDate(endDate)} (
+                        {nights}{' '}
+                        {nights === 1 ? dateUnit : dateUnitPlural})
                       </Text>
                     </View>
                   )}
 
-                  <View style={styles.metaRow}>
-                    <Ionicons
-                      name="people-outline"
-                      size={12}
-                      color={colors.textMuted}
-                    />
-                    <Text style={styles.meta}>
-                      {item.guests}{' '}
-                      {item.guests === 1 ? 'guest' : 'guests'}
-                    </Text>
-                  </View>
+                                    {!isGearOnly && (
+                    <View style={styles.metaRow}>
+                      <Ionicons
+                        name="people-outline"
+                        size={12}
+                        color={colors.textMuted}
+                      />
+                      <Text style={styles.meta}>
+                        {item.guests}{' '}
+                        {item.guests === 1 ? 'guest' : 'guests'}
+                      </Text>
+                    </View>
+                  )}
+
+                  {/* Gear line for campsite+gear bookings */}
+                  {isCampsiteGear && item.gear_item && (
+                    <View style={styles.metaRow}>
+                      <Ionicons
+                        name="bag-handle-outline"
+                        size={12}
+                        color={colors.textMuted}
+                      />
+                      <Text style={styles.meta}>
+                        {item.gear_item.name}
+                        {item.gear_quantity && ` × ${item.gear_quantity}`}
+                      </Text>
+                    </View>
+                  )}
 
                   {/* Guide link — separate row, NOT inside Text */}
                   {item.tour_guide && (
@@ -398,6 +455,16 @@ const styles = StyleSheet.create({
     height: '100%',
     minHeight: 150,
     backgroundColor: '#e5e7eb',
+  },
+    imageFallback: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.gearup50,
+  },
+  rentalOnlyLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: colors.gearupGreen,
   },
   body: { flex: 1, padding: 12, gap: 6 },
 
