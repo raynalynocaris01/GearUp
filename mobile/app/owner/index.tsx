@@ -17,14 +17,19 @@ import { colors } from '../../theme';
 export default function OwnerDashboard() {
   const router = useRouter();
   const [stats, setStats] = useState<OwnerDashboardStats | null>(null);
+  const [gearCount, setGearCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
   const load = async (showSpinner = false) => {
     if (showSpinner) setLoading(true);
     try {
-      const res = await owner.dashboard();
-      setStats(res.data);
+      const [dashRes, gearRes] = await Promise.all([
+        owner.dashboard(),
+        owner.listGear(),
+      ]);
+      setStats(dashRes.data);
+      setGearCount(gearRes.data.length);
     } catch {
       // silent
     } finally {
@@ -45,37 +50,37 @@ export default function OwnerDashboard() {
   };
 
   const cards = stats
-    ? [
-        {
-          label: 'Campsites',
-          value: stats.total_campsites,
-          icon: '⛺',
-          color: '#dcfce7',
-          href: '/owner/campsites',
-        },
-        {
-          label: 'Bookings',
-          value: stats.total_bookings,
-          icon: '📅',
-          color: '#dbeafe',
-          href: '/owner/bookings',
-        },
-        {
-          label: 'Pending',
-          value: stats.pending_bookings,
-          icon: '⏳',
-          color: '#fef3c7',
-          href: '/owner/bookings',
-        },
-        {
-          label: 'Revenue',
-          value: `₱${Number(stats.total_revenue).toFixed(0)}`,
-          icon: '💰',
-          color: '#f3e8ff',
-          href: '/owner/bookings',
-        },
-      ]
-    : [];
+  ? [
+      {
+        label: 'Campsites',
+        value: stats.total_campsites,
+        icon: '⛺',
+        color: '#dcfce7',
+        href: '/owner/campsites',
+      },
+      {
+        label: 'Gear',
+        value: gearCount,
+        icon: '🎒',
+        color: '#e0e7ff',
+        href: '/owner/gear',
+      },
+      {
+        label: 'Bookings',
+        value: stats.total_bookings,
+        icon: '📅',
+        color: '#dbeafe',
+        href: '/owner/bookings',
+      },
+      {
+        label: 'Pending',
+        value: stats.pending_bookings,
+        icon: '⏳',
+        color: '#fef3c7',
+        href: '/owner/bookings',
+      },
+    ]
+  : [];
 
   return (
     <View style={styles.container}>
@@ -176,7 +181,23 @@ export default function OwnerDashboard() {
                 <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
               </TouchableOpacity>
 
-              <View style={styles.divider} />
+                            <View style={styles.divider} />
+
+              <TouchableOpacity
+                style={styles.actionRow}
+                onPress={() => router.push('/owner/gear')}
+              >
+                <View style={styles.actionIconWrap}>
+                  <Ionicons name="bag-handle-outline" size={22} color={colors.gearupGreen} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.actionLabel}>Manage gear</Text>
+                  <Text style={styles.actionHint}>
+                    Add, edit, or remove rental items
+                  </Text>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
+              </TouchableOpacity>
 
               <TouchableOpacity
                 style={styles.actionRow}
