@@ -80,6 +80,7 @@ export default function OwnerLayout() {
     >
       <Stack.Screen name="index" />
       <Stack.Screen name="campsites" />
+      <Stack.Screen name="gear" />
       <Stack.Screen name="bookings" />
     </Stack>
   );
