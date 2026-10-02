@@ -28,12 +28,17 @@ export default function LoginPage() {
     const data = await res.json();
     setLoading(false);
 
-    if (!res.ok) {
+        if (!res.ok) {
       setError(data.message ?? 'Login failed');
       return;
     }
 
-    router.push('/');
+    // Owners go straight to their dashboard; everyone else goes home
+    if (data.user?.role === 'owner') {
+      router.push('/owner');
+    } else {
+      router.push('/');
+    }
     router.refresh();
   };
 

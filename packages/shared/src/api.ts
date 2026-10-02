@@ -189,8 +189,11 @@ export interface OwnerDashboardStats {
   total_bookings: number;
   pending_bookings: number;
   confirmed_bookings: number;
-   completed_bookings: number; 
+  completed_bookings: number;
+  total_reviews: number;
+  average_rating: number;
   total_revenue: number;
+  total_earnings: number;
 }
 
 export interface TourGuide {

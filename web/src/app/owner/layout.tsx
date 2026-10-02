@@ -1,7 +1,6 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { Navbar } from '@/components/Navbar';
-import { OwnerTabs } from '@/components/owner/OwnerTabs';
+import { OwnerSidebar } from '@/components/owner/OwnerSidebar';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL!;
 
@@ -41,7 +40,6 @@ export default async function OwnerLayout({
   if (!user.is_approved) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Navbar user={user} />
         <div className="max-w-2xl mx-auto px-6 py-24 text-center">
           <div className="text-6xl mb-6">⏳</div>
           <h1 className="text-3xl font-black text-gray-900 mb-3">
@@ -49,8 +47,8 @@ export default async function OwnerLayout({
           </h1>
           <p className="text-gray-600 leading-relaxed mb-8">
             Thanks for signing up as a business owner on GearUp. Our team is
-            reviewing your account. You'll be able to post your campsites as
-            soon as we approve it.
+            reviewing your account. You&apos;ll be able to post your campsites
+            as soon as we approve it.
           </p>
           <p className="text-sm text-gray-500">
             You can still browse and book as a customer in the meantime.
@@ -66,11 +64,12 @@ export default async function OwnerLayout({
     );
   }
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar user={user} />
-      <OwnerTabs />
-      <main className="max-w-6xl mx-auto px-6 py-10">{children}</main>
+    return (
+    <div className="min-h-screen bg-gray-50 flex">
+      <OwnerSidebar ownerName={user.name} ownerEmail={user.email} />
+      <main className="flex-1 min-w-0 px-6 py-10 lg:px-10">
+        <div className="max-w-6xl mx-auto">{children}</div>
+      </main>
     </div>
   );
 }

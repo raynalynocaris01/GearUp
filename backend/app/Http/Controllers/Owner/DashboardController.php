@@ -34,17 +34,29 @@ class DashboardController extends Controller
             ->where('status', 'completed')
             ->count();
 
-        $totalRevenue = Booking::whereIn('campsite_id', $campsiteIds)
+               $totalRevenue = Booking::whereIn('campsite_id', $campsiteIds)
             ->whereIn('status', ['confirmed', 'completed'])
             ->sum('total_price');
+
+        // Average rating across all reviews for this owner's campsites
+        $averageRating = \App\Models\Review::whereIn('campsite_id', $campsiteIds)
+            ->avg('rating');
+
+        $totalReviews = \App\Models\Review::whereIn('campsite_id', $campsiteIds)
+            ->count();
 
         return response()->json([
             'total_campsites' => $totalCampsites,
             'total_bookings' => $totalBookings,
             'pending_bookings' => $pendingBookings,
             'confirmed_bookings' => $confirmedBookings,
-             'completed_bookings' => $completedBookings,
+            'completed_bookings' => $completedBookings,
+            'total_reviews' => $totalReviews,
+            'average_rating' => $averageRating !== null
+                ? round((float) $averageRating, 2)
+                : 0,
             'total_revenue' => (float) $totalRevenue,
+            'total_earnings' => (float) $totalRevenue,
         ]);
     }
 }

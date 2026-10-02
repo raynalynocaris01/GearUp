@@ -30,11 +30,17 @@ export default function LoginScreen() {
       return;
     }
 
-    setLoading(true);
+        setLoading(true);
     try {
       const res = await auth.login(email, password, 'expo-mobile');
       await saveToken(res.data.token);
-      router.replace('/(tabs)/profile');
+
+      // Owners go straight to their dashboard; everyone else to tabs
+      if (res.data.user.role === 'owner') {
+        router.replace('/owner');
+      } else {
+        router.replace('/(tabs)/profile');
+      }
     } catch (err: any) {
       const message =
         err.response?.data?.message ??
