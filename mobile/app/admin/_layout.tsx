@@ -3,6 +3,7 @@ import { Stack, useRouter } from 'expo-router';
 import { View, ActivityIndicator } from 'react-native';
 import { auth, hasToken, clearToken } from '../../lib/api';
 import { colors } from '../../theme';
+import { AdminTabs } from '../../components/admin/AdminTabs';
 
 export default function AdminLayout() {
   const router = useRouter();
@@ -47,16 +48,19 @@ export default function AdminLayout() {
   }
 
   return (
-    <Stack
-      screenOptions={{
-        headerShown: false,
-        contentStyle: { backgroundColor: '#f9fafb' },
-      }}
-    >
-      <Stack.Screen name="index" />
-      <Stack.Screen name="users" />
-      <Stack.Screen name="campsites" />
-      <Stack.Screen name="bookings" />
-    </Stack>
+    <View style={{ flex: 1, backgroundColor: '#f9fafb' }}>
+      <AdminTabs />
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          contentStyle: { backgroundColor: '#f9fafb' },
+        }}
+      >
+        <Stack.Screen name="index" />
+        <Stack.Screen name="users" />
+        <Stack.Screen name="campsites" />
+        <Stack.Screen name="bookings" />
+      </Stack>
+    </View>
   );
 }
