@@ -18,19 +18,19 @@ import { colors } from '../../theme';
 export default function OwnerDashboard() {
   const router = useRouter();
   const [stats, setStats] = useState<OwnerDashboardStats | null>(null);
-  const [gearCount, setGearCount] = useState(0);
+  const [userName, setUserName] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
   const load = async (showSpinner = false) => {
     if (showSpinner) setLoading(true);
     try {
-      const [dashRes, gearRes] = await Promise.all([
+      const [dashRes, userRes] = await Promise.all([
         owner.dashboard(),
-        owner.listGear(),
+        (await import('../../lib/api')).auth.user(),
       ]);
       setStats(dashRes.data);
-      setGearCount(gearRes.data.length);
+      setUserName(userRes.data.name ?? '');
     } catch {
       // silent
     } finally {
@@ -50,35 +50,43 @@ export default function OwnerDashboard() {
     load();
   };
 
+  const firstName = userName.split(' ')[0] || 'there';
+
   const cards = stats
     ? [
         {
-          label: 'Campsites',
-          value: stats.total_campsites,
-          icon: '⛺',
-          color: '#dcfce7',
-          href: '/owner/campsites',
-        },
-        {
-          label: 'Gear',
-          value: gearCount,
-          icon: '🎒',
-          color: '#e0e7ff',
-          href: '/owner/gear',
-        },
-        {
-          label: 'Bookings',
-          value: stats.total_bookings,
-          icon: '📅',
-          color: '#dbeafe',
+          label: 'Total Bookings',
+          value: String(stats.total_bookings),
+          icon: 'calendar-outline' as const,
+          bg: '#dbeafe',
+          fg: '#2563eb',
           href: '/owner/bookings',
         },
         {
-          label: 'Pending',
-          value: stats.pending_bookings,
-          icon: '⏳',
-          color: '#fef3c7',
+          label: 'Confirmed',
+          value: String(stats.confirmed_bookings),
+          icon: 'checkmark-circle-outline' as const,
+          bg: '#dcfce7',
+          fg: '#16a34a',
           href: '/owner/bookings',
+        },
+        {
+          label: 'Total Earnings',
+          value: `PHP ${Number(
+            stats.total_earnings ?? stats.total_revenue ?? 0,
+          ).toFixed(0)}`,
+          icon: 'cash-outline' as const,
+          bg: '#fef3c7',
+          fg: '#d97706',
+          href: '/owner/bookings',
+        },
+        {
+          label: 'Average Rating',
+          value: Number(stats.average_rating ?? 0).toFixed(1),
+          icon: 'star-outline' as const,
+          bg: '#f3e8ff',
+          fg: '#9333ea',
+          href: '/owner/reviews',
         },
       ]
     : [];
@@ -105,6 +113,27 @@ export default function OwnerDashboard() {
           </View>
         ) : (
           <>
+            {/* Welcome header */}
+            <View style={styles.welcomeBlock}>
+              <Text style={styles.welcomeTitle}>
+                Welcome back, {firstName}!
+              </Text>
+              <Text style={styles.welcomeSubtitle}>
+                Here's what's happening with your listings today.
+              </Text>
+            </View>
+
+            {/* Add Campsite CTA */}
+            <TouchableOpacity
+              style={styles.ctaButton}
+              onPress={() => router.push('/owner/campsites/new')}
+              activeOpacity={0.85}
+            >
+              <Ionicons name="add" size={20} color="#fff" />
+              <Text style={styles.ctaButtonText}>Add Campsite</Text>
+            </TouchableOpacity>
+
+            {/* Stat cards 2x2 */}
             <View style={styles.cardsGrid}>
               {cards.map((c) => (
                 <TouchableOpacity
@@ -116,41 +145,22 @@ export default function OwnerDashboard() {
                   <View
                     style={[
                       styles.cardIconWrap,
-                      { backgroundColor: c.color },
+                      { backgroundColor: c.bg },
                     ]}
                   >
-                    <Text style={styles.cardIcon}>{c.icon}</Text>
+                    <Ionicons name={c.icon} size={22} color={c.fg} />
                   </View>
                   <Text style={styles.cardLabel}>{c.label}</Text>
-                  <Text style={styles.cardValue}>{c.value}</Text>
+                  <Text style={styles.cardValue} numberOfLines={1}>
+                    {c.value}
+                  </Text>
                 </TouchableOpacity>
               ))}
             </View>
 
-            <Text style={styles.sectionTitle}>Quick actions</Text>
+            {/* Quick start */}
+            <Text style={styles.sectionTitle}>Quick start</Text>
             <View style={styles.actionsBlock}>
-              <TouchableOpacity
-                style={styles.actionRow}
-                onPress={() => router.push('/owner/campsites/new')}
-              >
-                <View style={styles.actionIconWrap}>
-                  <Ionicons
-                    name="add-circle-outline"
-                    size={22}
-                    color={colors.gearupGreen}
-                  />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.actionLabel}>Post a new campsite</Text>
-                  <Text style={styles.actionHint}>
-                    Add your listing to start receiving bookings
-                  </Text>
-                </View>
-                <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
-              </TouchableOpacity>
-
-              <View style={styles.divider} />
-
               <TouchableOpacity
                 style={styles.actionRow}
                 onPress={() => router.push('/owner/campsites')}
@@ -168,7 +178,11 @@ export default function OwnerDashboard() {
                     Edit, remove, or add tour guides
                   </Text>
                 </View>
-                <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
+                <Ionicons
+                  name="chevron-forward"
+                  size={20}
+                  color="#9ca3af"
+                />
               </TouchableOpacity>
 
               <View style={styles.divider} />
@@ -190,7 +204,11 @@ export default function OwnerDashboard() {
                     Add, edit, or remove rental items
                   </Text>
                 </View>
-                <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
+                <Ionicons
+                  name="chevron-forward"
+                  size={20}
+                  color="#9ca3af"
+                />
               </TouchableOpacity>
 
               <View style={styles.divider} />
@@ -212,7 +230,11 @@ export default function OwnerDashboard() {
                     Confirm or cancel incoming reservations
                   </Text>
                 </View>
-                <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
+                <Ionicons
+                  name="chevron-forward"
+                  size={20}
+                  color="#9ca3af"
+                />
               </TouchableOpacity>
             </View>
           </>
@@ -230,6 +252,35 @@ const styles = StyleSheet.create({
   scrollContent: { padding: 16 },
 
   centerBox: { paddingVertical: 40, alignItems: 'center' },
+
+  welcomeBlock: { marginBottom: 16 },
+  welcomeTitle: {
+    fontSize: 24,
+    fontWeight: '900',
+    color: '#111827',
+    letterSpacing: -0.5,
+  },
+  welcomeSubtitle: {
+    fontSize: 13,
+    color: colors.textMuted,
+    marginTop: 4,
+  },
+
+  ctaButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: colors.gearupGreen,
+    paddingVertical: 14,
+    borderRadius: 12,
+    marginBottom: 24,
+  },
+  ctaButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '800',
+  },
 
   cardsGrid: {
     flexDirection: 'row',
@@ -253,13 +304,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 10,
   },
-  cardIcon: { fontSize: 22 },
-  cardLabel: { fontSize: 11, color: colors.textMuted, fontWeight: '600' },
+  cardLabel: {
+    fontSize: 10,
+    color: colors.textMuted,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+  },
   cardValue: {
     fontSize: 22,
     fontWeight: '900',
     color: '#111827',
-    marginTop: 2,
+    marginTop: 4,
   },
 
   sectionTitle: {
