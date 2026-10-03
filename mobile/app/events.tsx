@@ -43,10 +43,10 @@ function formatRange(startsAt: string, endsAt: string): string {
     });
   }
 
-  return `${start.toLocaleDateString('en-US', {
+   return `${start.toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
-  })} – ${end.toLocaleDateString('en-US', {
+  })} - ${end.toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
