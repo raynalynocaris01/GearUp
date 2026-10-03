@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { cookies } from 'next/headers';
+import { UpcomingBookings } from '@/components/owner/UpcomingBookings';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL!;
 
@@ -38,13 +39,30 @@ async function getStats(token: string) {
   }
 }
 
+async function getBookings(token: string) {
+  try {
+    const res = await fetch(`${API_URL}/owner/bookings`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: 'application/json',
+      },
+      cache: 'no-store',
+    });
+    if (!res.ok) return [];
+    return await res.json();
+  } catch {
+    return [];
+  }
+}
+
 export default async function OwnerDashboardPage() {
   const cookieStore = await cookies();
   const token = cookieStore.get('auth_token')!.value;
 
-  const [user, stats] = await Promise.all([
+    const [user, stats, bookings] = await Promise.all([
     getCurrentUser(),
     getStats(token),
+    getBookings(token),
   ]);
 
   if (!stats) {
@@ -200,6 +218,9 @@ export default async function OwnerDashboardPage() {
           </Link>
         ))}
       </div>
+
+            {/* Upcoming bookings */}
+      <UpcomingBookings bookings={bookings} limit={3} />
 
       {/* Quick start */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
