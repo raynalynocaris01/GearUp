@@ -90,8 +90,9 @@ export function EventRegisterButton({
             You are registered
           </p>
           <p className="text-xs text-green-700 mt-1">
-            {reg.guests} {reg.guests === 1 ? 'guest' : 'guests'} - PHP{' '}
-            {reg.total_price}
+            {reg.guests ?? 1}{' '}
+            {(reg.guests ?? 1) === 1 ? 'guest' : 'guests'}
+            {reg.total_price ? ` - PHP ${reg.total_price}` : ''}
           </p>
         </div>
         <button

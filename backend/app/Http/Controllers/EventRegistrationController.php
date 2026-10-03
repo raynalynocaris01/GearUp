@@ -122,6 +122,19 @@ class EventRegistrationController extends Controller
             ->where('user_id', $request->user()->id)
             ->first();
 
-        return response()->json($reg);
+        if (!$reg) {
+            return response()->json(null);
+        }
+
+        return response()->json($reg->only([
+            'id',
+            'user_id',
+            'event_id',
+            'guests',
+            'total_price',
+            'status',
+            'created_at',
+            'updated_at',
+        ]));
     }
 }
