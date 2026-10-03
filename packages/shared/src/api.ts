@@ -534,6 +534,22 @@ export const gearApi = (client: ApiClient) => ({
 
   get: (id: number | string) => client.get<GearItem>(`/gear/${id}`),
 });
+
+
+export const myGearApi = (client: ApiClient) => ({
+  list: () => client.get<GearItem[]>('/my/gear'),
+
+  get: (id: number | string) => client.get<GearItem>(`/my/gear/${id}`),
+
+  create: (payload: CreateGearItemPayload) =>
+    client.post<GearItem>('/my/gear', payload),
+
+  update: (id: number | string, payload: Partial<CreateGearItemPayload>) =>
+    client.put<GearItem>(`/my/gear/${id}`, payload),
+
+  remove: (id: number | string) =>
+    client.delete<{ message: string }>(`/my/gear/${id}`),
+});
 // ──────────────────────────────────────────────────────────
 // EVENTS (PUBLIC)
 // ──────────────────────────────────────────────────────────
