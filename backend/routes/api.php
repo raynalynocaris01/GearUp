@@ -17,6 +17,7 @@ use App\Http\Controllers\TourGuideController;
 use App\Http\Controllers\GearItemController;
 use App\Http\Controllers\Owner\GearItemController as OwnerGearItemController;
 use App\Http\Controllers\Owner\ReviewController as OwnerReviewController;
+use App\Http\Controllers\Owner\SettingsController as OwnerSettingsController;
 
 // ─── Public ──────────────────────────────────────────────
 Route::post('/register', [AuthController::class, 'register']);
@@ -71,6 +72,11 @@ Route::middleware(['auth:sanctum', 'role:owner'])->prefix('owner')->group(functi
 
     // Reviews
     Route::get('/reviews', [OwnerReviewController::class, 'index']);
+
+    
+    // Settings
+    Route::put('/settings/profile', [OwnerSettingsController::class, 'updateProfile']);
+    Route::post('/settings/password', [OwnerSettingsController::class, 'updatePassword']);
 
 
     // Bookings

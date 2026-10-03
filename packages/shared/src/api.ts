@@ -299,6 +299,17 @@ export const ownerApi = (client: ApiClient) => ({
       // Reviews
   listReviews: (limit = 3) =>
     client.get<Review[]>('/owner/reviews', { params: { limit } }),
+  
+  // Settings
+  updateProfile: (payload: { name: string; email: string }) =>
+    client.put<AuthUser>('/owner/settings/profile', payload),
+
+  updatePassword: (payload: {
+    current_password: string;
+    password: string;
+    password_confirmation: string;
+  }) =>
+    client.post<{ message: string }>('/owner/settings/password', payload),
 
 
   // Bookings
