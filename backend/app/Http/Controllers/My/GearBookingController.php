@@ -33,4 +33,78 @@ class GearBookingController extends Controller
 
         return response()->json($bookings);
     }
+
+    /**
+     * POST /api/my/gear-bookings/{booking}/confirm
+     */
+    public function confirm(Request $request, Booking $booking)
+    {
+        $this->authorizeHost($request, $booking);
+
+        if ($booking->status !== 'pending') {
+            return response()->json([
+                'message' => 'Only pending bookings can be confirmed.',
+            ], 422);
+        }
+
+        $booking->update(['status' => 'confirmed']);
+
+        return response()->json($booking->fresh());
+    }
+
+    /**
+     * POST /api/my/gear-bookings/{booking}/complete
+     */
+    public function complete(Request $request, Booking $booking)
+    {
+        $this->authorizeHost($request, $booking);
+
+        if ($booking->status !== 'confirmed') {
+            return response()->json([
+                'message' => 'Only confirmed bookings can be completed.',
+            ], 422);
+        }
+
+        $booking->update(['status' => 'completed']);
+
+        return response()->json($booking->fresh());
+    }
+
+    /**
+     * POST /api/my/gear-bookings/{booking}/cancel
+     */
+    public function cancel(Request $request, Booking $booking)
+    {
+        $this->authorizeHost($request, $booking);
+
+        if ($booking->status === 'cancelled') {
+            return response()->json(['message' => 'Already cancelled.']);
+        }
+
+        if ($booking->status === 'completed') {
+            return response()->json([
+                'message' => 'Completed bookings cannot be cancelled.',
+            ], 422);
+        }
+
+        $booking->update(['status' => 'cancelled']);
+
+        return response()->json($booking->fresh());
+    }
+
+    /**
+     * Ensure the authenticated user owns the gear item this booking is for.
+     */
+    private function authorizeHost(Request $request, Booking $booking): void
+    {
+        $booking->loadMissing('gearItem');
+
+        if (!$booking->gearItem) {
+            abort(404, 'This booking is not for a gear item.');
+        }
+
+        if ($booking->gearItem->owner_id !== $request->user()->id) {
+            abort(403, 'You do not own this gear item.');
+        }
+    }
 }
