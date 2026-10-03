@@ -29,6 +29,7 @@ Route::get('/gear', [GearItemController::class, 'index']);
 Route::get('/gear/{gearItem}', [GearItemController::class, 'show']);
 Route::get('/events', [\App\Http\Controllers\EventController::class, 'index']);
 Route::get('/events/{event}', [\App\Http\Controllers\EventController::class, 'show']);
+Route::get('/home/recommended', [\App\Http\Controllers\HomeController::class, 'recommended']);
 
 // ─── Authenticated (any role) ────────────────────────────
 Route::middleware('auth:sanctum')->group(function () {
