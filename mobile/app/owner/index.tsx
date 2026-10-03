@@ -11,13 +11,14 @@ import {
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { owner } from '../../lib/api';
-import type { OwnerDashboardStats, Booking, Campsite } from '@gearup/shared';
+import type { OwnerDashboardStats, Booking, Campsite, Review } from '@gearup/shared';
 import { OwnerHeader } from '../../components/owner/OwnerHeader';
 import { UpcomingBookings } from '../../components/owner/UpcomingBookings';
 import { BookingChart } from '../../components/owner/BookingChart';
 import type { OwnerDashboardChart } from '@gearup/shared';
 import { colors } from '../../theme';
 import { CampsiteOverview } from '../../components/owner/CampsiteOverview';
+import { RecentReviews } from '../../components/owner/RecentReviews';
 
 
 export default function OwnerDashboard() {
@@ -27,24 +28,27 @@ export default function OwnerDashboard() {
    const [bookings, setBookings] = useState<Booking[]>([]);
   const [chart, setChart] = useState<OwnerDashboardChart | null>(null);
   const [campsites, setCampsites] = useState<Campsite[]>([]);
+const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
   const load = async (showSpinner = false) => {
     if (showSpinner) setLoading(true);
         try {
-         const [dashRes, userRes, bookingsRes, chartRes, campsitesRes] = await Promise.all([
+        const [dashRes, userRes, bookingsRes, chartRes, campsitesRes, reviewsRes] = await Promise.all([
   owner.dashboard(),
   (await import('../../lib/api')).auth.user(),
   owner.listBookings(),
   owner.dashboardChart(30),
   owner.listCampsites(),
+  owner.listReviews(3),
 ]);
 setStats(dashRes.data);
 setUserName(userRes.data.name ?? '');
 setBookings(bookingsRes.data);
 setChart(chartRes.data);
 setCampsites(campsitesRes.data);
+setReviews(reviewsRes.data);
     } catch {
       // silent
     } finally {
@@ -177,6 +181,9 @@ setCampsites(campsitesRes.data);
 
             {/* Campsite Overview */}
             <CampsiteOverview campsites={campsites} limit={3} />
+
+            {/* Recent Reviews */}
+            <RecentReviews reviews={reviews} limit={3} />
 
             {/* Upcoming bookings */}
             <UpcomingBookings bookings={bookings} limit={3} />
