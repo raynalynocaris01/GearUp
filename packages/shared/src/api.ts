@@ -310,6 +310,21 @@ export const ownerApi = (client: ApiClient) => ({
   deleteGear: (id: number | string) =>
     client.delete<{ message: string }>(`/owner/gear/${id}`),
 
+    // Events
+  listEvents: () => client.get<EventItem[]>('/owner/events'),
+
+  getEvent: (id: number | string) =>
+    client.get<EventItem>(`/owner/events/${id}`),
+
+  createEvent: (payload: CreateEventPayload) =>
+    client.post<EventItem>('/owner/events', payload),
+
+  updateEvent: (id: number | string, payload: UpdateEventPayload) =>
+    client.put<EventItem>(`/owner/events/${id}`, payload),
+
+  deleteEvent: (id: number | string) =>
+    client.delete<{ message: string }>(`/owner/events/${id}`),
+
 });
 
 // ──────────────────────────────────────────────────────────
@@ -453,6 +468,53 @@ export const gearApi = (client: ApiClient) => ({
     client.get<GearItem[]>('/gear', { params }),
 
   get: (id: number | string) => client.get<GearItem>(`/gear/${id}`),
+});
+// ──────────────────────────────────────────────────────────
+// EVENTS (PUBLIC)
+// ──────────────────────────────────────────────────────────
+
+export interface EventItem {
+  id: number;
+  owner_id: number;
+  name: string;
+  description: string;
+  location: string;
+  region: string | null;
+  starts_at: string;
+  ends_at: string;
+  price_per_person: string;
+  capacity: number;
+  image_url: string;
+  is_published: boolean;
+  created_at: string;
+  updated_at: string;
+  owner?: {
+    id: number;
+    name: string;
+    email: string;
+  };
+}
+
+export interface CreateEventPayload {
+  name: string;
+  description: string;
+  location: string;
+  region?: string;
+  starts_at: string;
+  ends_at: string;
+  price_per_person: number;
+  capacity: number;
+  image_url: string;
+  is_published?: boolean;
+}
+
+export type UpdateEventPayload = Partial<CreateEventPayload>;
+
+export const eventApi = (client: ApiClient) => ({
+  list: (params?: { region?: string; upcoming?: boolean }) =>
+    client.get<EventItem[]>('/events', { params }),
+
+  get: (id: number | string) => client.get<EventItem>(`/events/${id}`),
 });
 
 // ──────────────────────────────────────────────────────────

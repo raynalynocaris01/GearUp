@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -21,6 +21,9 @@ import {
   EMPTY_FILTERS,
   type FilterState,
 } from '../../components/FilterChips';
+import { RecommendedSection } from '../../components/RecommendedSection';
+
+const API_URL = process.env.EXPO_PUBLIC_API_URL!;
 
 const FEATURES = [
   {
@@ -48,37 +51,48 @@ const FEATURES = [
     icon: 'calendar-outline',
     label: 'Join Events',
     desc: 'Meet up and join adventures',
-    color: '#4b5563',
-    action: 'coming-soon',
+    color: '#9333ea',
+    action: 'events',
   },
 ] as const;
+
+interface RecommendedData {
+  campsites: any[];
+  gear: any[];
+  guides: any[];
+  events: any[];
+}
 
 export default function HomeScreen() {
   const router = useRouter();
   const [search, setSearch] = useState('');
   const [campsiteList, setCampsiteList] = useState<Campsite[]>([]);
+  const [recommended, setRecommended] = useState<RecommendedData | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
 
-  // Filter modal
   const [filterOpen, setFilterOpen] = useState(false);
   const [filters, setFilters] = useState<FilterState>({
     ...EMPTY_FILTERS,
     search: '',
   });
 
-  const loadCampsites = async (showSpinner = false) => {
+  const load = async (showSpinner = false) => {
     if (showSpinner) setLoading(true);
     setError('');
     try {
-      const res = await campsites.list({ featured: true });
-      setCampsiteList(res.data);
+      const [campsitesRes, recRes] = await Promise.all([
+        campsites.list({ featured: true }),
+        fetch(`${API_URL}/home/recommended`).then((r) => r.json()),
+      ]);
+      setCampsiteList(campsitesRes.data);
+      setRecommended(recRes);
     } catch (err: any) {
       setError(
         err.response?.data?.message ??
           err.message ??
-          'Could not load campsites.',
+          'Could not load data.',
       );
     } finally {
       setLoading(false);
@@ -86,22 +100,17 @@ export default function HomeScreen() {
     }
   };
 
-  useEffect(() => {
-    loadCampsites(true);
-  }, []);
-
   useFocusEffect(
     useCallback(() => {
-      loadCampsites();
+      load(campsiteList.length === 0);
     }, []),
   );
 
-    const handleRefresh = () => {
+  const handleRefresh = () => {
     setRefreshing(true);
-    loadCampsites();
+    load();
   };
 
-  // Unique regions for the filter modal
   const regions = Array.from(
     new Set(campsiteList.map((c) => c.region).filter(Boolean)),
   ).sort();
@@ -112,7 +121,8 @@ export default function HomeScreen() {
     if (q) params.set('search', q);
     if (next.region) params.set('region', next.region);
     if (next.priceRange) params.set('price', next.priceRange);
-    if (next.minRating !== null) params.set('rating', String(next.minRating));
+    if (next.minRating !== null)
+      params.set('rating', String(next.minRating));
 
     const qs = params.toString();
     router.push(qs ? `/(tabs)/explore?${qs}` : '/(tabs)/explore');
@@ -122,27 +132,36 @@ export default function HomeScreen() {
     Alert.alert('Coming soon', 'This feature is being built.');
   };
 
-    const handleFeaturePress = (
-  action: 'explore' | 'coming-soon' | 'tour-guides' | 'gear-rental',
-  label: string,
-) => {
-  if (action === 'explore') {
-    router.push('/(tabs)/explore');
-    return;
-  }
-  if (action === 'tour-guides') {
-    router.push('/tour-guides');
-    return;
-  }
-  if (action === 'gear-rental') {
-    router.push('/gear-rental');
-    return;
-  }
-  Alert.alert(
-    `${label} — Coming Soon`,
-    'This feature is being built. Check back soon!',
-  );
-};
+  const handleFeaturePress = (
+    action:
+      | 'explore'
+      | 'coming-soon'
+      | 'tour-guides'
+      | 'gear-rental'
+      | 'events',
+    label: string,
+  ) => {
+    if (action === 'explore') {
+      router.push('/(tabs)/explore');
+      return;
+    }
+    if (action === 'tour-guides') {
+      router.push('/tour-guides');
+      return;
+    }
+    if (action === 'gear-rental') {
+      router.push('/gear-rental');
+      return;
+    }
+    if (action === 'events') {
+      router.push('/events');
+      return;
+    }
+    Alert.alert(
+      `${label} — Coming Soon`,
+      'This feature is being built. Check back soon!',
+    );
+  };
 
   const handleSearch = () => {
     const q = search.trim();
@@ -151,10 +170,6 @@ export default function HomeScreen() {
     } else {
       router.push('/(tabs)/explore');
     }
-  };
-
-  const openCampsite = (id: number) => {
-    router.push(`/campsite/${id}`);
   };
 
   return (
@@ -172,8 +187,15 @@ export default function HomeScreen() {
             <Text style={styles.brandGreen}>Up</Text>
           </Text>
         </View>
-        <TouchableOpacity style={styles.iconButton} onPress={handleComingSoon}>
-          <Ionicons name="notifications-outline" size={24} color="#111827" />
+        <TouchableOpacity
+          style={styles.iconButton}
+          onPress={handleComingSoon}
+        >
+          <Ionicons
+            name="notifications-outline"
+            size={24}
+            color="#111827"
+          />
         </TouchableOpacity>
       </View>
 
@@ -198,7 +220,7 @@ export default function HomeScreen() {
               <Text style={styles.heroAccent}>ADVENTURE.</Text>
             </Text>
 
-                        <View style={styles.searchBox}>
+            <View style={styles.searchBox}>
               <Ionicons
                 name="search-outline"
                 size={18}
@@ -206,7 +228,7 @@ export default function HomeScreen() {
               />
               <TextInput
                 style={styles.searchInput}
-                placeholder="Search destinations, campsites, rent gears"
+                placeholder="Search destinations, campsites"
                 placeholderTextColor={colors.textMuted}
                 value={search}
                 onChangeText={setSearch}
@@ -262,21 +284,16 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* POPULAR CAMPSITES */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Popular Campsites</Text>
-            <TouchableOpacity onPress={handleComingSoon}>
-              <Text style={styles.sectionLink}>View All</Text>
-            </TouchableOpacity>
+        {/* RECOMMENDED */}
+        {loading ? (
+          <View style={styles.centerBox}>
+            <ActivityIndicator
+              size="large"
+              color={colors.gearupGreen}
+            />
           </View>
-
-          {loading ? (
-            <View style={styles.centerBox}>
-              <ActivityIndicator size="large" color={colors.gearupGreen} />
-              <Text style={styles.centerText}>Loading campsites…</Text>
-            </View>
-          ) : error ? (
+        ) : error ? (
+          <View style={styles.section}>
             <View style={styles.centerBox}>
               <Ionicons
                 name="warning-outline"
@@ -286,95 +303,17 @@ export default function HomeScreen() {
               <Text style={styles.centerText}>{error}</Text>
               <TouchableOpacity
                 style={styles.retryButton}
-                onPress={() => loadCampsites(true)}
+                onPress={() => load(true)}
               >
                 <Text style={styles.retryButtonText}>Try Again</Text>
               </TouchableOpacity>
             </View>
-          ) : campsiteList.length === 0 ? (
-            <View style={styles.centerBox}>
-              <Ionicons
-                name="leaf-outline"
-                size={40}
-                color={colors.textMuted}
-              />
-              <Text style={styles.centerText}>No campsites available yet.</Text>
-            </View>
-          ) : (
-            <View style={styles.campsiteList}>
-              {campsiteList.map((c) => (
-                <TouchableOpacity
-                  key={c.id}
-                  style={styles.campsiteCard}
-                  onPress={() => openCampsite(c.id)}
-                  activeOpacity={0.85}
-                >
-                  <Image
-                    source={{ uri: c.image_url }}
-                    style={styles.campsiteImage}
-                  />
-                  <View style={styles.campsiteBody}>
-                    <Text style={styles.campsiteName} numberOfLines={1}>
-                      {c.name}
-                    </Text>
-                    <View style={styles.campsiteMeta}>
-                      <Ionicons
-                        name="location-outline"
-                        size={12}
-                        color={colors.textMuted}
-                      />
-                      <Text
-                        style={styles.campsiteLocation}
-                        numberOfLines={1}
-                      >
-                        {c.location}
-                      </Text>
-                    </View>
-                    <View style={styles.campsiteMeta}>
-                      <Ionicons name="star" size={12} color="#f59e0b" />
-                      <Text style={styles.campsiteRating}>
-                        {c.rating} ({c.reviews_count})
-                      </Text>
-                    </View>
-                    <Text style={styles.campsitePrice}>
-                      ₱{c.price_per_night} / {c.price_unit}
-                    </Text>
-                  </View>
-                  <TouchableOpacity
-                    style={styles.heartButton}
-                    onPress={handleComingSoon}
-                  >
-                    <Ionicons
-                      name="heart-outline"
-                      size={20}
-                      color="#111827"
-                    />
-                  </TouchableOpacity>
-                </TouchableOpacity>
-              ))}
-            </View>
-          )}
-        </View>
-
-        {/* BOTTOM CTA */}
-        <View style={styles.section}>
-          <View style={styles.cta}>
-            <Text style={styles.ctaTitle}>
-              Plan your next{'\n'}adventure today!
-            </Text>
-            <Text style={styles.ctaSubtitle}>
-              Everything you need for unforgettable trips is here!
-            </Text>
-            <TouchableOpacity
-              style={styles.ctaButton}
-              onPress={handleComingSoon}
-            >
-              <Text style={styles.ctaButtonText}>Get Started</Text>
-            </TouchableOpacity>
           </View>
-        </View>
+        ) : recommended ? (
+          <RecommendedSection data={recommended} />
+        ) : null}
 
-                <View style={{ height: 24 }} />
+        <View style={{ height: 24 }} />
       </ScrollView>
 
       <FilterModal
@@ -413,7 +352,7 @@ const styles = StyleSheet.create({
   scrollContent: { paddingBottom: 16 },
 
   hero: {
-    height: 260,
+    height: 300,
     marginHorizontal: 16,
     marginTop: 16,
     borderRadius: 20,
@@ -448,8 +387,13 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     gap: 8,
   },
-  searchInput: { flex: 1, fontSize: 13, color: '#111827', paddingVertical: 8 },
-    searchButton: {
+  searchInput: {
+    flex: 1,
+    fontSize: 13,
+    color: '#111827',
+    paddingVertical: 8,
+  },
+  searchButton: {
     backgroundColor: colors.gearupGreen,
     paddingHorizontal: 14,
     paddingVertical: 10,
@@ -472,14 +416,6 @@ const styles = StyleSheet.create({
   },
 
   section: { marginTop: 20, paddingHorizontal: 16 },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  sectionTitle: { fontSize: 18, fontWeight: '800', color: '#111827' },
-  sectionLink: { fontSize: 13, color: colors.gearupGreen, fontWeight: '700' },
 
   featureGrid: {
     flexDirection: 'row',
@@ -524,44 +460,6 @@ const styles = StyleSheet.create({
     lineHeight: 13,
   },
 
-  campsiteList: { gap: 12 },
-  campsiteCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    borderRadius: 14,
-    padding: 10,
-    gap: 12,
-    borderWidth: 1,
-    borderColor: '#f1f5f9',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 3,
-    elevation: 1,
-  },
-  campsiteImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 10,
-    backgroundColor: '#e5e7eb',
-  },
-  campsiteBody: { flex: 1, gap: 3 },
-  campsiteName: { fontSize: 14, fontWeight: '700', color: '#111827' },
-  campsiteMeta: { flexDirection: 'row', alignItems: 'center', gap: 3 },
-  campsiteLocation: { fontSize: 11, color: colors.textMuted, flex: 1 },
-  campsiteRating: { fontSize: 11, color: '#111827', fontWeight: '600' },
-  campsitePrice: {
-    fontSize: 13,
-    fontWeight: '800',
-    color: colors.gearupGreen,
-    marginTop: 3,
-  },
-  heartButton: {
-    padding: 6,
-    alignSelf: 'flex-start',
-  },
-
   centerBox: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -587,26 +485,4 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '700',
   },
-
-  cta: {
-    backgroundColor: '#0f3d20',
-    borderRadius: 16,
-    padding: 20,
-    gap: 8,
-  },
-  ctaTitle: {
-    color: '#fff',
-    fontSize: 22,
-    fontWeight: '900',
-    lineHeight: 26,
-  },
-  ctaSubtitle: { color: 'rgba(255,255,255,0.85)', fontSize: 12 },
-  ctaButton: {
-    backgroundColor: colors.gearupGreen,
-    paddingVertical: 12,
-    borderRadius: 10,
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  ctaButtonText: { color: '#fff', fontSize: 13, fontWeight: '700' },
 });

@@ -9,7 +9,8 @@ import {
   adminApi,
   reviewApi,
   tourGuideApi,
-   gearApi,
+  gearApi,
+  eventApi,
 } from '@gearup/shared';
 
 const TOKEN_KEY = 'auth_token';
@@ -37,6 +38,7 @@ export const admin = adminApi(api);
 export const reviews = reviewApi(api);
 export const tourGuides = tourGuideApi(api);
 export const gear = gearApi(api);
+export const events = eventApi(api);
 
 export const saveToken = (token: string) =>
   SecureStore.setItemAsync(TOKEN_KEY, token);
