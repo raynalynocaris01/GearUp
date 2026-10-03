@@ -15,6 +15,7 @@ const NAV: NavItem[] = [
   { route: '/owner/bookings', label: 'Bookings', icon: 'calendar-outline' },
   { route: '/owner/campsites', label: 'Campsites', icon: 'home-outline' },
   { route: '/owner/gear', label: 'Gear', icon: 'bag-handle-outline' },
+  { route: '/owner/events', label: 'Events', icon: 'calendar-number-outline' },
   { route: '/owner/reviews', label: 'Reviews', icon: 'star-outline' },
   { route: '/owner/settings', label: 'Settings', icon: 'settings-outline' },
 ];

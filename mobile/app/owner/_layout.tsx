@@ -104,10 +104,11 @@ export default function OwnerLayout() {
         swipeEdgeWidth: 40,
       }}
     >
-      <Drawer.Screen name="index" options={{ title: 'Dashboard' }} />
+       <Drawer.Screen name="index" options={{ title: 'Dashboard' }} />
       <Drawer.Screen name="bookings" options={{ title: 'Bookings' }} />
       <Drawer.Screen name="campsites" options={{ title: 'Campsites' }} />
       <Drawer.Screen name="gear" options={{ title: 'Gear' }} />
+      <Drawer.Screen name="events" options={{ title: 'Events' }} />
       <Drawer.Screen name="reviews" options={{ title: 'Reviews' }} />
       <Drawer.Screen name="settings" options={{ title: 'Settings' }} />
       <Drawer.Screen
@@ -129,6 +130,14 @@ export default function OwnerLayout() {
       <Drawer.Screen
         name="gear/[id]/edit"
         options={{ title: 'Edit Gear', drawerItemStyle: { display: 'none' } }}
+      />
+            <Drawer.Screen
+        name="events/new"
+        options={{ title: 'New Event', drawerItemStyle: { display: 'none' } }}
+      />
+      <Drawer.Screen
+        name="events/[id]/edit"
+        options={{ title: 'Edit Event', drawerItemStyle: { display: 'none' } }}
       />
     </Drawer>
   );

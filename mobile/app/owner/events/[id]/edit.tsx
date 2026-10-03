@@ -7,24 +7,25 @@ import {
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { owner } from '../../../../lib/api';
-import type { Campsite } from '@gearup/shared';
+import type { EventItem } from '@gearup/shared';
 import { OwnerHeader } from '../../../../components/owner/OwnerHeader';
-import { CampsiteForm } from '../../../../components/owner/CampsiteForm';
+import { EventForm } from '../../../../components/owner/EventForm';
 import { colors } from '../../../../theme';
 
-export default function EditCampsiteScreen() {
+export default function EditEventScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const [campsite, setCampsite] = useState<Campsite | null>(null);
+
+  const [event, setEvent] = useState<EventItem | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     (async () => {
       try {
-        const res = await owner.getCampsite(id);
-        setCampsite(res.data);
+        const res = await owner.getEvent(id);
+        setEvent(res.data);
       } catch {
-        Alert.alert('Error', 'Could not load this campsite.');
+        Alert.alert('Error', 'Could not load this event.');
         router.back();
       } finally {
         setLoading(false);
@@ -34,13 +35,20 @@ export default function EditCampsiteScreen() {
 
   return (
     <View style={styles.container}>
-      <OwnerHeader title="Edit Campsite" />
-      {loading || !campsite ? (
+      <OwnerHeader title="Edit Event" />
+
+      {loading || !event ? (
         <View style={styles.center}>
           <ActivityIndicator size="large" color={colors.gearupGreen} />
         </View>
       ) : (
-        <CampsiteForm mode="edit" initial={campsite} />
+        <EventForm
+          mode="edit"
+          initial={{
+            ...event,
+            region: event.region ?? '',
+          }}
+        />
       )}
     </View>
   );

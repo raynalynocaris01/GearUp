@@ -1,12 +1,12 @@
 import { View, StyleSheet } from 'react-native';
 import { OwnerHeader } from '../../../components/owner/OwnerHeader';
-import { GearForm } from '../../../components/owner/GearForm';
+import { EventForm } from '../../../components/owner/EventForm';
 
-export default function NewGearScreen() {
+export default function NewEventScreen() {
   return (
     <View style={styles.container}>
-      <OwnerHeader title="Add Gear" />
-      <GearForm mode="create" />
+      <OwnerHeader title="Create Event" />
+      <EventForm mode="create" />
     </View>
   );
 }

@@ -11,6 +11,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { owner } from '../../../../lib/api';
 import type { Campsite, TourGuide } from '@gearup/shared';
 import { TourGuidesManager } from '../../../../components/owner/TourGuidesManager';
+import { OwnerHeader } from '../../../../components/owner/OwnerHeader';
 import { colors } from '../../../../theme';
 
 export default function TourGuidesScreen() {
@@ -36,16 +37,7 @@ export default function TourGuidesScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => router.back()}
-        >
-          <Ionicons name="chevron-back" size={24} color="#111827" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Tour Guides</Text>
-        <View style={{ width: 40 }} />
-      </View>
+            <OwnerHeader title="Tour Guides" />
 
       {loading ? (
         <View style={styles.center}>
