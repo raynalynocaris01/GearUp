@@ -108,12 +108,20 @@ export default function MyGearScreen() {
           <Ionicons name="chevron-back" size={24} color="#111827" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>My Gear</Text>
-        <TouchableOpacity
-          onPress={() => router.push('/my-gear/new' as any)}
-          style={styles.addBtn}
-        >
-          <Ionicons name="add" size={22} color="#fff" />
-        </TouchableOpacity>
+        <View style={{ flexDirection: 'row', gap: 8 }}>
+          <TouchableOpacity
+            onPress={() => router.push('/my-gear/bookings' as any)}
+            style={styles.rentalsBtn}
+          >
+            <Ionicons name="cube-outline" size={20} color={colors.gearupGreen} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => router.push('/my-gear/new' as any)}
+            style={styles.addBtn}
+          >
+            <Ionicons name="add" size={22} color="#fff" />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <FlatList
@@ -327,4 +335,14 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   primaryBtnText: { color: '#fff', fontWeight: '800', fontSize: 14 },
+    rentalsBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#fff',
+  },
 });

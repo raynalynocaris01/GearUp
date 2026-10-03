@@ -66,12 +66,20 @@ export default async function MyGearPage() {
               List your own gear and earn from campers.
             </p>
           </div>
-          <Link
-            href="/my-gear/new"
-            className="inline-flex items-center gap-2 bg-gearup-600 hover:bg-gearup-700 text-white font-semibold text-sm px-5 py-3 rounded-lg transition"
-          >
-            + Add gear
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/my-gear/bookings"
+              className="inline-flex items-center gap-2 text-sm font-semibold text-gray-700 hover:bg-gray-100 px-4 py-3 rounded-lg border border-gray-200 transition"
+            >
+              View rentals
+            </Link>
+            <Link
+              href="/my-gear/new"
+              className="inline-flex items-center gap-2 bg-gearup-600 hover:bg-gearup-700 text-white font-semibold text-sm px-5 py-3 rounded-lg transition"
+            >
+              + Add gear
+            </Link>
+          </div>
         </div>
 
         {items.length === 0 ? (
