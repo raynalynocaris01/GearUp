@@ -100,7 +100,7 @@ export function OwnerSettingsClient({ initialName, initialEmail }: Props) {
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gearup-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 bg-white focus:outline-none focus:ring-2 focus:ring-gearup-500 focus:border-transparent"
               required
               maxLength={255}
             />
@@ -114,7 +114,7 @@ export function OwnerSettingsClient({ initialName, initialEmail }: Props) {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gearup-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 bg-white focus:outline-none focus:ring-2 focus:ring-gearup-500 focus:border-transparent"
               required
               maxLength={255}
             />
@@ -159,7 +159,7 @@ export function OwnerSettingsClient({ initialName, initialEmail }: Props) {
               type="password"
               value={current}
               onChange={(e) => setCurrent(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gearup-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 bg-white focus:outline-none focus:ring-2 focus:ring-gearup-500 focus:border-transparent"
               required
               autoComplete="current-password"
             />
@@ -173,7 +173,7 @@ export function OwnerSettingsClient({ initialName, initialEmail }: Props) {
               type="password"
               value={next}
               onChange={(e) => setNext(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gearup-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 bg-white focus:outline-none focus:ring-2 focus:ring-gearup-500 focus:border-transparent"
               required
               minLength={8}
               autoComplete="new-password"
@@ -189,7 +189,7 @@ export function OwnerSettingsClient({ initialName, initialEmail }: Props) {
               type="password"
               value={confirm}
               onChange={(e) => setConfirm(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gearup-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 bg-white focus:outline-none focus:ring-2 focus:ring-gearup-500 focus:border-transparent"
               required
               minLength={8}
               autoComplete="new-password"
