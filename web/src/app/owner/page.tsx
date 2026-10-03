@@ -3,6 +3,7 @@ import { cookies } from 'next/headers';
 import { UpcomingBookings } from '@/components/owner/UpcomingBookings';
 import { BookingChart } from '@/components/owner/BookingChart';
 import { CampsiteOverview } from '@/components/owner/CampsiteOverview';
+import { RecentReviews } from '@/components/owner/RecentReviews';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL!;
 
@@ -91,17 +92,36 @@ async function getMyCampsites(token: string) {
     return [];
   }
 }
+async function getReviews(token: string, limit = 3) {
+  try {
+    const res = await fetch(
+      `${API_URL}/owner/reviews?limit=${limit}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: 'application/json',
+        },
+        cache: 'no-store',
+      },
+    );
+    if (!res.ok) return [];
+    return await res.json();
+  } catch {
+    return [];
+  }
+}
 
 export default async function OwnerDashboardPage() {
   const cookieStore = await cookies();
   const token = cookieStore.get('auth_token')!.value;
 
-    const [user, stats, bookings, chart, campsites] = await Promise.all([
+      const [user, stats, bookings, chart, campsites, reviews] = await Promise.all([
     getCurrentUser(),
     getStats(token),
     getBookings(token),
     getChart(token, 30),
     getMyCampsites(token),
+    getReviews(token, 3),
   ]);
 
   if (!stats) {
@@ -263,6 +283,9 @@ export default async function OwnerDashboardPage() {
 
       {/* Campsite Overview table */}
       <CampsiteOverview campsites={campsites} />
+
+      {/* Recent Reviews */}
+      <RecentReviews reviews={reviews} limit={3} />
 
       {/* Upcoming bookings */}
       <UpcomingBookings bookings={bookings} limit={3} />

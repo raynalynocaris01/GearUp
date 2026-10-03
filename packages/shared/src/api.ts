@@ -295,6 +295,11 @@ export const ownerApi = (client: ApiClient) => ({
       ...payload,
       is_independent: true,
     }),
+    
+      // Reviews
+  listReviews: (limit = 3) =>
+    client.get<Review[]>('/owner/reviews', { params: { limit } }),
+
 
   // Bookings
   listBookings: () => client.get<Booking[]>('/owner/bookings'),
@@ -421,6 +426,11 @@ export interface Review {
   user?: {
     id: number;
     name: string;
+  };
+  campsite?: {
+    id: number;
+    name: string;
+    image_url: string;
   };
 }
 

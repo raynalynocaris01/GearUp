@@ -16,6 +16,7 @@ use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\TourGuideController;
 use App\Http\Controllers\GearItemController;
 use App\Http\Controllers\Owner\GearItemController as OwnerGearItemController;
+use App\Http\Controllers\Owner\ReviewController as OwnerReviewController;
 
 // ─── Public ──────────────────────────────────────────────
 Route::post('/register', [AuthController::class, 'register']);
@@ -67,6 +68,10 @@ Route::middleware(['auth:sanctum', 'role:owner'])->prefix('owner')->group(functi
     Route::delete('/tour-guides/{tourGuide}',          [OwnerTourGuideController::class, 'destroy']);
     Route::get('/tour-guides',                          [OwnerTourGuideController::class, 'all']);
     Route::post('/tour-guides',                         [OwnerTourGuideController::class, 'storeIndependent']);
+
+    // Reviews
+    Route::get('/reviews', [OwnerReviewController::class, 'index']);
+
 
     // Bookings
     Route::get('/bookings',                          [OwnerBookingController::class, 'index']);
