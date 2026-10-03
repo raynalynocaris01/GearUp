@@ -18,12 +18,12 @@ class ReviewController extends Controller
         $owner = $request->user();
         $campsiteIds = $owner->campsites()->pluck('id');
 
-        $limit = (int) $request->query('limit', 3);
+            $limit = (int) $request->query('limit', 3);
         if ($limit < 1) {
             $limit = 3;
         }
-        if ($limit > 50) {
-            $limit = 50;
+        if ($limit > 200) {
+            $limit = 200;
         }
 
         $reviews = Review::whereIn('campsite_id', $campsiteIds)
