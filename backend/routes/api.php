@@ -21,7 +21,8 @@ use App\Http\Controllers\Owner\GearItemController as OwnerGearItemController;
 use App\Http\Controllers\Owner\ReviewController as OwnerReviewController;
 use App\Http\Controllers\Owner\SettingsController as OwnerSettingsController;
 use App\Http\Controllers\EventController;
-use App\Http\Controllers\EventRegistrationController;
+ use App\Http\Controllers\EventRegistrationController;
+use App\Http\Controllers\My\GearItemController as MyGearItemController;
 use App\Http\Controllers\Owner\EventRegistrationController as OwnerEventRegistrationController;
 
 
@@ -49,6 +50,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/events/{event}/register', [EventRegistrationController::class, 'store']);
     Route::post('/registrations/{registration}/cancel', [EventRegistrationController::class, 'cancel']);
     Route::get('/events/{event}/registration-status', [EventRegistrationController::class, 'status']);
+
+    // My Gear (any authenticated user can list and manage their own gear)
+    Route::get('/my/gear', [MyGearItemController::class, 'index']);
+    Route::post('/my/gear', [MyGearItemController::class, 'store']);
+    Route::get('/my/gear/{gearItem}', [MyGearItemController::class, 'show']);
+    Route::put('/my/gear/{gearItem}', [MyGearItemController::class, 'update']);
+    Route::delete('/my/gear/{gearItem}', [MyGearItemController::class, 'destroy']);
 
     // Customer bookings
     Route::get('/bookings',                   [BookingController::class, 'index']);
