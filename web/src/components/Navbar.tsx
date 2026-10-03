@@ -20,6 +20,7 @@ const LINKS = [
   { href: '/campsites', label: 'Campsites' },
   { href: '/tour-guides', label: 'Tour Guides' },
   { href: '/gear-rental', label: 'Gear Rental' },
+  { href: '/events', label: 'Events' },
 ];
 
 export function Navbar({ user }: NavbarProps) {

@@ -3,27 +3,21 @@ import Image from 'next/image';
 import { cookies } from 'next/headers';
 import { Navbar } from '@/components/Navbar';
 import { HomeSearch } from '@/components/HomeSearch';
+import { RecommendedSection } from '@/components/RecommendedSection';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL!;
 
-interface Campsite {
-  id: number;
-  name: string;
-  location: string;
-  region: string;
-  price_per_night: string;
-  price_unit: string;
-  image_url: string;
-  rating: string;
-  reviews_count: number;
-  is_featured: boolean;
+interface RecommendedData {
+  campsites: any[];
+  gear: any[];
+  guides: any[];
+  events: any[];
 }
 
 async function getCurrentUser() {
   const cookieStore = await cookies();
   const token = cookieStore.get('auth_token')?.value;
   if (!token) return null;
-
   try {
     const res = await fetch(`${API_URL}/user`, {
       headers: {
@@ -39,17 +33,18 @@ async function getCurrentUser() {
   }
 }
 
-async function getFeaturedCampsites(): Promise<Campsite[]> {
+async function getRecommended(): Promise<RecommendedData> {
   try {
-    const res = await fetch(`${API_URL}/campsites?featured=1`, {
+    const res = await fetch(`${API_URL}/home/recommended`, {
       headers: { Accept: 'application/json' },
-      // Revalidate every 60 seconds — cheap freshness without a full cache bust
       next: { revalidate: 60 },
     });
-    if (!res.ok) return [];
+    if (!res.ok) {
+      return { campsites: [], gear: [], guides: [], events: [] };
+    }
     return await res.json();
   } catch {
-    return [];
+    return { campsites: [], gear: [], guides: [], events: [] };
   }
 }
 
@@ -57,45 +52,112 @@ const FEATURES = [
   {
     label: 'Book Campsites',
     desc: 'Find the place to stay',
-    emoji: '⛺',
-    bg: 'bg-green-50',
     href: '/campsites',
+    icon: (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="32"
+        height="32"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="M3.5 21 14 3" />
+        <path d="M20.5 21 10 3" />
+        <path d="M15.5 21 12 15l-3.5 6" />
+        <path d="M2 21h20" />
+      </svg>
+    ),
+    accent: 'text-green-600',
   },
   {
     label: 'Rent Gear',
     desc: 'Quality gear for your adventure',
-    emoji: '🎒',
-    bg: 'bg-blue-50',
-    href: '/coming-soon?feature=gear-rental',
+    href: '/gear-rental',
+    icon: (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="32"
+        height="32"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
+        <path d="M3 6h18" />
+        <path d="M16 10a4 4 0 0 1-8 0" />
+      </svg>
+    ),
+    accent: 'text-blue-600',
   },
   {
-  label: 'Hire Tour Guide',
-  desc: 'Local guides, better experiences',
-  emoji: '🧭',
-  bg: 'bg-orange-50',
-  href: '/tour-guides',
-},
+    label: 'Hire Tour Guide',
+    desc: 'Local guides, better experiences',
+    href: '/tour-guides',
+    icon: (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="32"
+        height="32"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+        <circle cx="9" cy="7" r="4" />
+        <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+      </svg>
+    ),
+    accent: 'text-orange-600',
+  },
   {
     label: 'Join Events',
     desc: 'Meet up and join adventures',
-    emoji: '📅',
-    bg: 'bg-gray-100',
-    href: '/coming-soon?feature=events',
+    href: '/events',
+    icon: (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="32"
+        height="32"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+        <line x1="16" y1="2" x2="16" y2="6" />
+        <line x1="8" y1="2" x2="8" y2="6" />
+        <line x1="3" y1="10" x2="21" y2="10" />
+      </svg>
+    ),
+    accent: 'text-purple-600',
   },
 ];
 
 export default async function HomePage() {
-  const [user, campsites] = await Promise.all([
+  const [user, recommended] = await Promise.all([
     getCurrentUser(),
-    getFeaturedCampsites(),
+    getRecommended(),
   ]);
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gray-50">
       <Navbar user={user} />
 
       {/* HERO */}
-      <section className="relative h-[520px] text-white overflow-hidden">
+            <section className="relative h-[440px] text-white overflow-hidden">
         <Image
           src="/camping-bg.jpg"
           alt="Camping"
@@ -104,7 +166,7 @@ export default async function HomePage() {
           sizes="100vw"
           className="object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-black/20" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/45 to-black/20" />
 
         <div className="relative z-10 max-w-7xl mx-auto px-6 h-full flex flex-col justify-center">
           <h1 className="text-5xl md:text-7xl font-black leading-[1.02] tracking-tight uppercase max-w-2xl">
@@ -119,111 +181,38 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* FEATURE CARDS */}
-      <section className="max-w-7xl mx-auto px-6 -mt-12 relative z-10">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {/* FEATURE CARDS — floating over hero */}
+            <section className="max-w-7xl mx-auto px-6 -mt-10 relative z-20">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           {FEATURES.map((f) => (
             <Link
               key={f.label}
               href={f.href}
-              className="bg-white rounded-2xl shadow-md hover:shadow-lg transition p-5 flex items-center gap-4 border border-gray-100"
+              className="bg-white rounded-xl shadow-md hover:shadow-lg transition p-4 flex items-center gap-3 border border-gray-100"
             >
               <div
-                className={`w-14 h-14 rounded-xl ${f.bg} flex items-center justify-center text-2xl shrink-0`}
+                className={`w-11 h-11 rounded-lg bg-gray-50 flex items-center justify-center shrink-0 ${f.accent}`}
               >
-                {f.emoji}
+                {f.icon}
               </div>
-              <div>
-                <p className="font-bold text-gray-900 text-sm">{f.label}</p>
-                <p className="text-xs text-gray-500 mt-0.5">{f.desc}</p>
+              <div className="min-w-0">
+                <p className="font-bold text-gray-900 text-sm truncate">
+                  {f.label}
+                </p>
+                <p className="text-xs text-gray-500 mt-0.5 truncate">
+                  {f.desc}
+                </p>
               </div>
             </Link>
           ))}
         </div>
       </section>
 
-      {/* POPULAR CAMPSITES */}
-      <section className="max-w-7xl mx-auto px-6 mt-16">
-        <div className="flex items-end justify-between mb-6">
-          <div>
-            <h2 className="text-3xl font-black text-gray-900">
-              Popular Campsites
-            </h2>
-            <p className="text-gray-500 mt-1 text-sm">
-              Top-rated outdoor destinations
-            </p>
-          </div>
-          <Link
-            href="/login"
-            className="text-gearup-600 font-semibold text-sm hover:underline"
-          >
-            View All →
-          </Link>
-        </div>
+      {/* RECOMMENDED */}
+      <RecommendedSection data={recommended} />
 
-        {campsites.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-gray-200 p-12 text-center text-gray-500">
-            No campsites available right now. Check back soon.
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {campsites.map((c) => (
-              <Link
-                key={c.id}
-                href={`/campsites/${c.id}`}
-                className="group bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-lg transition"
-              >
-                <div className="relative h-44 overflow-hidden">
-                  <Image
-                    src={c.image_url}
-                    alt={c.name}
-                    fill
-                    sizes="(max-width: 768px) 100vw, 25vw"
-                    className="object-cover group-hover:scale-105 transition duration-500"
-                    unoptimized
-                  />
-                  <button className="absolute top-3 right-3 w-9 h-9 rounded-full bg-white/90 backdrop-blur flex items-center justify-center text-gray-700 hover:text-red-500 transition">
-                    ♡
-                  </button>
-                </div>
-                <div className="p-4">
-                  <h3 className="font-bold text-gray-900">{c.name}</h3>
-                  <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
-                    <span>📍</span> {c.location}
-                  </p>
-                  <p className="text-xs text-gray-700 mt-1 flex items-center gap-1">
-                    <span className="text-yellow-500">★</span>
-                    {c.rating} ({c.reviews_count})
-                  </p>
-                  <p className="text-sm font-bold text-gearup-600 mt-3">
-                    ₱{c.price_per_night} / {c.price_unit}
-                  </p>
-                </div>
-              </Link>
-            ))}
-          </div>
-        )}
-      </section>
-
-      {/* CTA BANNER */}
-      <section className="max-w-7xl mx-auto px-6 mt-20 mb-16">
-        <div className="rounded-3xl bg-gearup-900 text-white p-10 md:p-14 relative overflow-hidden">
-          <div className="relative z-10 max-w-xl">
-            <h2 className="text-3xl md:text-4xl font-black leading-tight">
-              Plan your next adventure today!
-            </h2>
-            <p className="mt-3 text-white/85">
-              Everything you need for unforgettable trips is here.
-            </p>
-            <Link
-              href="/signup"
-              className="inline-block mt-6 bg-gearup-600 hover:bg-gearup-700 px-7 py-3 rounded-lg font-semibold transition"
-            >
-              Get Started
-            </Link>
-          </div>
-        </div>
-      </section>
+            {/* FOOTER SPACER */}
+      <div className="h-10" />
     </div>
   );
 }
