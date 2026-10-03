@@ -10,8 +10,8 @@ import {
   RefreshControl,
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
 import { owner } from '../../lib/api';
+import { OwnerHeader } from '../../components/owner/OwnerHeader';
 import type { Campsite } from '@gearup/shared';
 import { colors } from '../../theme';
 
@@ -47,22 +47,13 @@ export default function OwnerCampsitesScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => router.back()}
-        >
-          <Ionicons name="chevron-back" size={24} color="#111827" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>My Campsites</Text>
-        <TouchableOpacity
-          onPress={() => router.push('/owner/campsites/new')}
-          style={styles.headerAction}
-        >
-          <Ionicons name="add" size={26} color={colors.gearupGreen} />
-        </TouchableOpacity>
-      </View>
+      <OwnerHeader
+        title="My Campsites"
+        rightAction={{
+          icon: 'add',
+          onPress: () => router.push('/owner/campsites/new'),
+        }}
+      />
 
       {loading ? (
         <View style={styles.centerBox}>
@@ -83,7 +74,6 @@ export default function OwnerCampsitesScreen() {
           }
           ListEmptyComponent={
             <View style={styles.emptyBlock}>
-              <Text style={styles.emptyEmoji}>⛺</Text>
               <Text style={styles.emptyTitle}>No campsites yet</Text>
               <Text style={styles.emptySubtitle}>
                 Post your first campsite to start receiving bookings.
@@ -110,15 +100,14 @@ export default function OwnerCampsitesScreen() {
                     {item.name}
                   </Text>
                   <Text style={styles.cardLocation} numberOfLines={1}>
-                    📍 {item.location}
+                    {item.location}
                   </Text>
                   <Text style={styles.cardMeta}>
-                    <Text style={{ color: '#f59e0b' }}>★</Text>{' '}
-                    {item.rating} ({item.reviews_count}) · Up to{' '}
+                    {item.rating} ({item.reviews_count}) - Up to{' '}
                     {item.capacity}
                   </Text>
                   <Text style={styles.cardPrice}>
-                    ₱{item.price_per_night} / {item.price_unit}
+                    PHP {item.price_per_night} / {item.price_unit}
                   </Text>
                 </View>
               </View>
@@ -161,24 +150,7 @@ export default function OwnerCampsitesScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f9fafb' },
-
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingTop: 55,
-    paddingBottom: 12,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
-  },
-  backButton: { padding: 4 },
-  headerTitle: { fontSize: 17, fontWeight: '800', color: '#111827' },
-  headerAction: { padding: 4 },
-
   centerBox: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-
   listContent: { padding: 16, gap: 12 },
 
   card: {
@@ -235,12 +207,7 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
 
-  emptyBlock: {
-    alignItems: 'center',
-    paddingVertical: 60,
-    gap: 10,
-  },
-  emptyEmoji: { fontSize: 48, marginBottom: 8 },
+  emptyBlock: { alignItems: 'center', paddingVertical: 60, gap: 10 },
   emptyTitle: { fontSize: 18, fontWeight: '800', color: '#111827' },
   emptySubtitle: {
     fontSize: 13,

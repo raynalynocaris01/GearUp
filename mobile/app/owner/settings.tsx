@@ -1,35 +1,40 @@
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { OwnerHeader } from '../../components/owner/OwnerHeader';
 import { colors } from '../../theme';
 
 export default function OwnerSettingsScreen() {
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.content}
-    >
-      <Text style={styles.title}>Settings</Text>
-      <Text style={styles.subtitle}>
-        Manage your account and business preferences.
-      </Text>
-      <View style={styles.emptyCard}>
-        <Text style={styles.emptyEmoji}>⚙️</Text>
-        <Text style={styles.emptyTitle}>Coming soon</Text>
-        <Text style={styles.emptyText}>
-          Account and business settings will be available in a future update.
+    <View style={styles.container}>
+      <OwnerHeader title="Settings" />
+
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        <Text style={styles.subtitle}>
+          Manage your account and business preferences.
         </Text>
-      </View>
-    </ScrollView>
+
+        <View style={styles.emptyCard}>
+          <Text style={styles.emptyEmoji}>⚙️</Text>
+          <Text style={styles.emptyTitle}>Coming soon</Text>
+          <Text style={styles.emptyText}>
+            Account and business settings will be available in a future update.
+          </Text>
+        </View>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f9fafb' },
-  content: { padding: 20 },
-  title: { fontSize: 28, fontWeight: '900', color: '#111827' },
+  scroll: { flex: 1 },
+  scrollContent: { padding: 20 },
   subtitle: {
     fontSize: 13,
     color: colors.textMuted,
-    marginTop: 4,
     marginBottom: 20,
   },
   emptyCard: {

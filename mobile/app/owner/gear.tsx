@@ -10,8 +10,8 @@ import {
   RefreshControl,
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
 import { owner } from '../../lib/api';
+import { OwnerHeader } from '../../components/owner/OwnerHeader';
 import type { GearItem } from '@gearup/shared';
 import { DeleteGearButton } from '../../components/owner/DeleteGearButton';
 import { colors } from '../../theme';
@@ -48,22 +48,13 @@ export default function OwnerGearScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => router.back()}
-        >
-          <Ionicons name="chevron-back" size={24} color="#111827" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>My Gear</Text>
-        <TouchableOpacity
-          onPress={() => router.push('/owner/gear/new')}
-          style={styles.headerAction}
-        >
-          <Ionicons name="add" size={26} color={colors.gearupGreen} />
-        </TouchableOpacity>
-      </View>
+      <OwnerHeader
+        title="My Gear"
+        rightAction={{
+          icon: 'add',
+          onPress: () => router.push('/owner/gear/new'),
+        }}
+      />
 
       {loading ? (
         <View style={styles.centerBox}>
@@ -84,7 +75,6 @@ export default function OwnerGearScreen() {
           }
           ListEmptyComponent={
             <View style={styles.emptyBlock}>
-              <Text style={styles.emptyEmoji}>🎒</Text>
               <Text style={styles.emptyTitle}>No gear listed yet</Text>
               <Text style={styles.emptySubtitle}>
                 Add gear items that customers can rent from you.
@@ -108,16 +98,11 @@ export default function OwnerGearScreen() {
                     style={styles.cardImage}
                   />
                 ) : (
-                  <View style={[styles.cardImage, styles.cardImageFallback]}>
-                    <Text style={{ fontSize: 32 }}>🎒</Text>
-                  </View>
+                  <View style={[styles.cardImage, styles.cardImageFallback]} />
                 )}
                 <View style={styles.cardBody}>
                   <View style={styles.nameRow}>
-                    <Text
-                      style={styles.cardName}
-                      numberOfLines={1}
-                    >
+                    <Text style={styles.cardName} numberOfLines={1}>
                       {item.name}
                     </Text>
                     {!item.is_available && (
@@ -132,15 +117,12 @@ export default function OwnerGearScreen() {
                     {item.category}
                   </Text>
                   {item.description && (
-                    <Text
-                      style={styles.cardDescription}
-                      numberOfLines={2}
-                    >
+                    <Text style={styles.cardDescription} numberOfLines={2}>
                       {item.description}
                     </Text>
                   )}
                   <Text style={styles.cardPrice}>
-                    ₱{item.price_per_day} / day · Stock: {item.stock}
+                    PHP {item.price_per_day} / day - Stock: {item.stock}
                   </Text>
                 </View>
               </View>
@@ -156,9 +138,7 @@ export default function OwnerGearScreen() {
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.cardActionPrimary}
-                  onPress={() =>
-                    router.push(`/owner/gear/${item.id}/edit`)
-                  }
+                  onPress={() => router.push(`/owner/gear/${item.id}/edit`)}
                 >
                   <Text style={styles.cardActionPrimaryText}>Edit</Text>
                 </TouchableOpacity>
@@ -178,24 +158,7 @@ export default function OwnerGearScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f9fafb' },
-
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingTop: 55,
-    paddingBottom: 12,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
-  },
-  backButton: { padding: 4 },
-  headerTitle: { fontSize: 17, fontWeight: '800', color: '#111827' },
-  headerAction: { padding: 4 },
-
   centerBox: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-
   listContent: { padding: 16, gap: 12 },
 
   card: {
@@ -284,7 +247,6 @@ const styles = StyleSheet.create({
   },
 
   emptyBlock: { alignItems: 'center', paddingVertical: 60, gap: 10 },
-  emptyEmoji: { fontSize: 48, marginBottom: 8 },
   emptyTitle: { fontSize: 18, fontWeight: '800', color: '#111827' },
   emptySubtitle: {
     fontSize: 13,

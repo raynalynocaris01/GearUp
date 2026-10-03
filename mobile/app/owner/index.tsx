@@ -1,4 +1,4 @@
-﻿import { useState, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -8,15 +8,15 @@ import {
   ActivityIndicator,
   RefreshControl,
 } from 'react-native';
-import { useRouter, useFocusEffect, useNavigation } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { owner } from '../../lib/api';
 import type { OwnerDashboardStats } from '@gearup/shared';
+import { OwnerHeader } from '../../components/owner/OwnerHeader';
 import { colors } from '../../theme';
 
 export default function OwnerDashboard() {
   const router = useRouter();
-  const navigation = useNavigation();
   const [stats, setStats] = useState<OwnerDashboardStats | null>(null);
   const [gearCount, setGearCount] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -48,13 +48,6 @@ export default function OwnerDashboard() {
   const handleRefresh = () => {
     setRefreshing(true);
     load();
-  };
-
-  const openDrawer = () => {
-    const nav = navigation as any;
-    if (nav.openDrawer) nav.openDrawer();
-    else if (nav.toggleDrawer) nav.toggleDrawer();
-    else if (nav.dispatch) nav.dispatch({ type: 'OPEN_DRAWER' });
   };
 
   const cards = stats
@@ -92,13 +85,7 @@ export default function OwnerDashboard() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.iconButton} onPress={openDrawer}>
-          <Ionicons name="menu" size={26} color="#111827" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Manage</Text>
-        <View style={{ width: 40 }} />
-      </View>
+      <OwnerHeader title="Dashboard" />
 
       <ScrollView
         style={styles.scroll}
@@ -112,13 +99,6 @@ export default function OwnerDashboard() {
           />
         }
       >
-        <View style={styles.titleBlock}>
-          <Text style={styles.pageTitle}>Dashboard</Text>
-          <Text style={styles.pageSubtitle}>
-            Overview of your campsites and bookings
-          </Text>
-        </View>
-
         {loading ? (
           <View style={styles.centerBox}>
             <ActivityIndicator size="large" color={colors.gearupGreen} />
@@ -246,27 +226,8 @@ export default function OwnerDashboard() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f9fafb' },
-
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingTop: 55,
-    paddingBottom: 12,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
-  },
-  iconButton: { padding: 4 },
-  headerTitle: { fontSize: 17, fontWeight: '800', color: '#111827' },
-
   scroll: { flex: 1 },
   scrollContent: { padding: 16 },
-
-  titleBlock: { marginBottom: 20 },
-  pageTitle: { fontSize: 28, fontWeight: '900', color: '#111827' },
-  pageSubtitle: { fontSize: 13, color: colors.textMuted, marginTop: 4 },
 
   centerBox: { paddingVertical: 40, alignItems: 'center' },
 
