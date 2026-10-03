@@ -17,6 +17,7 @@ const NAV: NavItem[] = [
   { href: '/owner/bookings', label: 'Bookings', icon: '📅' },
   { href: '/owner/campsites', label: 'Campsites', icon: '⛺' },
   { href: '/owner/gear', label: 'Gear', icon: '🎒' },
+  { href: '/owner/events', label: 'Events', icon: '🎉' },
   { href: '/owner/reviews', label: 'Reviews', icon: '⭐' },
   { href: '/owner/settings', label: 'Settings', icon: '⚙️' },
 ];
