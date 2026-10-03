@@ -23,6 +23,7 @@ use App\Http\Controllers\Owner\SettingsController as OwnerSettingsController;
 use App\Http\Controllers\EventController;
  use App\Http\Controllers\EventRegistrationController;
 use App\Http\Controllers\My\GearItemController as MyGearItemController;
+use App\Http\Controllers\My\GearBookingController as MyGearBookingController;
 use App\Http\Controllers\Owner\EventRegistrationController as OwnerEventRegistrationController;
 
 
@@ -57,6 +58,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/my/gear/{gearItem}', [MyGearItemController::class, 'show']);
     Route::put('/my/gear/{gearItem}', [MyGearItemController::class, 'update']);
     Route::delete('/my/gear/{gearItem}', [MyGearItemController::class, 'destroy']);
+    Route::get('/my/gear-bookings', [MyGearBookingController::class, 'index']);
 
     // Customer bookings
     Route::get('/bookings',                   [BookingController::class, 'index']);
