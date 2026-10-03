@@ -439,5 +439,76 @@ $gearItems = [
         $this->command->info('  rayna@example.com       (customer)');
         $this->command->info('  cedrix@example.com      (customer)');
         $this->command->info('  customer@gearup.test    (customer)');
+
+
+
+
+         // ──────────────────────────────────────────────────
+        // Events (attached to Juan — owner@gearup.test)
+        // ──────────────────────────────────────────────────
+
+        $juan = User::where('email', 'owner@gearup.test')->first();
+
+        if ($juan) {
+            $now = \Carbon\Carbon::now();
+
+            \App\Models\Event::create([
+                'owner_id' => $juan->id,
+                'name' => 'Summer Camp Feast 2026',
+                'description' => 'A weekend of camping, cooking, and community. Bring your tent and appetite — we handle the food, games, and bonfire.',
+                'location' => 'Apolong, Valencia',
+                'region' => 'Negros Oriental',
+                'starts_at' => $now->copy()->addDays(14)->setTime(9, 0),
+                'ends_at' => $now->copy()->addDays(16)->setTime(17, 0),
+                'price_per_person' => 250,
+                'capacity' => 40,
+                'image_url' => 'https://images.unsplash.com/photo-1478131143081-80f7f84ca84d?w=800&q=80',
+                'is_published' => true,
+            ]);
+
+            \App\Models\Event::create([
+                'owner_id' => $juan->id,
+                'name' => 'Sunrise Trek + Breakfast',
+                'description' => 'Guided sunrise hike to a mountain viewpoint, followed by a hot breakfast back at base camp.',
+                'location' => 'Pulangbato Falls Trailhead',
+                'region' => 'Negros Oriental',
+                'starts_at' => $now->copy()->addDays(7)->setTime(4, 30),
+                'ends_at' => $now->copy()->addDays(7)->setTime(11, 0),
+                'price_per_person' => 450,
+                'capacity' => 15,
+                'image_url' => 'https://images.unsplash.com/photo-1551632811-561732d1e306?w=800&q=80',
+                'is_published' => true,
+            ]);
+
+            \App\Models\Event::create([
+                'owner_id' => $juan->id,
+                'name' => 'Stargazing Night',
+                'description' => 'Bring a blanket and join us under the clearest skies in the region. Telescope and hot chocolate provided.',
+                'location' => 'Grandi Vista Campsite',
+                'region' => 'Negros Oriental',
+                'starts_at' => $now->copy()->addDays(21)->setTime(19, 0),
+                'ends_at' => $now->copy()->addDays(21)->setTime(23, 0),
+                'price_per_person' => 150,
+                'capacity' => 25,
+                'image_url' => 'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=800&q=80',
+                'is_published' => true,
+            ]);
+
+            \App\Models\Event::create([
+                'owner_id' => $juan->id,
+                'name' => 'Beginner Camping 101',
+                'description' => 'Learn the basics of setting up camp, cooking outdoors, and Leave No Trace principles. All gear provided.',
+                'location' => 'Grandi Vista Campsite',
+                'region' => 'Negros Oriental',
+                'starts_at' => $now->copy()->addDays(30)->setTime(8, 0),
+                'ends_at' => $now->copy()->addDays(31)->setTime(16, 0),
+                'price_per_person' => 800,
+                'capacity' => 12,
+                'image_url' => 'https://images.unsplash.com/photo-1487730116645-74489c95b41b?w=800&q=80',
+                'is_published' => true,
+            ]);
+        }
     }
+    
 }
+       

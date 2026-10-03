@@ -35,9 +35,14 @@ class User extends Authenticatable
         ];
     }
 
-    public function campsites()
+        public function campsites()
     {
         return $this->hasMany(Campsite::class, 'owner_id');
+    }
+
+    public function events(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Event::class, 'owner_id');
     }
     
     public function gearItems()

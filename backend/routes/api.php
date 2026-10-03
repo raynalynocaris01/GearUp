@@ -27,6 +27,8 @@ Route::get('/tour-guides', [TourGuideController::class, 'index']);
 Route::get('/tour-guides/{tourGuide}', [TourGuideController::class, 'show']);
 Route::get('/gear', [GearItemController::class, 'index']);
 Route::get('/gear/{gearItem}', [GearItemController::class, 'show']);
+Route::get('/events', [\App\Http\Controllers\EventController::class, 'index']);
+Route::get('/events/{event}', [\App\Http\Controllers\EventController::class, 'show']);
 
 // ─── Authenticated (any role) ────────────────────────────
 Route::middleware('auth:sanctum')->group(function () {
@@ -76,6 +78,13 @@ Route::middleware(['auth:sanctum', 'role:owner'])->prefix('owner')->group(functi
     Route::get('/gear/{gearItem}',     [OwnerGearItemController::class, 'show']);
     Route::put('/gear/{gearItem}',     [OwnerGearItemController::class, 'update']);
     Route::delete('/gear/{gearItem}',  [OwnerGearItemController::class, 'destroy']);
+
+        // Events
+    Route::get('/events', [\App\Http\Controllers\Owner\EventController::class, 'index']);
+    Route::post('/events', [\App\Http\Controllers\Owner\EventController::class, 'store']);
+    Route::get('/events/{event}', [\App\Http\Controllers\Owner\EventController::class, 'show']);
+    Route::put('/events/{event}', [\App\Http\Controllers\Owner\EventController::class, 'update']);
+    Route::delete('/events/{event}', [\App\Http\Controllers\Owner\EventController::class, 'destroy']);
 });
 
 
