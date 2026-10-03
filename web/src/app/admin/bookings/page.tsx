@@ -153,7 +153,7 @@ export default async function AdminBookingsPage({
                         href={`/campsites/${b.campsite?.id}`}
                         className="font-semibold text-gray-900 text-sm hover:text-gearup-600"
                       >
-                        {b.campsite?.name ?? '—'}
+          {b.campsite?.name ?? '-'}
                       </Link>
                       <p className="text-xs text-gray-500">
                         {b.campsite?.owner
@@ -163,7 +163,7 @@ export default async function AdminBookingsPage({
                     </td>
                     <td className="px-5 py-4 hidden lg:table-cell">
                       <p className="text-xs text-gray-700">
-                        {formatDate(b.check_in)} → {formatDate(b.check_out)}
+                             {formatDate(b.check_in)} &rarr; {formatDate(b.check_out)}
                       </p>
                       <p className="text-xs text-gray-500">
                         {b.guests} {b.guests === 1 ? 'guest' : 'guests'}
@@ -178,7 +178,7 @@ export default async function AdminBookingsPage({
                     </td>
                     <td className="px-5 py-4 text-right">
                       <p className="text-sm font-black text-gearup-600">
-                        ₱{b.total_price}
+                        PHP {b.total_price}
                       </p>
                     </td>
                   </tr>

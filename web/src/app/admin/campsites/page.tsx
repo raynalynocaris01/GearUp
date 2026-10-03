@@ -80,7 +80,7 @@ export default async function AdminCampsitesPage() {
                     <div className="flex items-center gap-2 mb-1">
                       {c.is_featured && (
                         <span className="text-[10px] font-extrabold tracking-wider px-2 py-1 rounded bg-yellow-100 text-yellow-800">
-                          ★ FEATURED
+                                                    FEATURED
                         </span>
                       )}
                     </div>
@@ -88,14 +88,13 @@ export default async function AdminCampsitesPage() {
                       {c.name}
                     </h3>
                     <p className="text-xs text-gray-500 mt-1">
-                      📍 {c.location}
+                     {c.location}
                     </p>
                     <p className="text-xs text-gray-600 mt-2">
-                      <span className="text-yellow-500">★</span> {c.rating} (
-                      {c.reviews_count}) · Up to {c.capacity} guests
+                     {c.rating} ({c.reviews_count}) - Up to {c.capacity} guests
                     </p>
                     <p className="text-sm font-bold text-gearup-600 mt-2">
-                      ₱{c.price_per_night} / {c.price_unit}
+                           PHP {c.price_per_night} / {c.price_unit}
                     </p>
                   </div>
 

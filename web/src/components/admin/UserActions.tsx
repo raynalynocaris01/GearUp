@@ -46,7 +46,7 @@ export function UserActions({
   };
 
   if (role === 'admin') {
-    return <span className="text-xs text-gray-400 italic">—</span>;
+       return <span className="text-xs text-gray-400 italic">-</span>;
   }
 
   return (

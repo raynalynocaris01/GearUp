@@ -59,7 +59,7 @@ export function AdminCampsiteActions({
               : 'text-gray-600 border-gray-200 bg-white hover:bg-gray-50'
           }`}
         >
-          {isFeatured ? '★ Unfeature' : '☆ Feature'}
+           {isFeatured ? 'Unfeature' : 'Feature'}
         </button>
         <button
           onClick={() => setShowDelete(true)}
