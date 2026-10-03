@@ -127,11 +127,12 @@ export default function BusinessSignupPage() {
       <div className="flex-1 flex items-center justify-center bg-gray-50 p-6 overflow-y-auto">
         <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-8 lg:p-10 my-8">
           <div className="flex items-center justify-center gap-3 mb-6">
-                        <Image
+                          <Image
               src="/logo.png"
               alt="GearUp"
               width={56}
               height={56}
+              style={{ width: 56, height: 56, objectFit: 'contain' }}
             />
             <span className="text-3xl font-black tracking-tight">
               <span className="text-gray-900">Gear</span>

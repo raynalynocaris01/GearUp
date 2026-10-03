@@ -158,11 +158,12 @@ export function OwnerSidebar({
         href="/"
         className="flex items-center gap-2 px-5 py-5 border-b border-gray-100"
       >
-        <Image
+               <Image
           src="/logo.png"
           alt="GearUp"
           width={32}
           height={32}
+          style={{ width: 32, height: 32, objectFit: 'contain' }}
         />
         <span className="text-lg font-black tracking-tight">
           <span className="text-gray-900">Gear</span>
@@ -265,11 +266,12 @@ export function OwnerSidebar({
       {/* Mobile top bar: logo left, hamburger center, avatar right */}
       <div className="lg:hidden sticky top-0 z-30 bg-white border-b border-gray-100 flex items-center justify-between px-4 py-3">
         <Link href="/" className="flex items-center gap-2">
-          <Image
+                    <Image
             src="/logo.png"
             alt="GearUp"
             width={28}
             height={28}
+            style={{ width: 28, height: 28, objectFit: 'contain' }}
           />
           <span className="text-base font-black tracking-tight">
             <span className="text-gray-900">Gear</span>

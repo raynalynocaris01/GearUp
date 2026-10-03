@@ -36,11 +36,12 @@ export function Navbar({ user }: NavbarProps) {
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
         {/* Brand */}
         <Link href="/" className="flex items-center gap-2">
-                    <Image
+                      <Image
             src="/logo.png"
             alt="GearUp"
             width={36}
             height={36}
+            style={{ width: 36, height: 36, objectFit: 'contain' }}
           />
           <span className="text-2xl font-black tracking-tight">
             <span className="text-gray-900">Gear</span>

@@ -70,11 +70,12 @@ export default function LoginPage() {
         <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-10">
           {/* Logo + wordmark */}
           <div className="flex items-center justify-center gap-3 mb-8">
-                        <Image
+                <Image
               src="/logo.png"
               alt="GearUp"
               width={56}
               height={56}
+              style={{ width: 56, height: 56, objectFit: 'contain' }}
             />
             <span className="text-3xl font-black tracking-tight">
               <span className="text-gray-900">Gear</span>
