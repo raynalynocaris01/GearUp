@@ -51,7 +51,13 @@ export function FeaturedCard({
     >
       {/* Image */}
       <View style={styles.imageWrap}>
-        <Image source={{ uri: imageUrl }} style={styles.image} />
+        {imageUrl ? (
+          <Image source={{ uri: imageUrl }} style={styles.image} />
+        ) : (
+          <View style={[styles.image, styles.imageFallback]}>
+            <Ionicons name="image-outline" size={28} color="#9ca3af" />
+          </View>
+        )}
 
         {/* Category badge */}
         <View
@@ -110,9 +116,11 @@ const styles = StyleSheet.create({
     height: 120,
     backgroundColor: '#e5e7eb',
   },
-  image: {
-    width: '100%',
-    height: '100%',
+    image: { width: '100%', height: 160, backgroundColor: '#e5e7eb' },
+  imageFallback: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#f3f4f6',
   },
   categoryBadge: {
     position: 'absolute',
