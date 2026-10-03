@@ -1,17 +1,28 @@
-import { useEffect, useState } from 'react';
-import { Stack, useRouter } from 'expo-router';
-import { View, ActivityIndicator, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+﻿import { useEffect, useState } from 'react';
+import { useRouter, usePathname } from 'expo-router';
+import { Drawer } from 'expo-router/drawer';
+import {
+  View,
+  ActivityIndicator,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+} from 'react-native';
 import { auth, hasToken, clearToken } from '../../lib/api';
 import { colors } from '../../theme';
+import { OwnerDrawerContent } from '../../components/owner/OwnerDrawerContent';
 
 type Role = 'admin' | 'owner' | 'customer';
 
 export default function OwnerLayout() {
   const router = useRouter();
+  const pathname = usePathname();
   const [checking, setChecking] = useState(true);
   const [role, setRole] = useState<Role | null>(null);
   const [isApproved, setIsApproved] = useState(false);
+  const [user, setUser] = useState<{ name: string; email: string } | null>(
+    null,
+  );
 
   useEffect(() => {
     (async () => {
@@ -24,9 +35,9 @@ export default function OwnerLayout() {
         const res = await auth.user();
         setRole(res.data.role);
         setIsApproved(res.data.is_approved);
+        setUser({ name: res.data.name, email: res.data.email });
 
         if (res.data.role !== 'owner') {
-          // Not an owner — send them home
           router.replace('/(tabs)');
           return;
         }
@@ -38,7 +49,7 @@ export default function OwnerLayout() {
         setChecking(false);
       }
     })();
-  }, []);
+  }, [router]);
 
   if (checking) {
     return (
@@ -48,14 +59,13 @@ export default function OwnerLayout() {
     );
   }
 
-  // Owner but not yet approved
   if (role === 'owner' && !isApproved) {
     return (
       <View style={styles.pendingContainer}>
         <Text style={styles.hourglass}>⏳</Text>
         <Text style={styles.pendingTitle}>Pending approval</Text>
         <Text style={styles.pendingText}>
-          Your business account is being reviewed. You'll be able to post
+          Your business account is being reviewed. You will be able to post
           campsites once we approve it.
         </Text>
         <Text style={styles.pendingHint}>
@@ -71,25 +81,66 @@ export default function OwnerLayout() {
     );
   }
 
+  const activeRoute = (() => {
+    const parts = pathname.split('/').filter(Boolean);
+    if (parts.length <= 1) return 'index';
+    return parts[1];
+  })();
+
   return (
-    <Stack
+    <Drawer
+      drawerContent={(props) => (
+        <OwnerDrawerContent
+          ownerName={user?.name ?? 'Owner'}
+          ownerEmail={user?.email ?? ''}
+          onClose={() => props.navigation.closeDrawer()}
+          activeRoute={activeRoute}
+        />
+      )}
       screenOptions={{
         headerShown: false,
-        contentStyle: { backgroundColor: '#f9fafb' },
+        drawerType: 'front',
+        drawerStyle: { width: 280 },
+        swipeEdgeWidth: 40,
       }}
     >
-      <Stack.Screen name="index" />
-      <Stack.Screen name="campsites" />
-      <Stack.Screen name="gear" />
-      <Stack.Screen name="gear/new" />
-      <Stack.Screen name="gear/[id]/edit" />
-      <Stack.Screen name="bookings" />
-    </Stack>
+      <Drawer.Screen name="index" options={{ title: 'Dashboard' }} />
+      <Drawer.Screen name="bookings" options={{ title: 'Bookings' }} />
+      <Drawer.Screen name="campsites" options={{ title: 'Campsites' }} />
+      <Drawer.Screen name="gear" options={{ title: 'Gear' }} />
+      <Drawer.Screen name="reviews" options={{ title: 'Reviews' }} />
+      <Drawer.Screen name="settings" options={{ title: 'Settings' }} />
+      <Drawer.Screen
+        name="campsites/new"
+        options={{ title: 'New Campsite', drawerItemStyle: { display: 'none' } }}
+      />
+      <Drawer.Screen
+        name="campsites/[id]/edit"
+        options={{ title: 'Edit Campsite', drawerItemStyle: { display: 'none' } }}
+      />
+      <Drawer.Screen
+        name="campsites/[id]/tour-guides"
+        options={{ title: 'Tour Guides', drawerItemStyle: { display: 'none' } }}
+      />
+      <Drawer.Screen
+        name="gear/new"
+        options={{ title: 'New Gear', drawerItemStyle: { display: 'none' } }}
+      />
+      <Drawer.Screen
+        name="gear/[id]/edit"
+        options={{ title: 'Edit Gear', drawerItemStyle: { display: 'none' } }}
+      />
+    </Drawer>
   );
 }
 
 const styles = StyleSheet.create({
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f9fafb' },
+  center: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f9fafb',
+  },
   pendingContainer: {
     flex: 1,
     justifyContent: 'center',

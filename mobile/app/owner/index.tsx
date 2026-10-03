@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+﻿import { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -8,7 +8,7 @@ import {
   ActivityIndicator,
   RefreshControl,
 } from 'react-native';
-import { useRouter, useFocusEffect } from 'expo-router';
+import { useRouter, useFocusEffect, useNavigation } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { owner } from '../../lib/api';
 import type { OwnerDashboardStats } from '@gearup/shared';
@@ -16,6 +16,7 @@ import { colors } from '../../theme';
 
 export default function OwnerDashboard() {
   const router = useRouter();
+  const navigation = useNavigation();
   const [stats, setStats] = useState<OwnerDashboardStats | null>(null);
   const [gearCount, setGearCount] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -49,48 +50,51 @@ export default function OwnerDashboard() {
     load();
   };
 
+  const openDrawer = () => {
+    const nav = navigation as any;
+    if (nav.openDrawer) nav.openDrawer();
+    else if (nav.toggleDrawer) nav.toggleDrawer();
+    else if (nav.dispatch) nav.dispatch({ type: 'OPEN_DRAWER' });
+  };
+
   const cards = stats
-  ? [
-      {
-        label: 'Campsites',
-        value: stats.total_campsites,
-        icon: '⛺',
-        color: '#dcfce7',
-        href: '/owner/campsites',
-      },
-      {
-        label: 'Gear',
-        value: gearCount,
-        icon: '🎒',
-        color: '#e0e7ff',
-        href: '/owner/gear',
-      },
-      {
-        label: 'Bookings',
-        value: stats.total_bookings,
-        icon: '📅',
-        color: '#dbeafe',
-        href: '/owner/bookings',
-      },
-      {
-        label: 'Pending',
-        value: stats.pending_bookings,
-        icon: '⏳',
-        color: '#fef3c7',
-        href: '/owner/bookings',
-      },
-    ]
-  : [];
+    ? [
+        {
+          label: 'Campsites',
+          value: stats.total_campsites,
+          icon: '⛺',
+          color: '#dcfce7',
+          href: '/owner/campsites',
+        },
+        {
+          label: 'Gear',
+          value: gearCount,
+          icon: '🎒',
+          color: '#e0e7ff',
+          href: '/owner/gear',
+        },
+        {
+          label: 'Bookings',
+          value: stats.total_bookings,
+          icon: '📅',
+          color: '#dbeafe',
+          href: '/owner/bookings',
+        },
+        {
+          label: 'Pending',
+          value: stats.pending_bookings,
+          icon: '⏳',
+          color: '#fef3c7',
+          href: '/owner/bookings',
+        },
+      ]
+    : [];
 
   return (
     <View style={styles.container}>
-      {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => router.replace('/(tabs)/profile')}
-        >
-          <Ionicons name="chevron-back" size={24} color="#111827" />
+        <TouchableOpacity style={styles.iconButton} onPress={openDrawer}>
+          <Ionicons name="menu" size={26} color="#111827" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Manage</Text>
         <View style={{ width: 40 }} />
@@ -121,7 +125,6 @@ export default function OwnerDashboard() {
           </View>
         ) : (
           <>
-            {/* Stat cards */}
             <View style={styles.cardsGrid}>
               {cards.map((c) => (
                 <TouchableOpacity
@@ -144,7 +147,6 @@ export default function OwnerDashboard() {
               ))}
             </View>
 
-            {/* Quick actions */}
             <Text style={styles.sectionTitle}>Quick actions</Text>
             <View style={styles.actionsBlock}>
               <TouchableOpacity
@@ -152,7 +154,11 @@ export default function OwnerDashboard() {
                 onPress={() => router.push('/owner/campsites/new')}
               >
                 <View style={styles.actionIconWrap}>
-                  <Ionicons name="add-circle-outline" size={22} color={colors.gearupGreen} />
+                  <Ionicons
+                    name="add-circle-outline"
+                    size={22}
+                    color={colors.gearupGreen}
+                  />
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.actionLabel}>Post a new campsite</Text>
@@ -170,7 +176,11 @@ export default function OwnerDashboard() {
                 onPress={() => router.push('/owner/campsites')}
               >
                 <View style={styles.actionIconWrap}>
-                  <Ionicons name="list-outline" size={22} color={colors.gearupGreen} />
+                  <Ionicons
+                    name="list-outline"
+                    size={22}
+                    color={colors.gearupGreen}
+                  />
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.actionLabel}>Manage campsites</Text>
@@ -181,14 +191,18 @@ export default function OwnerDashboard() {
                 <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
               </TouchableOpacity>
 
-                            <View style={styles.divider} />
+              <View style={styles.divider} />
 
               <TouchableOpacity
                 style={styles.actionRow}
                 onPress={() => router.push('/owner/gear')}
               >
                 <View style={styles.actionIconWrap}>
-                  <Ionicons name="bag-handle-outline" size={22} color={colors.gearupGreen} />
+                  <Ionicons
+                    name="bag-handle-outline"
+                    size={22}
+                    color={colors.gearupGreen}
+                  />
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.actionLabel}>Manage gear</Text>
@@ -199,12 +213,18 @@ export default function OwnerDashboard() {
                 <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
               </TouchableOpacity>
 
+              <View style={styles.divider} />
+
               <TouchableOpacity
                 style={styles.actionRow}
                 onPress={() => router.push('/owner/bookings')}
               >
                 <View style={styles.actionIconWrap}>
-                  <Ionicons name="calendar-outline" size={22} color={colors.gearupGreen} />
+                  <Ionicons
+                    name="calendar-outline"
+                    size={22}
+                    color={colors.gearupGreen}
+                  />
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.actionLabel}>View bookings</Text>
@@ -238,7 +258,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#f1f5f9',
   },
-  backButton: { padding: 4 },
+  iconButton: { padding: 4 },
   headerTitle: { fontSize: 17, fontWeight: '800', color: '#111827' },
 
   scroll: { flex: 1 },
