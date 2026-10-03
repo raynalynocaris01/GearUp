@@ -353,6 +353,10 @@ export const ownerApi = (client: ApiClient) => ({
 
   deleteEvent: (id: number | string) =>
     client.delete<{ message: string }>(`/owner/events/${id}`),
+  
+  // Event registrations
+  listEventRegistrations: (eventId: number | string) =>
+    client.get<EventRegistration[]>(`/owner/events/${eventId}/registrations`),
 
 });
 
@@ -556,6 +560,23 @@ export interface EventItem {
   };
 }
 
+export interface EventRegistration {
+  id: number;
+  user_id: number;
+  event_id: number;
+  guests: number;
+  total_price: string;
+  status: 'pending' | 'confirmed' | 'cancelled';
+  created_at: string;
+  updated_at: string;
+  event?: EventItem;
+  user?: {
+    id: number;
+    name: string;
+    email: string;
+  };
+}
+
 export interface CreateEventPayload {
   name: string;
   description: string;
@@ -576,6 +597,23 @@ export const eventApi = (client: ApiClient) => ({
     client.get<EventItem[]>('/events', { params }),
 
   get: (id: number | string) => client.get<EventItem>(`/events/${id}`),
+
+  // Customer event registration
+  register: (eventId: number | string, payload?: { guests?: number }) =>
+    client.post<EventRegistration>(`/events/${eventId}/register`, payload ?? {}),
+
+  cancelRegistration: (registrationId: number | string) =>
+    client.post<{ message: string; registration: EventRegistration }>(
+      `/registrations/${registrationId}/cancel`,
+    ),
+
+  myRegistrations: () =>
+    client.get<EventRegistration[]>('/my/events'),
+
+  registrationStatus: (eventId: number | string) =>
+    client.get<EventRegistration | null>(
+      `/events/${eventId}/registration-status`,
+    ),
 });
 
 // ──────────────────────────────────────────────────────────
