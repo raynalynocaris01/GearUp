@@ -8,12 +8,23 @@ use Illuminate\Http\Request;
 
 class CampsiteController extends Controller
 {
-    public function index(Request $request)
+            public function index(Request $request)
     {
         $campsites = Campsite::where('owner_id', $request->user()->id)
             ->with('tourGuides')
+            ->withCount('bookings')
+            ->withSum(['bookings as revenue' => function ($query) {
+                $query->whereIn('status', ['confirmed', 'completed']);
+            }], 'total_price')
             ->orderByDesc('created_at')
-            ->get();
+            ->get()
+            ->map(function (Campsite $campsite) {
+                $campsite->setAttribute(
+                    'revenue',
+                    (float) ($campsite->revenue ?? 0),
+                );
+                return $campsite;
+            });
 
         return response()->json($campsites);
     }
