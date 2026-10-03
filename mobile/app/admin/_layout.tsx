@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Stack, useRouter } from 'expo-router';
 import { View, ActivityIndicator } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { auth, hasToken, clearToken } from '../../lib/api';
 import { colors } from '../../theme';
 import { AdminTabs } from '../../components/admin/AdminTabs';
@@ -49,7 +50,12 @@ export default function AdminLayout() {
 
   return (
     <View style={{ flex: 1, backgroundColor: '#f9fafb' }}>
-      <AdminTabs />
+      <SafeAreaView
+        edges={['top']}
+        style={{ backgroundColor: '#183d1d' }}
+      >
+        <AdminTabs />
+      </SafeAreaView>
       <Stack
         screenOptions={{
           headerShown: false,
