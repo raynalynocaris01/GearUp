@@ -8,10 +8,11 @@ import {
   ActivityIndicator,
   RefreshControl,
 } from 'react-native';
-import { useRouter, useFocusEffect } from 'expo-router';
+import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { admin } from '../../lib/api';
 import type { Booking } from '@gearup/shared';
+import { AdminHeader } from '../../components/admin/AdminHeader';
 import { colors } from '../../theme';
 
 type Filter = 'all' | 'pending' | 'confirmed' | 'cancelled';
@@ -33,7 +34,6 @@ function formatDate(iso: string): string {
 }
 
 export default function AdminBookingsScreen() {
-  const router = useRouter();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -72,16 +72,7 @@ export default function AdminBookingsScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => router.back()}
-        >
-          <Ionicons name="chevron-back" size={24} color="#111827" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Bookings</Text>
-        <View style={{ width: 40 }} />
-      </View>
+      <AdminHeader title="Bookings" />
 
       <View style={styles.filterRow}>
         <FlatList
@@ -133,7 +124,12 @@ export default function AdminBookingsScreen() {
           }
           ListEmptyComponent={
             <View style={styles.empty}>
-              <Text style={styles.emptyEmoji}>📅</Text>
+              <Ionicons
+                name="calendar-outline"
+                size={48}
+                color={colors.textMuted}
+                style={{ marginBottom: 8 }}
+              />
               <Text style={styles.emptyTitle}>No bookings</Text>
               <Text style={styles.emptySubtitle}>
                 No bookings match this filter.
@@ -163,10 +159,12 @@ export default function AdminBookingsScreen() {
                       {item.campsite?.name ?? 'Campsite'}
                     </Text>
                     <Text style={styles.cardLocation} numberOfLines={1}>
-                      📍 {item.campsite?.location}
+                      {item.campsite?.location ?? ''}
                     </Text>
                   </View>
-                  <Text style={styles.cardTotal}>₱{item.total_price}</Text>
+                  <Text style={styles.cardTotal}>
+                    PHP {item.total_price}
+                  </Text>
                 </View>
 
                 <View style={styles.infoGrid}>
@@ -179,8 +177,8 @@ export default function AdminBookingsScreen() {
                   <View style={styles.infoItem}>
                     <Text style={styles.infoLabel}>Dates</Text>
                     <Text style={styles.infoValue} numberOfLines={1}>
-                      {item.check_in ? formatDate(item.check_in) : '—'}{' '}
-                      {item.check_out ? formatDate(item.check_out) : '—'}
+                      {item.check_in ? formatDate(item.check_in) : '-'}{' '}
+                      {item.check_out ? formatDate(item.check_out) : '-'}
                     </Text>
                   </View>
                 </View>
@@ -195,19 +193,6 @@ export default function AdminBookingsScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f9fafb' },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingTop: 55,
-    paddingBottom: 12,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
-  },
-  backButton: { padding: 4 },
-  headerTitle: { fontSize: 17, fontWeight: '800', color: '#111827' },
 
   filterRow: {
     backgroundColor: '#fff',
@@ -270,8 +255,7 @@ const styles = StyleSheet.create({
   },
   infoValue: { fontSize: 12, fontWeight: '700', color: '#111827' },
 
-  empty: { alignItems: 'center', paddingVertical: 60, gap: 8 },
-  emptyEmoji: { fontSize: 48, marginBottom: 8 },
+  empty: { alignItems: 'center', paddingVertical: 60, gap: 4 },
   emptyTitle: { fontSize: 18, fontWeight: '800', color: '#111827' },
   emptySubtitle: {
     fontSize: 13,

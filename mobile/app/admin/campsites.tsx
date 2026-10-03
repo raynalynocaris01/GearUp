@@ -4,20 +4,19 @@ import {
   Text,
   StyleSheet,
   FlatList,
-  TouchableOpacity,
-  Image,
   ActivityIndicator,
   RefreshControl,
+  Image,
 } from 'react-native';
-import { useRouter, useFocusEffect } from 'expo-router';
+import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { admin } from '../../lib/api';
 import type { Campsite } from '@gearup/shared';
 import { CampsiteActions } from '../../components/admin/CampsiteActions';
+import { AdminHeader } from '../../components/admin/AdminHeader';
 import { colors } from '../../theme';
 
 export default function AdminCampsitesScreen() {
-  const router = useRouter();
   const [campsites, setCampsites] = useState<Campsite[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -48,16 +47,7 @@ export default function AdminCampsitesScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => router.back()}
-        >
-          <Ionicons name="chevron-back" size={24} color="#111827" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Campsites</Text>
-        <View style={{ width: 40 }} />
-      </View>
+      <AdminHeader title="Campsites" />
 
       {loading ? (
         <View style={styles.center}>
@@ -78,10 +68,15 @@ export default function AdminCampsitesScreen() {
           }
           ListEmptyComponent={
             <View style={styles.empty}>
-              <Text style={styles.emptyEmoji}>⛺</Text>
+              <Ionicons
+                name="triangle-outline"
+                size={48}
+                color={colors.textMuted}
+                style={{ marginBottom: 8 }}
+              />
               <Text style={styles.emptyTitle}>No campsites yet</Text>
               <Text style={styles.emptySubtitle}>
-                Once owners post campsites, they'll appear here.
+                Once owners post campsites, they will appear here.
               </Text>
             </View>
           }
@@ -94,21 +89,20 @@ export default function AdminCampsitesScreen() {
               <View style={styles.cardBody}>
                 {item.is_featured && (
                   <View style={styles.featuredBadge}>
-                    <Text style={styles.featuredText}>★ FEATURED</Text>
+                    <Text style={styles.featuredText}>FEATURED</Text>
                   </View>
                 )}
                 <Text style={styles.cardName} numberOfLines={1}>
                   {item.name}
                 </Text>
                 <Text style={styles.cardLocation} numberOfLines={1}>
-                  📍 {item.location}
+                  {item.location}
                 </Text>
                 <Text style={styles.cardMeta}>
-                  <Text style={{ color: '#f59e0b' }}>★</Text>{' '}
-                  {item.rating} ({item.reviews_count}) · Up to {item.capacity}
+                  {item.rating} ({item.reviews_count}) - Up to {item.capacity}
                 </Text>
                 <Text style={styles.cardPrice}>
-                  ₱{item.price_per_night} / {item.price_unit}
+                  PHP {item.price_per_night} / {item.price_unit}
                 </Text>
 
                 <View style={styles.actionsRow}>
@@ -130,19 +124,6 @@ export default function AdminCampsitesScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f9fafb' },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingTop: 55,
-    paddingBottom: 12,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
-  },
-  backButton: { padding: 4 },
-  headerTitle: { fontSize: 17, fontWeight: '800', color: '#111827' },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   listContent: { padding: 16, gap: 12 },
 
@@ -186,8 +167,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
 
-  empty: { alignItems: 'center', paddingVertical: 60, gap: 8 },
-  emptyEmoji: { fontSize: 48, marginBottom: 8 },
+  empty: { alignItems: 'center', paddingVertical: 60, gap: 4 },
   emptyTitle: { fontSize: 18, fontWeight: '800', color: '#111827' },
   emptySubtitle: {
     fontSize: 13,

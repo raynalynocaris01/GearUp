@@ -8,11 +8,12 @@ import {
   ActivityIndicator,
   RefreshControl,
 } from 'react-native';
-import { useRouter, useFocusEffect } from 'expo-router';
+import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { admin } from '../../lib/api';
 import type { AdminUser } from '@gearup/shared';
 import { UserActions } from '../../components/admin/UserActions';
+import { AdminHeader } from '../../components/admin/AdminHeader';
 import { colors } from '../../theme';
 
 type Filter = 'all' | 'pending' | 'suspended' | 'owner' | 'customer';
@@ -38,7 +39,6 @@ function roleBadge(role: string, isApproved: boolean) {
 }
 
 export default function AdminUsersScreen() {
-  const router = useRouter();
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -82,16 +82,7 @@ export default function AdminUsersScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => router.back()}
-        >
-          <Ionicons name="chevron-back" size={24} color="#111827" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Users</Text>
-        <View style={{ width: 40 }} />
-      </View>
+      <AdminHeader title="Users" />
 
       <View style={styles.filterRow}>
         <FlatList
@@ -143,7 +134,12 @@ export default function AdminUsersScreen() {
           }
           ListEmptyComponent={
             <View style={styles.empty}>
-              <Text style={styles.emptyEmoji}>👥</Text>
+              <Ionicons
+                name="people-outline"
+                size={48}
+                color={colors.textMuted}
+                style={{ marginBottom: 8 }}
+              />
               <Text style={styles.emptyTitle}>No users</Text>
               <Text style={styles.emptySubtitle}>
                 No users match this filter.
@@ -218,19 +214,6 @@ export default function AdminUsersScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f9fafb' },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingTop: 55,
-    paddingBottom: 12,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
-  },
-  backButton: { padding: 4 },
-  headerTitle: { fontSize: 17, fontWeight: '800', color: '#111827' },
 
   filterRow: {
     backgroundColor: '#fff',
@@ -294,8 +277,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
 
-  empty: { alignItems: 'center', paddingVertical: 60, gap: 8 },
-  emptyEmoji: { fontSize: 48, marginBottom: 8 },
+  empty: { alignItems: 'center', paddingVertical: 60, gap: 4 },
   emptyTitle: { fontSize: 18, fontWeight: '800', color: '#111827' },
   emptySubtitle: {
     fontSize: 13,
