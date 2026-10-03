@@ -20,6 +20,9 @@ use App\Http\Controllers\GearItemController;
 use App\Http\Controllers\Owner\GearItemController as OwnerGearItemController;
 use App\Http\Controllers\Owner\ReviewController as OwnerReviewController;
 use App\Http\Controllers\Owner\SettingsController as OwnerSettingsController;
+use App\Http\Controllers\EventController;
+use App\Http\Controllers\EventRegistrationController;
+use App\Http\Controllers\Owner\EventRegistrationController as OwnerEventRegistrationController;
 
 
 // ─── Public ──────────────────────────────────────────────
@@ -40,6 +43,12 @@ Route::get('/home/recommended', [\App\Http\Controllers\HomeController::class, 'r
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user',   [AuthController::class, 'user']);
     Route::post('/logout',[AuthController::class, 'logout']);
+
+    // Event registrations (customer)
+    Route::get('/my/events', [EventRegistrationController::class, 'mine']);
+    Route::post('/events/{event}/register', [EventRegistrationController::class, 'store']);
+    Route::post('/registrations/{registration}/cancel', [EventRegistrationController::class, 'cancel']);
+    Route::get('/events/{event}/registration-status', [EventRegistrationController::class, 'status']);
 
     // Customer bookings
     Route::get('/bookings',                   [BookingController::class, 'index']);
@@ -101,6 +110,9 @@ Route::middleware(['auth:sanctum', 'role:owner'])->prefix('owner')->group(functi
     Route::get('/events/{event}', [\App\Http\Controllers\Owner\EventController::class, 'show']);
     Route::put('/events/{event}', [\App\Http\Controllers\Owner\EventController::class, 'update']);
     Route::delete('/events/{event}', [\App\Http\Controllers\Owner\EventController::class, 'destroy']);
+
+    // Event registrations (owner view)
+    Route::get('/events/{event}/registrations', [OwnerEventRegistrationController::class, 'index']);
 });
 
 

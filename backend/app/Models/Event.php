@@ -36,4 +36,15 @@ class Event extends Model
     {
         return $this->belongsTo(User::class, 'owner_id');
     }
+
+    public function registrations(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(EventRegistration::class);
+    }
+
+    public function activeRegistrations(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(EventRegistration::class)
+            ->where('status', 'confirmed');
+    }
 }
