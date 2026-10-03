@@ -432,6 +432,14 @@ export const adminApi = (client: ApiClient) => ({
   // Bookings
   listBookings: (params?: { status?: string }) =>
     client.get<Booking[]>('/admin/bookings', { params }),
+
+  // Reviews
+  listReviews: (params?: { rating?: number; campsite_id?: number; limit?: number }) =>
+    client.get<Review[]>('/admin/reviews', { params }),
+
+  // Events
+  listEvents: (params?: { published?: boolean; limit?: number }) =>
+    client.get<EventItem[]>('/admin/events', { params }),
 });
 
 // ──────────────────────────────────────────────────────────
@@ -455,6 +463,12 @@ export interface Review {
     id: number;
     name: string;
     image_url: string;
+    owner_id?: number;
+    owner?: {
+      id: number;
+      name: string;
+      email: string;
+    } | null;
   };
 }
 

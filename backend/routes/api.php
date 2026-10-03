@@ -10,7 +10,9 @@ use App\Http\Controllers\Owner\TourGuideController as OwnerTourGuideController;
 use App\Http\Controllers\Admin\BookingController as AdminBookingController;
 use App\Http\Controllers\Admin\CampsiteController as AdminCampsiteController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
-use App\Http\Controllers\Admin\UserController as AdminUserController;
+ use App\Http\Controllers\Admin\UserController as AdminUserController;
+use App\Http\Controllers\Admin\ReviewController as AdminReviewController;
+use App\Http\Controllers\Admin\EventController as AdminEventController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\TourGuideController;
@@ -18,6 +20,7 @@ use App\Http\Controllers\GearItemController;
 use App\Http\Controllers\Owner\GearItemController as OwnerGearItemController;
 use App\Http\Controllers\Owner\ReviewController as OwnerReviewController;
 use App\Http\Controllers\Owner\SettingsController as OwnerSettingsController;
+
 
 // ─── Public ──────────────────────────────────────────────
 Route::post('/register', [AuthController::class, 'register']);
@@ -123,4 +126,10 @@ Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(functi
 
     // Bookings
     Route::get('/bookings', [AdminBookingController::class, 'index']);
+
+    // Reviews
+    Route::get('/reviews', [AdminReviewController::class, 'index']);
+
+    // Events
+    Route::get('/events', [AdminEventController::class, 'index']);
 });
