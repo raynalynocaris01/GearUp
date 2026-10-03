@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 import Image from 'next/image';
 import type { Booking } from '@gearup/shared';
+import { MyGearBookingActions } from '@/components/MyGearBookingActions';
 
 type FilterKey = 'all' | 'pending' | 'confirmed' | 'completed' | 'cancelled';
 
@@ -117,6 +118,9 @@ export function MyGearBookingsClient({ bookings }: { bookings: Booking[] }) {
                 <th className="text-right text-xs font-bold text-gray-500 uppercase tracking-wider px-5 py-3">
                   Total
                 </th>
+                <th className="text-right text-xs font-bold text-gray-500 uppercase tracking-wider px-5 py-3">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -173,6 +177,9 @@ export function MyGearBookingsClient({ bookings }: { bookings: Booking[] }) {
                     <p className="text-sm font-black text-gearup-600">
                       PHP {b.total_price}
                     </p>
+                  </td>
+                  <td className="px-5 py-4 text-right">
+                    <MyGearBookingActions bookingId={b.id} status={b.status} />
                   </td>
                 </tr>
               ))}
