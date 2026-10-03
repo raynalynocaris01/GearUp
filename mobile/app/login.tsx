@@ -35,8 +35,11 @@ export default function LoginScreen() {
       const res = await auth.login(email, password, 'expo-mobile');
       await saveToken(res.data.token);
 
-      // Owners go straight to their dashboard; everyone else to tabs
-      if (res.data.user.role === 'owner') {
+            // Route by role
+      const role = res.data.user.role;
+      if (role === 'admin') {
+        router.replace('/admin');
+      } else if (role === 'owner') {
         router.replace('/owner');
       } else {
         router.replace('/(tabs)/profile');

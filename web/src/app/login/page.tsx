@@ -34,11 +34,14 @@ export default function LoginPage() {
     }
 
     // Owners go straight to their dashboard; everyone else goes home
-    if (data.user?.role === 'owner') {
-      router.push('/owner');
-    } else {
-      router.push('/');
-    }
+          const role = data.user?.role;
+      if (role === 'admin') {
+        router.push('/admin');
+      } else if (role === 'owner') {
+        router.push('/owner');
+      } else {
+        router.push('/');
+      }
     router.refresh();
   };
 
