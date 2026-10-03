@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   StyleSheet,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { auth, hasToken, clearToken } from '../../lib/api';
 import { colors } from '../../theme';
 import { OwnerDrawerContent } from '../../components/owner/OwnerDrawerContent';
@@ -62,7 +63,12 @@ export default function OwnerLayout() {
   if (role === 'owner' && !isApproved) {
     return (
       <View style={styles.pendingContainer}>
-        <Text style={styles.hourglass}>⏳</Text>
+                <Ionicons
+          name="hourglass-outline"
+          size={56}
+          color={colors.gearupGreen}
+          style={{ marginBottom: 16 }}
+        />
         <Text style={styles.pendingTitle}>Pending approval</Text>
         <Text style={styles.pendingText}>
           Your business account is being reviewed. You will be able to post
@@ -157,7 +163,7 @@ const styles = StyleSheet.create({
     padding: 24,
     backgroundColor: '#f9fafb',
   },
-  hourglass: { fontSize: 56, marginBottom: 16 },
+  
   pendingTitle: {
     fontSize: 24,
     fontWeight: '900',

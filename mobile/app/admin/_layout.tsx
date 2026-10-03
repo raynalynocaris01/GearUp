@@ -1,14 +1,20 @@
 import { useEffect, useState } from 'react';
-import { Stack, useRouter } from 'expo-router';
+import { useRouter, usePathname } from 'expo-router';
+import { Drawer } from 'expo-router/drawer';
 import { View, ActivityIndicator } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { auth, hasToken, clearToken } from '../../lib/api';
 import { colors } from '../../theme';
-import { AdminTabs } from '../../components/admin/AdminTabs';
+import { AdminDrawerContent } from '../../components/admin/AdminDrawerContent';
+
+type Role = 'admin' | 'owner' | 'customer';
 
 export default function AdminLayout() {
   const router = useRouter();
+  const pathname = usePathname();
   const [checking, setChecking] = useState(true);
+  const [user, setUser] = useState<{ name: string; email: string } | null>(
+    null,
+  );
 
   useEffect(() => {
     (async () => {
@@ -19,7 +25,10 @@ export default function AdminLayout() {
       }
       try {
         const res = await auth.user();
-        if (res.data.role !== 'admin') {
+        const role = res.data.role as Role;
+        setUser({ name: res.data.name, email: res.data.email });
+
+        if (role !== 'admin') {
           router.replace('/(tabs)');
           return;
         }
@@ -31,7 +40,7 @@ export default function AdminLayout() {
         setChecking(false);
       }
     })();
-  }, []);
+  }, [router]);
 
   if (checking) {
     return (
@@ -48,25 +57,33 @@ export default function AdminLayout() {
     );
   }
 
+  const activeRoute = (() => {
+    const parts = pathname.split('/').filter(Boolean);
+    if (parts.length <= 1) return 'index';
+    return parts[1];
+  })();
+
   return (
-    <View style={{ flex: 1, backgroundColor: '#f9fafb' }}>
-      <SafeAreaView
-        edges={['top']}
-        style={{ backgroundColor: '#183d1d' }}
-      >
-        <AdminTabs />
-      </SafeAreaView>
-      <Stack
-        screenOptions={{
-          headerShown: false,
-          contentStyle: { backgroundColor: '#f9fafb' },
-        }}
-      >
-        <Stack.Screen name="index" />
-        <Stack.Screen name="users" />
-        <Stack.Screen name="campsites" />
-        <Stack.Screen name="bookings" />
-      </Stack>
-    </View>
+    <Drawer
+      drawerContent={(props) => (
+        <AdminDrawerContent
+          adminName={user?.name ?? 'Admin'}
+          adminEmail={user?.email ?? ''}
+          onClose={() => props.navigation.closeDrawer()}
+          activeRoute={activeRoute}
+        />
+      )}
+      screenOptions={{
+        headerShown: false,
+        drawerType: 'front',
+        drawerStyle: { width: 280 },
+        swipeEdgeWidth: 40,
+      }}
+    >
+      <Drawer.Screen name="index" options={{ title: 'Dashboard' }} />
+      <Drawer.Screen name="users" options={{ title: 'Users' }} />
+      <Drawer.Screen name="campsites" options={{ title: 'Campsites' }} />
+      <Drawer.Screen name="bookings" options={{ title: 'Bookings' }} />
+    </Drawer>
   );
 }

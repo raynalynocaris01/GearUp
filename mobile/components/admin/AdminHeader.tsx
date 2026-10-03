@@ -1,28 +1,31 @@
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useNavigation } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
 interface Props {
   title: string;
-  showBack?: boolean;
 }
 
-export function AdminHeader({ title, showBack }: Props) {
-  const router = useRouter();
+export function AdminHeader({ title }: Props) {
+  const navigation = useNavigation();
+
+  const openDrawer = () => {
+    const nav = navigation as any;
+    if (nav.openDrawer) nav.openDrawer();
+    else if (nav.toggleDrawer) nav.toggleDrawer();
+    else if (nav.dispatch) nav.dispatch({ type: 'OPEN_DRAWER' });
+  };
 
   return (
     <View style={styles.header}>
-      <View style={styles.side}>
-        {showBack ? (
-          <TouchableOpacity
-            onPress={() => router.back()}
-            style={styles.iconBtn}
-            activeOpacity={0.7}
-          >
-            <Ionicons name="chevron-back" size={24} color="#fff" />
-          </TouchableOpacity>
-        ) : null}
-      </View>
+      <TouchableOpacity
+        onPress={openDrawer}
+        style={styles.iconBtn}
+        accessibilityLabel="Open menu"
+        activeOpacity={0.7}
+      >
+        <Ionicons name="menu" size={26} color="#fff" />
+      </TouchableOpacity>
 
       <Text style={styles.title} numberOfLines={1}>
         {title}
@@ -50,11 +53,11 @@ const styles = StyleSheet.create({
   },
   side: {
     width: 72,
-    alignItems: 'flex-start',
+    alignItems: 'flex-end',
   },
   iconBtn: {
-    padding: 4,
-    marginLeft: -4,
+    width: 32,
+    padding: 2,
   },
   title: {
     flex: 1,
@@ -65,7 +68,6 @@ const styles = StyleSheet.create({
     letterSpacing: 0.2,
   },
   adminBadge: {
-    alignSelf: 'flex-end',
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 999,
