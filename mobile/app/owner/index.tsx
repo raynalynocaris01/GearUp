@@ -11,26 +11,31 @@ import {
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { owner } from '../../lib/api';
-import type { OwnerDashboardStats } from '@gearup/shared';
+import type { OwnerDashboardStats, Booking } from '@gearup/shared';
 import { OwnerHeader } from '../../components/owner/OwnerHeader';
+import { UpcomingBookings } from '../../components/owner/UpcomingBookings';
 import { colors } from '../../theme';
+
 
 export default function OwnerDashboard() {
   const router = useRouter();
   const [stats, setStats] = useState<OwnerDashboardStats | null>(null);
   const [userName, setUserName] = useState<string>('');
+  const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
   const load = async (showSpinner = false) => {
     if (showSpinner) setLoading(true);
-    try {
-      const [dashRes, userRes] = await Promise.all([
+        try {
+      const [dashRes, userRes, bookingsRes] = await Promise.all([
         owner.dashboard(),
         (await import('../../lib/api')).auth.user(),
+        owner.listBookings(),
       ]);
       setStats(dashRes.data);
       setUserName(userRes.data.name ?? '');
+      setBookings(bookingsRes.data);
     } catch {
       // silent
     } finally {
@@ -157,6 +162,9 @@ export default function OwnerDashboard() {
                 </TouchableOpacity>
               ))}
             </View>
+
+                       {/* Upcoming bookings */}
+            <UpcomingBookings bookings={bookings} limit={3} />
 
             {/* Quick start */}
             <Text style={styles.sectionTitle}>Quick start</Text>
