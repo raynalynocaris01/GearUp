@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { cookies } from 'next/headers';
 import { UpcomingBookings } from '@/components/owner/UpcomingBookings';
 import { BookingChart } from '@/components/owner/BookingChart';
+import { CampsiteOverview } from '@/components/owner/CampsiteOverview';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL!;
 
@@ -75,15 +76,32 @@ async function getChart(token: string, days = 30) {
   }
 }
 
+async function getMyCampsites(token: string) {
+  try {
+    const res = await fetch(`${API_URL}/owner/campsites`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: 'application/json',
+      },
+      cache: 'no-store',
+    });
+    if (!res.ok) return [];
+    return await res.json();
+  } catch {
+    return [];
+  }
+}
+
 export default async function OwnerDashboardPage() {
   const cookieStore = await cookies();
   const token = cookieStore.get('auth_token')!.value;
 
-  const [user, stats, bookings, chart] = await Promise.all([
+    const [user, stats, bookings, chart, campsites] = await Promise.all([
     getCurrentUser(),
     getStats(token),
     getBookings(token),
     getChart(token, 30),
+    getMyCampsites(token),
   ]);
 
   if (!stats) {
@@ -240,8 +258,11 @@ export default async function OwnerDashboardPage() {
         ))}
       </div>
 
-      {/* Booking Overview chart */}
+            {/* Booking Overview chart */}
       <BookingChart data={chart} days={30} />
+
+      {/* Campsite Overview table */}
+      <CampsiteOverview campsites={campsites} />
 
       {/* Upcoming bookings */}
       <UpcomingBookings bookings={bookings} limit={3} />
