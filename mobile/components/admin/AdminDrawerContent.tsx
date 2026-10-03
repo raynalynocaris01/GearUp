@@ -49,15 +49,25 @@ export function AdminDrawerContent({
 
   return (
     <View style={styles.wrap}>
-      {/* Brand */}
+            {/* Brand */}
       <View style={styles.brand}>
         <View style={styles.brandIcon}>
           <Ionicons name="shield-checkmark" size={20} color="#fff" />
         </View>
-        <View>
+        <View style={styles.brandTextWrap}>
           <Text style={styles.brandTitle}>GearUp</Text>
-          <Text style={styles.brandSub}>ADMIN PANEL</Text>
+          <View style={styles.rolePill}>
+            <Text style={styles.rolePillText}>ADMIN</Text>
+          </View>
         </View>
+      </View>
+
+            {/* Context */}
+      <View style={styles.context}>
+        <Text style={styles.contextLabel}>Admin Panel</Text>
+        <Text style={styles.contextName} numberOfLines={1}>
+          {adminName}
+        </Text>
       </View>
 
       {/* Nav */}
@@ -102,7 +112,7 @@ export function AdminDrawerContent({
         activeOpacity={0.8}
       >
         <Ionicons name="open-outline" size={18} color="rgba(255,255,255,0.7)" />
-        <Text style={styles.secondaryText}>View Customer App</Text>
+               <Text style={styles.secondaryText}>Switch to Customer</Text>
       </TouchableOpacity>
 
       {/* User */}
@@ -165,18 +175,47 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+   brandTextWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   brandTitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '900',
     color: '#fff',
-    letterSpacing: -0.2,
+    letterSpacing: -0.3,
   },
-  brandSub: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: 'rgba(255,255,255,0.55)',
+  rolePill: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 999,
+    backgroundColor: 'rgba(255,255,255,0.18)',
+  },
+  rolePillText: {
+    fontSize: 9,
+    fontWeight: '900',
+    color: '#fff',
     letterSpacing: 1,
-    marginTop: 2,
+  },
+
+  context: {
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.08)',
+  },
+  contextLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: 'rgba(255,255,255,0.55)',
+    letterSpacing: 0.3,
+  },
+  contextName: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#fff',
+    marginTop: 4,
   },
   nav: {
     paddingTop: 12,
