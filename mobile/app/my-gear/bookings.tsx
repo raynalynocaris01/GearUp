@@ -13,6 +13,7 @@ import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { myGear } from '../../lib/api';
 import type { Booking } from '@gearup/shared';
+import { MyGearBookingActions } from '../../components/my/MyGearBookingActions';
 import { colors } from '../../theme';
 
 type Filter = 'all' | 'pending' | 'confirmed' | 'completed' | 'cancelled';
@@ -205,6 +206,12 @@ export default function MyGearBookingsScreen() {
                   </View>
                   <Text style={styles.cardTotal}>PHP {item.total_price}</Text>
                 </View>
+
+                <MyGearBookingActions
+                  bookingId={item.id}
+                  status={item.status}
+                  onChanged={() => load()}
+                />
               </View>
             );
           }}
