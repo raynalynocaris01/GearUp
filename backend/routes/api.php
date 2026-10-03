@@ -51,6 +51,7 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::middleware(['auth:sanctum', 'role:owner'])->prefix('owner')->group(function () {
     // Dashboard
     Route::get('/dashboard', [OwnerDashboardController::class, 'index']);
+    Route::get('/dashboard/chart', [OwnerDashboardController::class, 'chart']);
 
     // Campsites
     Route::get('/campsites',              [OwnerCampsiteController::class, 'index']);
