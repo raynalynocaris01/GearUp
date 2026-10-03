@@ -195,6 +195,13 @@ export interface OwnerDashboardStats {
   total_revenue: number;
   total_earnings: number;
 }
+export interface OwnerDashboardChart {
+  days: number;
+  labels: string[];
+  total: number[];
+  confirmed: number[];
+  pending: number[];
+}
 
 export interface TourGuide {
   id: number;
@@ -238,6 +245,10 @@ export interface CreateTourGuidePayload {
 }
 export const ownerApi = (client: ApiClient) => ({
   dashboard: () => client.get<OwnerDashboardStats>('/owner/dashboard'),
+    dashboardChart: (days = 30) =>
+    client.get<OwnerDashboardChart>('/owner/dashboard/chart', {
+      params: { days },
+    }),
 
   // Campsites
   listCampsites: () => client.get<Campsite[]>('/owner/campsites'),

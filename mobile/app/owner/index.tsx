@@ -14,6 +14,8 @@ import { owner } from '../../lib/api';
 import type { OwnerDashboardStats, Booking } from '@gearup/shared';
 import { OwnerHeader } from '../../components/owner/OwnerHeader';
 import { UpcomingBookings } from '../../components/owner/UpcomingBookings';
+import { BookingChart } from '../../components/owner/BookingChart';
+import type { OwnerDashboardChart } from '@gearup/shared';
 import { colors } from '../../theme';
 
 
@@ -21,21 +23,24 @@ export default function OwnerDashboard() {
   const router = useRouter();
   const [stats, setStats] = useState<OwnerDashboardStats | null>(null);
   const [userName, setUserName] = useState<string>('');
-  const [bookings, setBookings] = useState<Booking[]>([]);
+   const [bookings, setBookings] = useState<Booking[]>([]);
+  const [chart, setChart] = useState<OwnerDashboardChart | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
   const load = async (showSpinner = false) => {
     if (showSpinner) setLoading(true);
         try {
-      const [dashRes, userRes, bookingsRes] = await Promise.all([
+            const [dashRes, userRes, bookingsRes, chartRes] = await Promise.all([
         owner.dashboard(),
         (await import('../../lib/api')).auth.user(),
         owner.listBookings(),
+        owner.dashboardChart(30),
       ]);
       setStats(dashRes.data);
       setUserName(userRes.data.name ?? '');
       setBookings(bookingsRes.data);
+      setChart(chartRes.data);
     } catch {
       // silent
     } finally {
@@ -163,7 +168,10 @@ export default function OwnerDashboard() {
               ))}
             </View>
 
-                       {/* Upcoming bookings */}
+              {/* Booking Overview chart */}
+            <BookingChart data={chart} days={30} />
+
+            {/* Upcoming bookings */}
             <UpcomingBookings bookings={bookings} limit={3} />
 
             {/* Quick start */}
