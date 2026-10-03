@@ -207,8 +207,8 @@ export function OwnerSidebar({
         </div>
       </nav>
 
-      {/* Bottom (fixed) */}
-      <div className="border-t border-gray-100 shrink-0">
+            {/* Bottom (fixed) */}
+      <div className="border-t border-gray-100 shrink-0 pb-16">
         {/* Notification bell */}
         <button
           type="button"
