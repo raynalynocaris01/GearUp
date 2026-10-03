@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { cookies } from 'next/headers';
 import { UpcomingBookings } from '@/components/owner/UpcomingBookings';
+import { BookingChart } from '@/components/owner/BookingChart';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL!;
 
@@ -55,14 +56,34 @@ async function getBookings(token: string) {
   }
 }
 
+async function getChart(token: string, days = 30) {
+  try {
+    const res = await fetch(
+      `${API_URL}/owner/dashboard/chart?days=${days}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: 'application/json',
+        },
+        cache: 'no-store',
+      },
+    );
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
+
 export default async function OwnerDashboardPage() {
   const cookieStore = await cookies();
   const token = cookieStore.get('auth_token')!.value;
 
-    const [user, stats, bookings] = await Promise.all([
+  const [user, stats, bookings, chart] = await Promise.all([
     getCurrentUser(),
     getStats(token),
     getBookings(token),
+    getChart(token, 30),
   ]);
 
   if (!stats) {
@@ -219,7 +240,10 @@ export default async function OwnerDashboardPage() {
         ))}
       </div>
 
-            {/* Upcoming bookings */}
+      {/* Booking Overview chart */}
+      <BookingChart data={chart} days={30} />
+
+      {/* Upcoming bookings */}
       <UpcomingBookings bookings={bookings} limit={3} />
 
       {/* Quick start */}
