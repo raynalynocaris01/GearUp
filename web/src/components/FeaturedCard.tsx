@@ -42,15 +42,21 @@ export function FeaturedCard({
       className="group flex flex-col rounded-xl overflow-hidden bg-white border border-gray-100 shadow-sm hover:shadow-lg transition shrink-0 w-56"
     >
       {/* Image + category badge + heart */}
-      <div className="relative h-32 overflow-hidden">
-        <Image
-          src={imageUrl}
-          alt={title}
-          fill
-          sizes="256px"
-          className="object-cover group-hover:scale-105 transition duration-500"
-          unoptimized
-        />
+      <div className="relative h-32 overflow-hidden bg-gray-100">
+        {imageUrl ? (
+          <Image
+            src={imageUrl}
+            alt={title}
+            fill
+            sizes="256px"
+            className="object-cover group-hover:scale-105 transition duration-500"
+            unoptimized
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-xs text-gray-400">
+            No image
+          </div>
+        )}
 
         {/* Category badge — top left */}
         <span
