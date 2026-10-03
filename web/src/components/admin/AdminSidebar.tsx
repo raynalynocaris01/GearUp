@@ -139,11 +139,11 @@ export function AdminSidebar({
   const initial = adminName.charAt(0).toUpperCase();
 
   const content = (
-    <div className="flex flex-col h-full bg-slate-900 text-slate-300">
+        <div className="flex flex-col h-full bg-[#183d1d] text-white/90">
       {/* Brand */}
       <Link
         href="/admin"
-        className="flex items-center gap-3 px-5 py-5 border-b border-slate-800 shrink-0"
+        className="flex items-center gap-3 px-5 py-5 border-b border-white/10 shrink-0"
       >
         <Image
           src="/logo.png"
@@ -156,7 +156,7 @@ export function AdminSidebar({
           <p className="text-base font-black tracking-tight text-white">
             GearUp
           </p>
-          <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">
+          <p className="text-[10px] uppercase tracking-wider text-white/55 font-bold">
             Admin Panel
           </p>
         </div>
@@ -176,15 +176,18 @@ export function AdminSidebar({
                 key={item.href}
                 href={item.href}
                 onClick={() => setMobileOpen(false)}
-                className={`flex items-center gap-3 px-3 py-2.5 text-sm font-semibold rounded-lg transition ${
+                className={`relative flex items-center gap-3 px-3 py-2.5 text-sm font-semibold rounded-lg transition ${
                   active
-                    ? 'bg-slate-800 text-white'
-                    : 'text-slate-400 hover:bg-slate-800/60 hover:text-white'
+                    ? 'bg-white/15 text-white'
+                    : 'text-white/70 hover:bg-white/10 hover:text-white'
                 }`}
               >
+                {active && (
+                  <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-0.5 rounded-r bg-white/80" />
+                )}
                 <span
                   className={`shrink-0 ${
-                    active ? 'text-gearup-400' : 'text-slate-500'
+                    active ? 'text-white' : 'text-white/60'
                   }`}
                 >
                   <Icon name={item.icon} size={18} />
@@ -202,7 +205,7 @@ export function AdminSidebar({
       </nav>
 
       {/* Bottom */}
-      <div className="border-t border-slate-800 shrink-0 pb-14">
+      <div className="border-t border-white/10 shrink-0 pb-14">
         {/* User block */}
         <div className="px-4 py-3 flex items-center gap-3">
           <div className="w-9 h-9 rounded-full bg-gearup-600 text-white flex items-center justify-center font-bold text-sm shrink-0">
@@ -213,7 +216,7 @@ export function AdminSidebar({
               {adminName}
             </p>
             {adminEmail && (
-              <p className="text-xs text-slate-500 truncate">
+              <p className="text-xs text-white/55 truncate">
                 {adminEmail}
               </p>
             )}
@@ -225,17 +228,17 @@ export function AdminSidebar({
           type="button"
           onClick={handleLogout}
           disabled={loggingOut}
-          className="w-full text-left px-4 py-2.5 text-sm font-semibold text-red-400 hover:bg-red-500/10 hover:text-red-300 transition disabled:opacity-50 flex items-center gap-3"
+          className="w-full text-left px-4 py-2.5 text-sm font-semibold text-red-200/90 hover:bg-red-500/15 hover:text-red-100 transition disabled:opacity-50 flex items-center gap-3"
         >
           <Icon name="logout" size={18} />
           <span>{loggingOut ? 'Logging out...' : 'Log out'}</span>
         </button>
 
         {/* Back */}
-        <div className="px-4 py-3 border-t border-slate-800">
+        <div className="px-4 py-3 border-t border-white/10">
           <Link
             href="/"
-            className="inline-flex items-center gap-2 text-xs font-medium text-slate-500 hover:text-slate-300 transition"
+            className="inline-flex items-center gap-2 text-xs font-medium text-white/60 hover:text-white transition"
           >
             <Icon name="arrowLeft" size={13} />
             <span>Back to GearUp</span>
@@ -248,7 +251,7 @@ export function AdminSidebar({
   return (
     <>
       {/* Mobile top bar */}
-      <div className="lg:hidden sticky top-0 z-30 bg-slate-900 border-b border-slate-800 flex items-center justify-between px-4 py-3">
+      <div className="lg:hidden sticky top-0 z-30 bg-[#183d1d] border-b border-white/10 flex items-center justify-between px-4 py-3">
         <Link href="/admin" className="flex items-center gap-2">
           <Image
             src="/logo.png"
@@ -263,7 +266,7 @@ export function AdminSidebar({
         </Link>
         <button
           onClick={() => setMobileOpen(true)}
-          className="p-2 text-slate-300"
+          className="p-2 text-white/80"
           aria-label="Open menu"
         >
           <svg
