@@ -152,13 +152,13 @@ export function OwnerSidebar({
   const initial = ownerName.charAt(0).toUpperCase();
 
   const content = (
-    <>
+    <div className="flex flex-col h-full">
       {/* Brand */}
       <Link
         href="/"
-        className="flex items-center gap-2 px-5 py-5 border-b border-gray-100"
+        className="flex items-center gap-3 px-5 py-5 border-b border-gray-100 shrink-0"
       >
-               <Image
+        <Image
           src="/logo.png"
           alt="GearUp"
           width={32}
@@ -172,47 +172,51 @@ export function OwnerSidebar({
       </Link>
 
       {/* Owner context */}
-      <div className="px-5 py-4 border-b border-gray-100">
-        <p className="text-xs text-gray-500 font-medium">
+      <div className="px-5 py-4 border-b border-gray-100 shrink-0">
+        <p className="text-[11px] uppercase tracking-wider text-gray-400 font-semibold">
           {campName ?? 'Owner Dashboard'}
         </p>
-        <p className="text-sm font-bold text-gray-900 mt-0.5">
+        <p className="text-sm font-bold text-gray-900 mt-1">
           {ownerName}
         </p>
       </div>
 
-      {/* Nav */}
-      <nav className="flex-1 py-3 overflow-y-auto">
-        {NAV.map((item) => {
-          const active = isActive(item);
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={() => setMobileOpen(false)}
-              className={`flex items-center gap-3 px-5 py-3 text-sm font-semibold transition border-l-4 ${
-                active
-                  ? 'bg-gearup-50 text-gearup-700 border-gearup-600'
-                  : 'text-gray-600 border-transparent hover:bg-gray-50 hover:text-gray-900'
-              }`}
-            >
-              <span className="shrink-0">
-                <Icon name={item.icon} />
-              </span>
-              <span>{item.label}</span>
-            </Link>
-          );
-        })}
+      {/* Nav (scrollable) */}
+      <nav className="flex-1 overflow-y-auto px-2 py-3 min-h-0">
+        <div className="space-y-0.5">
+          {NAV.map((item) => {
+            const active = isActive(item);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setMobileOpen(false)}
+                className={`flex items-center gap-3 px-3 py-3 text-sm font-semibold rounded-lg transition ${
+                  active
+                    ? 'bg-gearup-50 text-gearup-700'
+                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                }`}
+              >
+                <span className={`shrink-0 ${active ? 'text-gearup-600' : 'text-gray-400'}`}>
+                  <Icon name={item.icon} size={20} />
+                </span>
+                <span>{item.label}</span>
+              </Link>
+            );
+          })}
+        </div>
       </nav>
 
-      {/* Bottom: notification + user + logout + back link */}
-      <div className="border-t border-gray-100 pb-20 lg:pb-24">
+      {/* Bottom (fixed) */}
+      <div className="border-t border-gray-100 shrink-0">
         {/* Notification bell */}
         <button
           type="button"
           className="w-full flex items-center gap-3 px-5 py-3 text-sm font-semibold text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition"
         >
-          <Icon name="bell" />
+          <span className="text-gray-400">
+            <Icon name="bell" size={20} />
+          </span>
           <span>Notifications</span>
           <span className="ml-auto inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-[10px] font-bold text-white bg-red-600 rounded-full">
             0
@@ -243,7 +247,7 @@ export function OwnerSidebar({
           disabled={loggingOut}
           className="w-full text-left px-5 py-3 text-sm font-semibold text-red-600 hover:bg-red-50 transition disabled:opacity-50 border-t border-gray-100 flex items-center gap-3"
         >
-          <Icon name="logout" />
+          <Icon name="logout" size={20} />
           <span>{loggingOut ? 'Logging out...' : 'Log out'}</span>
         </button>
 
@@ -251,22 +255,22 @@ export function OwnerSidebar({
         <div className="px-5 py-4 border-t border-gray-100">
           <Link
             href="/"
-            className="inline-flex items-center gap-1.5 text-xs text-gray-500 hover:text-gearup-600"
+            className="inline-flex items-center gap-2 text-xs font-medium text-gray-500 hover:text-gearup-600 transition"
           >
             <Icon name="arrowLeft" size={14} />
             <span>Back to GearUp</span>
           </Link>
         </div>
       </div>
-    </>
+    </div>
   );
 
   return (
     <>
-      {/* Mobile top bar: logo left, hamburger center, avatar right */}
+      {/* Mobile top bar */}
       <div className="lg:hidden sticky top-0 z-30 bg-white border-b border-gray-100 flex items-center justify-between px-4 py-3">
         <Link href="/" className="flex items-center gap-2">
-                    <Image
+          <Image
             src="/logo.png"
             alt="GearUp"
             width={28}
@@ -316,7 +320,7 @@ export function OwnerSidebar({
 
       {/* Mobile drawer panel */}
       <aside
-        className={`lg:hidden fixed top-0 left-0 bottom-0 z-50 w-72 bg-white border-r border-gray-100 flex flex-col transform transition-transform duration-200 ${
+        className={`lg:hidden fixed top-0 left-0 bottom-0 z-50 w-72 bg-white border-r border-gray-100 transform transition-transform duration-200 ${
           mobileOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
@@ -324,7 +328,7 @@ export function OwnerSidebar({
       </aside>
 
       {/* Desktop sidebar */}
-      <aside className="hidden lg:flex flex-col w-64 shrink-0 bg-white border-r border-gray-100 h-screen sticky top-0">
+      <aside className="hidden lg:flex w-64 shrink-0 bg-white border-r border-gray-100 sticky top-0 h-dvh overflow-hidden">
         {content}
       </aside>
     </>
