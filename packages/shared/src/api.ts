@@ -549,6 +549,9 @@ export const myGearApi = (client: ApiClient) => ({
 
   remove: (id: number | string) =>
     client.delete<{ message: string }>(`/my/gear/${id}`),
+
+  bookings: (params?: { status?: string }) =>
+    client.get<Booking[]>('/my/gear-bookings', { params }),
 });
 // ──────────────────────────────────────────────────────────
 // EVENTS (PUBLIC)
