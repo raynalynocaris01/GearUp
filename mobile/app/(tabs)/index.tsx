@@ -40,6 +40,7 @@ const FEATURES = [
     color: '#2563eb',
     action: 'gear-rental',
   },
+
   {
     icon: 'person-outline',
     label: 'Hire Tour Guide',
@@ -47,12 +48,20 @@ const FEATURES = [
     color: '#ea580c',
     action: 'tour-guides',
   },
+  
   {
     icon: 'calendar-outline',
     label: 'Join Events',
     desc: 'Meet up and join adventures',
     color: '#9333ea',
     action: 'events',
+  },
+  {
+    icon: 'cloud-upload-outline',
+    label: 'List Your Gear',
+    desc: 'Earn by renting out your gear',
+    color: '#e11d48',
+    action: 'my-gear',
   },
 ] as const;
 
@@ -138,7 +147,8 @@ export default function HomeScreen() {
       | 'coming-soon'
       | 'tour-guides'
       | 'gear-rental'
-      | 'events',
+      | 'events'
+      | 'my-gear',
     label: string,
   ) => {
     if (action === 'explore') {
@@ -155,6 +165,10 @@ export default function HomeScreen() {
     }
     if (action === 'events') {
       router.push('/events');
+      return;
+    }
+    if (action === 'my-gear') {
+      router.push('/my-gear');
       return;
     }
     Alert.alert(

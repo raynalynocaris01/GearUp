@@ -144,6 +144,29 @@ const FEATURES = [
     ),
     accent: 'text-purple-600',
   },
+  {
+    label: 'List Your Gear',
+    desc: 'Earn by renting out your equipment',
+    href: '/my-gear',
+    icon: (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="32"
+        height="32"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+        <polyline points="17 8 12 3 7 8" />
+        <line x1="12" y1="3" x2="12" y2="15" />
+      </svg>
+    ),
+    accent: 'text-rose-600',
+  },
 ];
 
 export default async function HomePage() {
@@ -183,7 +206,7 @@ export default async function HomePage() {
 
       {/* FEATURE CARDS — floating over hero */}
             <section className="max-w-7xl mx-auto px-6 -mt-10 relative z-20">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
           {FEATURES.map((f) => (
             <Link
               key={f.label}
