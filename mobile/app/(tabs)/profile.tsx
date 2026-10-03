@@ -169,7 +169,7 @@ export default function ProfileScreen() {
         <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}></TouchableOpacity>
+ 
 
       <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
         <Ionicons name="log-out-outline" size={18} color="#dc2626" />
