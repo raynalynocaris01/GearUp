@@ -184,8 +184,8 @@ export default function OwnerEventsScreen() {
                 >
                   <Text style={styles.cardActionPrimaryText}>Edit</Text>
                 </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.cardActionSecondary}
+                 <TouchableOpacity
+                  style={[styles.cardActionSecondary, { flex: 0.9 }]}
                   onPress={() =>
                     router.push(`/owner/events/${item.id}/attendees` as any)
                   }
