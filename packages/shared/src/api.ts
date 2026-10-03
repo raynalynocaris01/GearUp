@@ -552,6 +552,15 @@ export const myGearApi = (client: ApiClient) => ({
 
   bookings: (params?: { status?: string }) =>
     client.get<Booking[]>('/my/gear-bookings', { params }),
+
+  confirmBooking: (id: number | string) =>
+    client.post<Booking>(`/my/gear-bookings/${id}/confirm`),
+
+  completeBooking: (id: number | string) =>
+    client.post<Booking>(`/my/gear-bookings/${id}/complete`),
+
+  cancelBooking: (id: number | string) =>
+    client.post<Booking>(`/my/gear-bookings/${id}/cancel`),
 });
 // ──────────────────────────────────────────────────────────
 // EVENTS (PUBLIC)
