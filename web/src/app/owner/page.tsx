@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { cookies } from 'next/headers';
 import { UpcomingBookings } from '@/components/owner/UpcomingBookings';
-import { BookingChart } from '@/components/owner/BookingChart';
+ import { BookingChart } from '@/components/charts/BookingChart';
 import { CampsiteOverview } from '@/components/owner/CampsiteOverview';
 import { RecentReviews } from '@/components/owner/RecentReviews';
 
