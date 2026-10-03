@@ -374,6 +374,14 @@ export interface AdminDashboardStats {
   total_revenue: number;
 }
 
+export interface AdminDashboardChart {
+  days: number;
+  labels: string[];
+  total: number[];
+  confirmed: number[];
+  pending: number[];
+}
+
 export interface AdminUser {
   id: number;
   name: string;
@@ -387,6 +395,11 @@ export interface AdminUser {
 
 export const adminApi = (client: ApiClient) => ({
   dashboard: () => client.get<AdminDashboardStats>('/admin/dashboard'),
+  
+    dashboardChart: (days = 30) =>
+    client.get<AdminDashboardChart>('/admin/dashboard/chart', {
+      params: { days },
+    }),
 
   // Users
   listUsers: (params?: { role?: string; status?: string }) =>

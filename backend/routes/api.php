@@ -105,6 +105,7 @@ Route::middleware(['auth:sanctum', 'role:owner'])->prefix('owner')->group(functi
 Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(function () {
     // Dashboard
     Route::get('/dashboard', [AdminDashboardController::class, 'index']);
+    Route::get('/dashboard/chart', [AdminDashboardController::class, 'chart']);
 
     // Users
     Route::get('/users',                [AdminUserController::class, 'index']);
