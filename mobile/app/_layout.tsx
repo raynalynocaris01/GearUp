@@ -8,6 +8,9 @@ export default function RootLayout() {
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="login" />
+        <Stack.Screen name="my-gear/index" />
+        <Stack.Screen name="my-gear/new" />
+        <Stack.Screen name="my-gear/[id]/edit" />
         <Stack.Screen name="signup" />
       </Stack>
       <StatusBar style="auto" />
