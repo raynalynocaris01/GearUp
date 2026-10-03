@@ -32,20 +32,8 @@ export function MyGearBookingActions({ bookingId, status }: Props) {
     }
   };
 
-  if (status === 'cancelled') {
-    return (
-      <span className="text-xs font-bold tracking-wider text-red-700 bg-red-100 px-2 py-1 rounded">
-        CANCELLED
-      </span>
-    );
-  }
-
-  if (status === 'completed') {
-    return (
-      <span className="text-xs font-bold tracking-wider text-blue-700 bg-blue-100 px-2 py-1 rounded">
-        COMPLETED
-      </span>
-    );
+  if (status === 'cancelled' || status === 'completed') {
+    return <span className="text-xs text-gray-400">-</span>;
   }
 
   return (
