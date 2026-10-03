@@ -1,4 +1,5 @@
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -8,6 +9,7 @@ interface Props {
 
 export function AdminHeader({ title }: Props) {
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
 
   const openDrawer = () => {
     const nav = navigation as any;
@@ -17,7 +19,12 @@ export function AdminHeader({ title }: Props) {
   };
 
   return (
-    <View style={styles.header}>
+    <View
+      style={[
+        styles.header,
+        { paddingTop: insets.top + 14 },
+      ]}
+    >
       <TouchableOpacity
         onPress={openDrawer}
         style={styles.iconBtn}
@@ -47,7 +54,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingVertical: 14,
+    paddingBottom: 14,
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(255,255,255,0.08)',
   },
