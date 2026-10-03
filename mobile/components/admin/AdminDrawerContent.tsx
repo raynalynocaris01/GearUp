@@ -31,6 +31,18 @@ const NAV: NavItem[] = [
     icon: 'calendar-outline',
     href: '/admin/bookings',
   },
+  {
+    key: 'reviews',
+    label: 'Reviews',
+    icon: 'star-outline',
+    href: '/admin/reviews',
+  },
+  {
+    key: 'events',
+    label: 'Events',
+    icon: 'sparkles-outline',
+    href: '/admin/events',
+  },
 ];
 
 export function AdminDrawerContent({
