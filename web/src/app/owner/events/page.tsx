@@ -52,10 +52,10 @@ function formatRange(startsAt: string, endsAt: string): string {
     });
   }
 
-  return `${start.toLocaleDateString('en-US', {
+    return `${start.toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
-  })} – ${end.toLocaleDateString('en-US', {
+  })} - ${end.toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
@@ -89,7 +89,14 @@ export default async function OwnerEventsPage() {
 
       {events.length === 0 ? (
         <div className="bg-white rounded-2xl border border-dashed border-gray-200 p-12 text-center">
-          <div className="text-5xl mb-4">📅</div>
+                    <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gearup-50 text-gearup-600 flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+              <line x1="16" y1="2" x2="16" y2="6" />
+              <line x1="8" y1="2" x2="8" y2="6" />
+              <line x1="3" y1="10" x2="21" y2="10" />
+            </svg>
+          </div>
           <p className="text-lg font-semibold text-gray-700 mb-2">
             No events yet
           </p>
@@ -121,8 +128,13 @@ export default async function OwnerEventsPage() {
                     unoptimized
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-4xl">
-                    📅
+                                    <div className="w-full h-full flex items-center justify-center text-gray-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                      <line x1="16" y1="2" x2="16" y2="6" />
+                      <line x1="8" y1="2" x2="8" y2="6" />
+                      <line x1="3" y1="10" x2="21" y2="10" />
+                    </svg>
                   </div>
                 )}
               </div>
@@ -138,8 +150,8 @@ export default async function OwnerEventsPage() {
                     </span>
                   )}
                 </div>
-                <p className="text-xs text-gray-500">
-                  📍 {e.location}
+                                <p className="text-xs text-gray-500">
+                  {e.location}
                 </p>
                 <p className="text-xs text-gray-700 mt-2 font-semibold">
                   {formatRange(e.starts_at, e.ends_at)}
@@ -149,8 +161,8 @@ export default async function OwnerEventsPage() {
                     {e.description}
                   </p>
                 )}
-                <p className="text-sm font-bold text-gearup-600 mt-3">
-                  PHP {e.price_per_person} / person · Capacity {e.capacity}
+               <p className="text-sm font-bold text-gearup-600 mt-3">
+                  PHP {e.price_per_person} / person - Capacity {e.capacity}
                 </p>
 
                 <div className="flex flex-wrap gap-2 mt-4">
@@ -165,6 +177,12 @@ export default async function OwnerEventsPage() {
                     className="text-xs font-semibold text-white bg-gearup-600 hover:bg-gearup-700 px-3 py-2 rounded-lg transition"
                   >
                     Edit
+                  </Link>
+                                    <Link
+                    href={`/owner/events/${e.id}/attendees`}
+                    className="text-xs font-semibold text-white bg-gearup-600 hover:bg-gearup-700 px-3 py-2 rounded-lg transition"
+                  >
+                    Attendees
                   </Link>
                   <DeleteEventButton eventId={e.id} name={e.name} />
                 </div>
