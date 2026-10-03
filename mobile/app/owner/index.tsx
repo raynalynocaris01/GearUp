@@ -11,12 +11,13 @@ import {
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { owner } from '../../lib/api';
-import type { OwnerDashboardStats, Booking } from '@gearup/shared';
+import type { OwnerDashboardStats, Booking, Campsite } from '@gearup/shared';
 import { OwnerHeader } from '../../components/owner/OwnerHeader';
 import { UpcomingBookings } from '../../components/owner/UpcomingBookings';
 import { BookingChart } from '../../components/owner/BookingChart';
 import type { OwnerDashboardChart } from '@gearup/shared';
 import { colors } from '../../theme';
+import { CampsiteOverview } from '../../components/owner/CampsiteOverview';
 
 
 export default function OwnerDashboard() {
@@ -25,22 +26,25 @@ export default function OwnerDashboard() {
   const [userName, setUserName] = useState<string>('');
    const [bookings, setBookings] = useState<Booking[]>([]);
   const [chart, setChart] = useState<OwnerDashboardChart | null>(null);
+  const [campsites, setCampsites] = useState<Campsite[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
   const load = async (showSpinner = false) => {
     if (showSpinner) setLoading(true);
         try {
-            const [dashRes, userRes, bookingsRes, chartRes] = await Promise.all([
-        owner.dashboard(),
-        (await import('../../lib/api')).auth.user(),
-        owner.listBookings(),
-        owner.dashboardChart(30),
-      ]);
-      setStats(dashRes.data);
-      setUserName(userRes.data.name ?? '');
-      setBookings(bookingsRes.data);
-      setChart(chartRes.data);
+         const [dashRes, userRes, bookingsRes, chartRes, campsitesRes] = await Promise.all([
+  owner.dashboard(),
+  (await import('../../lib/api')).auth.user(),
+  owner.listBookings(),
+  owner.dashboardChart(30),
+  owner.listCampsites(),
+]);
+setStats(dashRes.data);
+setUserName(userRes.data.name ?? '');
+setBookings(bookingsRes.data);
+setChart(chartRes.data);
+setCampsites(campsitesRes.data);
     } catch {
       // silent
     } finally {
@@ -170,6 +174,9 @@ export default function OwnerDashboard() {
 
               {/* Booking Overview chart */}
             <BookingChart data={chart} days={30} />
+
+            {/* Campsite Overview */}
+            <CampsiteOverview campsites={campsites} limit={3} />
 
             {/* Upcoming bookings */}
             <UpcomingBookings bookings={bookings} limit={3} />

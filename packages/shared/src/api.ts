@@ -113,6 +113,8 @@ export interface Campsite {
   updated_at: string;
   tour_guides?: TourGuide[];
   reviews?: Review[];
+   revenue?: number;
+  bookings_count?: number;
 }
 
 export const campsiteApi = (client: ApiClient) => ({
