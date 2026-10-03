@@ -40,8 +40,8 @@ export function BookingChart({ data, days = 30 }: Props) {
   );
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-10">
-      <div className="flex items-start justify-between mb-6">
+     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 mb-6">
+      <div className="flex items-start justify-between mb-4">
         <div>
           <h2 className="text-lg font-bold text-gray-900">
             Booking Overview
@@ -53,11 +53,11 @@ export function BookingChart({ data, days = 30 }: Props) {
       </div>
 
       {!hasAnyData ? (
-        <div className="flex items-center justify-center h-64 text-sm text-gray-400">
+        <div className="flex items-center justify-center h-48 text-sm text-gray-400">
           No booking activity in this period yet.
         </div>
       ) : (
-        <div className="w-full h-72">
+        <div className="w-full h-48">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart
               data={chartData}
