@@ -1,199 +1,123 @@
 import Link from 'next/link';
 import { cookies } from 'next/headers';
+import { AdminKpiGrid } from '@/components/admin/AdminKpiGrid';
+import { AdminRecentBookings } from '@/components/admin/AdminRecentBookings';
+import { AdminRecentUsers } from '@/components/admin/AdminRecentUsers';
+import { AdminSystemOverview } from '@/components/admin/AdminSystemOverview';
+import { BookingChart } from '@/components/charts/BookingChart';
+import type { AdminDashboardStats } from '@gearup/shared';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL!;
 
-async function getStats(token: string) {
+async function fetchJson<T>(url: string, token: string, fallback: T): Promise<T> {
   try {
-    const res = await fetch(`${API_URL}/admin/dashboard`, {
+    const res = await fetch(url, {
       headers: {
         Authorization: `Bearer ${token}`,
         Accept: 'application/json',
       },
       cache: 'no-store',
     });
-    if (!res.ok) return null;
-    return await res.json();
+    if (!res.ok) return fallback;
+    return (await res.json()) as T;
   } catch {
-    return null;
+    return fallback;
   }
 }
 
-async function getPendingOwners(token: string) {
-  try {
-    const res = await fetch(`${API_URL}/admin/users?status=pending`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        Accept: 'application/json',
-      },
-      cache: 'no-store',
-    });
-    if (!res.ok) return [];
-    return await res.json();
-  } catch {
-    return [];
-  }
-}
-type IconName = 'users' | 'campsites' | 'bookings' | 'revenue';
-
-function Icon({ name, size = 24 }: { name: IconName; size?: number }) {
-  const common = {
-    xmlns: 'http://www.w3.org/2000/svg',
-    width: size,
-    height: size,
-    viewBox: '0 0 24 24',
-    fill: 'none',
-    stroke: 'currentColor',
-    strokeWidth: 2,
-    strokeLinecap: 'round' as const,
-    strokeLinejoin: 'round' as const,
-  };
-
-  if (name === 'users') {
-    return (
-      <svg {...common}>
-        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-        <circle cx="9" cy="7" r="4" />
-        <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-      </svg>
-    );
-  }
-  if (name === 'campsites') {
-    return (
-      <svg {...common}>
-        <path d="M3 20l9-16 9 16" />
-        <path d="M12 4v4" />
-        <path d="M12 12v8" />
-        <path d="M9 20l3-4 3 4" />
-      </svg>
-    );
-  }
-  if (name === 'bookings') {
-    return (
-      <svg {...common}>
-        <rect x="3" y="4" width="18" height="18" rx="2" />
-        <line x1="16" y1="2" x2="16" y2="6" />
-        <line x1="8" y1="2" x2="8" y2="6" />
-        <line x1="3" y1="10" x2="21" y2="10" />
-      </svg>
-    );
-  }
-  return (
-    <svg {...common}>
-      <line x1="12" y1="1" x2="12" y2="23" />
-      <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-    </svg>
-  );
-}
 export default async function AdminDashboardPage() {
   const cookieStore = await cookies();
   const token = cookieStore.get('auth_token')!.value;
-  const [stats, pendingOwners] = await Promise.all([
-    getStats(token),
-    getPendingOwners(token),
+
+  const [stats, chart, bookings, users] = await Promise.all([
+    fetchJson<AdminDashboardStats | null>(
+      `${API_URL}/admin/dashboard`,
+      token,
+      null,
+    ),
+    fetchJson<any>(`${API_URL}/admin/dashboard/chart?days=30`, token, null),
+    fetchJson<any[]>(`${API_URL}/admin/bookings`, token, []),
+    fetchJson<any[]>(`${API_URL}/admin/users`, token, []),
   ]);
 
   if (!stats) {
     return <p className="text-gray-500">Could not load dashboard.</p>;
   }
 
-    const primaryCards = [
+  const kpis = [
     {
       label: 'Total Users',
       value: stats.total_users,
       icon: 'users' as const,
       href: '/admin/users',
-      color: 'bg-blue-50 text-blue-700',
+      accent: 'bg-blue-50 text-blue-600',
+      delta: `${stats.total_owners} owners`,
     },
     {
       label: 'Campsites',
       value: stats.total_campsites,
       icon: 'campsites' as const,
       href: '/admin/campsites',
-      color: 'bg-green-50 text-green-700',
+      accent: 'bg-green-50 text-green-600',
+      delta: `${stats.featured_campsites} featured`,
     },
     {
       label: 'Bookings',
       value: stats.total_bookings,
       icon: 'bookings' as const,
       href: '/admin/bookings',
-      color: 'bg-purple-50 text-purple-700',
+      accent: 'bg-purple-50 text-purple-600',
+      delta: `${stats.pending_bookings} pending`,
     },
     {
       label: 'Revenue',
       value: `PHP ${Number(stats.total_revenue).toFixed(0)}`,
       icon: 'revenue' as const,
       href: '/admin/bookings',
-      color: 'bg-yellow-50 text-yellow-700',
+      accent: 'bg-yellow-50 text-yellow-600',
+      delta: 'Confirmed + completed',
     },
   ];
+
+  const pendingOwners = users.filter(
+    (u: any) => u.role === 'owner' && !u.is_approved,
+  );
 
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-3xl font-black text-gray-900">Admin Dashboard</h1>
+        <h1 className="text-3xl font-black text-gray-900">
+          Admin Dashboard
+        </h1>
         <p className="text-gray-500 mt-2 text-sm">
           Platform-wide overview of GearUp.
         </p>
       </div>
 
-      {/* Primary stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        {primaryCards.map((c) => (
-          <Link
-            key={c.label}
-            href={c.href}
-            className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition p-5"
-          >
-          <div
-              className={`w-12 h-12 rounded-xl ${c.color} flex items-center justify-center mb-4`}
-            >
-              <Icon name={c.icon} size={22} />
-            </div>
-            <p className="text-xs text-gray-500 font-medium">{c.label}</p>
-            <p className="text-2xl font-black text-gray-900 mt-1">
-              {c.value}
-            </p>
-          </Link>
-        ))}
-      </div>
+      {/* Primary KPIs */}
+      <AdminKpiGrid kpis={kpis} />
 
-      {/* Secondary stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-          <p className="text-xs text-gray-500 font-medium">Owners</p>
-          <p className="text-xl font-black text-gray-900 mt-1">
-            {stats.total_owners}
-          </p>
+      {/* Chart + Recent Bookings */}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-6">
+        <div className="xl:col-span-2">
+          <BookingChart data={chart} days={30} />
         </div>
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-          <p className="text-xs text-gray-500 font-medium">
-            Pending Owners
-          </p>
-          <p className="text-xl font-black text-yellow-700 mt-1">
-            {stats.pending_owners}
-          </p>
-        </div>
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-          <p className="text-xs text-gray-500 font-medium">
-            Featured Campsites
-          </p>
-          <p className="text-xl font-black text-gray-900 mt-1">
-            {stats.featured_campsites}
-          </p>
-        </div>
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-          <p className="text-xs text-gray-500 font-medium">
-            Suspended Users
-          </p>
-          <p className="text-xl font-black text-red-700 mt-1">
-            {stats.suspended_users}
-          </p>
+        <div>
+          <AdminRecentBookings bookings={bookings} />
         </div>
       </div>
 
-      {/* Pending owner approvals */}
+      {/* Recent Users + System Overview */}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-6">
+        <div className="xl:col-span-2">
+          <AdminRecentUsers users={users} />
+        </div>
+        <div>
+          <AdminSystemOverview stats={stats} />
+        </div>
+      </div>
+
+      {/* Pending Approvals */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
         <div className="flex items-end justify-between mb-4">
           <div>
@@ -208,14 +132,14 @@ export default async function AdminDashboardPage() {
             href="/admin/users?status=pending"
             className="text-sm font-semibold text-gearup-600 hover:underline"
           >
-                       View all &rarr;
+            View all &rarr;
           </Link>
         </div>
 
         {pendingOwners.length === 0 ? (
           <div className="rounded-xl border border-dashed border-gray-200 p-8 text-center">
             <p className="text-sm text-gray-500">
-                            No pending approvals - you&apos;re all caught up.
+              No pending approvals - you are all caught up.
             </p>
           </div>
         ) : (
