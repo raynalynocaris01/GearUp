@@ -32,7 +32,7 @@ export function GuideCard({ guide, onPress }: Props) {
           />
         ) : (
           <View style={styles.imagePlaceholder}>
-            <Text style={styles.imageEmoji}>🧭</Text>
+            <Ionicons name="compass-outline" size={28} color="#9ca3af" />
           </View>
         )}
 
