@@ -145,6 +145,11 @@ export default function OwnerLayout() {
         name="events/[id]/edit"
         options={{ title: 'Edit Event', drawerItemStyle: { display: 'none' } }}
       />
+      
+      <Drawer.Screen
+        name="events/[id]/attendees"
+        options={{ title: 'Attendees', drawerItemStyle: { display: 'none' } }}
+      />
     </Drawer>
   );
 }

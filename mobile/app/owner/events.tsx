@@ -36,7 +36,7 @@ function formatRange(startsAt: string, endsAt: string): string {
   return `${start.toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
-  })} – ${end.toLocaleDateString('en-US', {
+   })} - ${end.toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
@@ -161,7 +161,7 @@ export default function OwnerEventsScreen() {
                     </Text>
                   )}
                   <Text style={styles.cardPrice}>
-                    PHP {item.price_per_person} / person · Capacity{' '}
+              PHP {item.price_per_person} / person - Capacity{' '}
                     {item.capacity}
                   </Text>
                 </View>
@@ -183,6 +183,15 @@ export default function OwnerEventsScreen() {
                   }
                 >
                   <Text style={styles.cardActionPrimaryText}>Edit</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.cardActionSecondary}
+                  onPress={() =>
+                    router.push(`/owner/events/${item.id}/attendees` as any)
+                  }
+                  activeOpacity={0.85}
+                >
+                  <Text style={styles.cardActionSecondaryText}>Attendees</Text>
                 </TouchableOpacity>
                 <DeleteEventButton
                   eventId={item.id}
@@ -307,4 +316,5 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   primaryButtonText: { color: '#fff', fontSize: 14, fontWeight: '700' },
+ 
 });
