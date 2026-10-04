@@ -4,6 +4,7 @@ namespace App\Http\Controllers\My;
 
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 
 class GearBookingController extends Controller
@@ -49,6 +50,14 @@ class GearBookingController extends Controller
 
         $booking->update(['status' => 'confirmed']);
 
+        NotificationService::notify(
+            $booking->user_id,
+            'gear.rental.confirmed',
+            'Your rental was confirmed',
+            "Rental #{$booking->id} is confirmed.",
+            '/bookings',
+        );
+
         return response()->json($booking->fresh());
     }
 
@@ -66,6 +75,14 @@ class GearBookingController extends Controller
         }
 
         $booking->update(['status' => 'completed']);
+
+        NotificationService::notify(
+            $booking->user_id,
+            'gear.rental.completed',
+            'Rental marked complete',
+            "Rental #{$booking->id} is complete. Leave a review!",
+            '/bookings',
+        );
 
         return response()->json($booking->fresh());
     }
@@ -88,6 +105,14 @@ class GearBookingController extends Controller
         }
 
         $booking->update(['status' => 'cancelled']);
+
+        NotificationService::notify(
+            $booking->user_id,
+            'gear.rental.cancelled',
+            'Rental was cancelled',
+            "Rental #{$booking->id} was cancelled by the host.",
+            '/bookings',
+        );
 
         return response()->json($booking->fresh());
     }

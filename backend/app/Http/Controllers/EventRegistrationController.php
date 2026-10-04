@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Event;
 use App\Models\EventRegistration;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 
 class EventRegistrationController extends Controller
@@ -87,6 +88,18 @@ class EventRegistrationController extends Controller
             $reg->load(['event', 'event.owner']);
         }
 
+        // Notify the event owner (skip if they registered for their own event)
+        if ($event->owner_id) {
+            NotificationService::notifyOthers(
+                $request->user()->id,
+                $event->owner_id,
+                'event.registration',
+                'New event registration',
+                "{$request->user()->name} registered for {$event->name}",
+                "/owner/events/{$event->id}/attendees",
+            );
+        }
+
         return response()->json($reg, 201);
     }
 
@@ -105,6 +118,19 @@ class EventRegistrationController extends Controller
         }
 
         $registration->update(['status' => 'cancelled']);
+
+        $registration->loadMissing('event');
+        $ownerId = $registration->event?->owner_id;
+        if ($ownerId) {
+            NotificationService::notifyOthers(
+                $request->user()->id,
+                $ownerId,
+                'event.registration.cancelled',
+                'Event registration cancelled',
+                "{$request->user()->name} cancelled their spot at {$registration->event->name}",
+                "/owner/events/{$registration->event_id}/attendees",
+            );
+        }
 
         return response()->json([
             'message' => 'Registration cancelled.',

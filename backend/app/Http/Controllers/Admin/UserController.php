@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -50,6 +51,14 @@ class UserController extends Controller
     {
         $user->update(['is_approved' => true]);
 
+        NotificationService::notify(
+            $user->id,
+            'account.approved',
+            'Your account was approved',
+            'You can now list campsites, gear, and events on GearUp.',
+            '/owner',
+        );
+
         return response()->json($user->fresh());
     }
 
@@ -63,6 +72,14 @@ class UserController extends Controller
             'is_approved' => true,
             'role' => 'customer',
         ]);
+
+        NotificationService::notify(
+            $user->id,
+            'account.rejected',
+            'Your account application was declined',
+            'Contact support if you think this was a mistake.',
+            null,
+        );
 
         return response()->json($user->fresh());
     }
@@ -80,6 +97,14 @@ class UserController extends Controller
 
         // Revoke all their tokens so they can't keep using the app
         $user->tokens()->delete();
+
+        NotificationService::notify(
+            $user->id,
+            'account.suspended',
+            'Your account was suspended',
+            'Please contact support for details.',
+            null,
+        );
 
         return response()->json($user->fresh());
     }

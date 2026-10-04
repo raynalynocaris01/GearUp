@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Owner;
 
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 
 class BookingController extends Controller
@@ -39,6 +40,14 @@ class BookingController extends Controller
 
         $booking->update(['status' => 'confirmed']);
 
+        NotificationService::notify(
+            $booking->user_id,
+            'booking.confirmed',
+            'Your booking was confirmed',
+            "Booking #{$booking->id} is confirmed.",
+            '/bookings',
+        );
+
         return response()->json($booking->load('campsite'));
     }
     /**
@@ -55,6 +64,14 @@ class BookingController extends Controller
 
         $booking->update(['status' => 'completed']);
 
+        NotificationService::notify(
+            $booking->user_id,
+            'booking.completed',
+            'Your booking is complete',
+            "Booking #{$booking->id} is marked complete. Leave a review!",
+            '/bookings',
+        );
+
         return response()->json($booking->load('campsite'));
     }
     /**
@@ -65,6 +82,14 @@ class BookingController extends Controller
         $this->authorizeOwner($request, $booking);
 
         $booking->update(['status' => 'cancelled']);
+
+        NotificationService::notify(
+            $booking->user_id,
+            'booking.cancelled',
+            'Your booking was cancelled',
+            "Booking #{$booking->id} has been cancelled by the host.",
+            '/bookings',
+        );
 
         return response()->json($booking->load('campsite'));
     }

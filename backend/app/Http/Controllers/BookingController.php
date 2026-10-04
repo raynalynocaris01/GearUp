@@ -6,6 +6,7 @@ use App\Models\Booking;
 use App\Models\Campsite;
 use App\Models\GearItem;
 use App\Models\TourGuide;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -174,6 +175,7 @@ class BookingController extends Controller
                 'notes' => $data['notes'] ?? null,
             ]);
         });
+        $this->notifyBookingCreated($booking);
 
         return response()->json(
             $booking->load(['campsite', 'tourGuide', 'gearItem']),
@@ -203,5 +205,55 @@ class BookingController extends Controller
         return response()->json(
             $booking->load(['campsite', 'tourGuide', 'gearItem'])
         );
+    }
+
+
+        /**
+     * Notify the owner (campsite/gear/tour-guide) of a new booking.
+     */
+    private function notifyBookingCreated(Booking $booking): void
+    {
+        $actorId = $booking->user_id;
+
+        if ($booking->campsite_id) {
+            $booking->loadMissing('campsite');
+            $ownerId = $booking->campsite?->owner_id;
+            if ($ownerId) {
+                NotificationService::notifyOthers(
+                    $actorId,
+                    $ownerId,
+                    'booking.created',
+                    'New campsite booking',
+                    "Booking #{$booking->id} for {$booking->campsite->name}",
+                    '/owner/bookings',
+                );
+            }
+        } elseif ($booking->gear_item_id) {
+            $booking->loadMissing('gearItem');
+            $ownerId = $booking->gearItem?->owner_id;
+            if ($ownerId) {
+                NotificationService::notifyOthers(
+                    $actorId,
+                    $ownerId,
+                    'gear.rented',
+                    'Your gear was rented',
+                    "Booking #{$booking->id} for {$booking->gearItem->name}",
+                    '/my-gear/bookings',
+                );
+            }
+        } elseif ($booking->tour_guide_id) {
+            $booking->loadMissing('tourGuide.campsite');
+            $ownerId = $booking->tourGuide?->campsite?->owner_id;
+            if ($ownerId) {
+                NotificationService::notifyOthers(
+                    $actorId,
+                    $ownerId,
+                    'booking.created',
+                    'New tour guide booking',
+                    "Booking #{$booking->id} for {$booking->tourGuide->name}",
+                    '/owner/bookings',
+                );
+            }
+        }
     }
 }
