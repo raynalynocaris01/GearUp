@@ -245,6 +245,18 @@ export interface CreateTourGuidePayload {
   price_per_trip: number;
   location?: string;
 }
+export interface AppNotification {
+  id: number;
+  user_id: number;
+  type: string;
+  title: string;
+  body: string | null;
+  action_url: string | null;
+  read_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export const ownerApi = (client: ApiClient) => ({
   dashboard: () => client.get<OwnerDashboardStats>('/owner/dashboard'),
     dashboardChart: (days = 30) =>
@@ -561,6 +573,20 @@ export const myGearApi = (client: ApiClient) => ({
 
   cancelBooking: (id: number | string) =>
     client.post<Booking>(`/my/gear-bookings/${id}/cancel`),
+});
+
+export const notificationApi = (client: ApiClient) => ({
+  list: (params?: { limit?: number }) =>
+    client.get<AppNotification[]>('/notifications', { params }),
+
+  unreadCount: () =>
+    client.get<{ count: number }>('/notifications/unread-count'),
+
+  markRead: (id: number | string) =>
+    client.post<AppNotification>(`/notifications/${id}/read`),
+
+  markAllRead: () =>
+    client.post<{ message: string }>('/notifications/read-all'),
 });
 // ──────────────────────────────────────────────────────────
 // EVENTS (PUBLIC)

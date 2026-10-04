@@ -11,6 +11,7 @@ import {
   tourGuideApi,
   gearApi,
   myGearApi,
+  notificationApi,
   eventApi,
 } from '@gearup/shared';
 
@@ -40,6 +41,7 @@ export const reviews = reviewApi(api);
 export const tourGuides = tourGuideApi(api);
 export const gear = gearApi(api);
 export const myGear = myGearApi(api);
+export const notifications = notificationApi(api);
 export const events = eventApi(api);
 
 export const saveToken = (token: string) =>
