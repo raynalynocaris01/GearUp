@@ -153,21 +153,7 @@ export default function ProfileScreen() {
     <Ionicons name="chevron-forward" size={18} color="#fff" />
   </TouchableOpacity>
 )}
-      {/* My Events */}
-      <TouchableOpacity
-        style={styles.menuRow}
-        onPress={() => router.push('/(tabs)/my-events' as any)}
-        activeOpacity={0.85}
-      >
-        <View style={styles.menuRowLeft}>
-          <Ionicons name="sparkles-outline" size={20} color={colors.gearupGreen} />
-          <View>
-            <Text style={styles.menuRowTitle}>My Events</Text>
-            <Text style={styles.menuRowSub}>Events you have registered for</Text>
-          </View>
-        </View>
-        <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
-      </TouchableOpacity>
+ 
 
  
 
@@ -273,23 +259,5 @@ hostLinkText: {
   fontWeight: '600',
   textAlign: 'center',
 },
-  menuRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    borderWidth: 1,
-    borderColor: '#f1f5f9',
-    backgroundColor: '#fff',
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    marginBottom: 12,
-  },
-  menuRowLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  menuRowTitle: { fontSize: 15, fontWeight: '700', color: '#111827' },
-  menuRowSub: { fontSize: 12, color: colors.textMuted, marginTop: 2 },
+ 
 });
