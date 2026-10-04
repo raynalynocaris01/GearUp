@@ -23,6 +23,7 @@ use App\Http\Controllers\Owner\SettingsController as OwnerSettingsController;
 use App\Http\Controllers\EventController;
  use App\Http\Controllers\EventRegistrationController;
 use App\Http\Controllers\My\GearItemController as MyGearItemController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\My\GearBookingController as MyGearBookingController;
 use App\Http\Controllers\Owner\EventRegistrationController as OwnerEventRegistrationController;
 
@@ -53,6 +54,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/events/{event}/registration-status', [EventRegistrationController::class, 'status']);
 
     // My Gear (any authenticated user can list and manage their own gear)
+    // Notifications
+    Route::get('/notifications', [NotificationController::class, 'index']);
+    Route::get('/notifications/unread-count', [NotificationController::class, 'unreadCount']);
+    Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead']);
+    Route::post('/notifications/{notification}/read', [NotificationController::class, 'markRead']);
+
+    // My gear
     Route::get('/my/gear', [MyGearItemController::class, 'index']);
     Route::post('/my/gear', [MyGearItemController::class, 'store']);
     Route::get('/my/gear/{gearItem}', [MyGearItemController::class, 'show']);
