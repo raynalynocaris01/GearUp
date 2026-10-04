@@ -11,9 +11,9 @@ import {
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { events as eventApi, hasToken } from '../lib/api';
+import { events as eventApi, hasToken } from '../../lib/api';
 import type { EventRegistration } from '@gearup/shared';
-import { colors } from '../theme';
+import { colors } from '../../theme';
 
 function formatRange(startIso: string, endIso: string): string {
   const start = new Date(startIso);

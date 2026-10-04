@@ -150,6 +150,10 @@ export default function OwnerLayout() {
         name="events/[id]/attendees"
         options={{ title: 'Attendees', drawerItemStyle: { display: 'none' } }}
       />
+      <Drawer.Screen
+        name="notifications"
+        options={{ title: 'Notifications', drawerItemStyle: { display: 'none' } }}
+      />
     </Drawer>
   );
 }

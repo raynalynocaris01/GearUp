@@ -41,11 +41,11 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="trips"
+        name="my-events"
         options={{
-          title: 'Trips',
+          title: 'My Events',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="map-outline" size={size} color={color} />
+            <Ionicons name="sparkles-outline" size={size} color={color} />
           ),
         }}
       />

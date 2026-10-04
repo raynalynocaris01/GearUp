@@ -156,7 +156,7 @@ export default function ProfileScreen() {
       {/* My Events */}
       <TouchableOpacity
         style={styles.menuRow}
-        onPress={() => router.push('/my-events' as any)}
+        onPress={() => router.push('/(tabs)/my-events' as any)}
         activeOpacity={0.85}
       >
         <View style={styles.menuRowLeft}>
