@@ -4,7 +4,8 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import type { ReactNode } from 'react';
+ import type { ReactNode } from 'react';
+import { NotificationBellRow } from '@/components/NotificationBellRow';
 
 type IconName =
   | 'dashboard'
@@ -124,49 +125,7 @@ interface Props {
   ownerEmail?: string;
   campName?: string;
 }
-function NotificationBellRow() {
-  const [count, setCount] = useState(0);
-
-  useEffect(() => {
-    let active = true;
-    const load = async () => {
-      try {
-        const res = await fetch('/api/notifications/unread-count', {
-          cache: 'no-store',
-        });
-        if (res.ok) {
-          const data = await res.json();
-          if (active) setCount(data.count ?? 0);
-        }
-      } catch {
-        // silent
-      }
-    };
-    load();
-    const interval = setInterval(load, 30000);
-    return () => {
-      active = false;
-      clearInterval(interval);
-    };
-  }, []);
-
-  return (
-    <a
-      href="/notifications"
-      className="w-full flex items-center gap-3 px-5 py-3 text-sm font-semibold text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition"
-    >
-      <Icon name="bell" />
-      <span>Notifications</span>
-      {count > 0 ? (
-        <span className="ml-auto inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-[10px] font-bold text-white bg-red-600 rounded-full">
-          {count > 99 ? '99+' : count}
-        </span>
-      ) : (
-        <span className="ml-auto text-[10px] text-gray-400">0</span>
-      )}
-    </a>
-  );
-}
+ 
 export function OwnerSidebar({
   ownerName = 'Owner',
   ownerEmail = '',
@@ -253,7 +212,7 @@ export function OwnerSidebar({
       <div className="border-t border-gray-100 shrink-0 pb-16">
         
                 {/* Notification bell */}
-        <NotificationBellRow />
+         <NotificationBellRow href="/owner/notifications" />
 
         {/* User block */}
         <div className="px-5 py-4 border-t border-gray-100 flex items-center gap-3">
