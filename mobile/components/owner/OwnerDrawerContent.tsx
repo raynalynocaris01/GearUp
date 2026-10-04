@@ -1,7 +1,8 @@
+import { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { auth, clearToken } from '../../lib/api';
+import { auth, clearToken, notifications as notifApi } from '../../lib/api';
 import { colors } from '../../theme';
 
 interface NavItem {
@@ -39,6 +40,26 @@ export function OwnerDrawerContent({
 }: Props) {
   const router = useRouter();
   const initial = ownerName.charAt(0).toUpperCase();
+
+  const [unread, setUnread] = useState(0);
+
+  useEffect(() => {
+    let active = true;
+    const load = async () => {
+      try {
+        const res = await notifApi.unreadCount();
+        if (active) setUnread(res.data.count ?? 0);
+      } catch {
+        // silent
+      }
+    };
+    load();
+    const interval = setInterval(load, 30000);
+    return () => {
+      active = false;
+      clearInterval(interval);
+    };
+  }, []);
 
   const go = (route: string) => {
     onClose?.();
@@ -125,12 +146,25 @@ export function OwnerDrawerContent({
       {/* Bottom section */}
       <View style={styles.bottomSection}>
         {/* Notification row */}
-        <TouchableOpacity style={styles.bottomRow} activeOpacity={0.7}>
+        <TouchableOpacity
+          style={styles.bottomRow}
+          activeOpacity={0.7}
+          onPress={() => {
+            onClose?.();
+            router.push('/owner/notifications' as any);
+          }}
+        >
           <Ionicons name="notifications-outline" size={20} color="#6b7280" />
           <Text style={styles.bottomRowLabel}>Notifications</Text>
-          <View style={styles.notifBadge}>
-            <Text style={styles.notifBadgeText}>0</Text>
-          </View>
+          {unread > 0 ? (
+            <View style={styles.notifBadge}>
+              <Text style={styles.notifBadgeText}>
+                {unread > 99 ? '99+' : unread}
+              </Text>
+            </View>
+          ) : (
+            <Text style={styles.notifZero}>0</Text>
+          )}
         </TouchableOpacity>
 
         {/* Switch to customer */}
@@ -273,6 +307,11 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 10,
     fontWeight: '800',
+  },
+  notifZero: {
+    fontSize: 11,
+    color: '#9ca3af',
+    fontWeight: '700',
   },
 
   userBlock: {
