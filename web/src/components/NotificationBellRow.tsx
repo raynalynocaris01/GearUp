@@ -28,9 +28,15 @@ export function NotificationBellRow({
     };
     load();
     const interval = setInterval(load, 30000);
+
+    // Listen for optimistic updates dispatched by the list page
+    const onChanged = () => load();
+    window.addEventListener('notifications:changed', onChanged);
+
     return () => {
       active = false;
       clearInterval(interval);
+      window.removeEventListener('notifications:changed', onChanged);
     };
   }, []);
 

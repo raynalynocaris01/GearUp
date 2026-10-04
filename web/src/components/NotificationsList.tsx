@@ -33,18 +33,22 @@ export function NotificationsList({
   const [items, setItems] = useState(initial);
 
   const markAllRead = async () => {
+    const now = new Date().toISOString();
+    setItems((prev) => prev.map((x) => ({ ...x, read_at: now })));
     await fetch('/api/notifications/read-all', { method: 'POST' });
+    window.dispatchEvent(new Event('notifications:changed'));
     router.refresh();
   };
 
   const onClickItem = async (n: AppNotification) => {
     if (!n.read_at) {
-      await fetch(`/api/notifications/${n.id}/read`, { method: 'POST' });
       setItems((prev) =>
         prev.map((x) =>
           x.id === n.id ? { ...x, read_at: new Date().toISOString() } : x,
         ),
       );
+      await fetch(`/api/notifications/${n.id}/read`, { method: 'POST' });
+      window.dispatchEvent(new Event('notifications:changed'));
     }
     if (n.action_url) router.push(n.action_url);
   };
