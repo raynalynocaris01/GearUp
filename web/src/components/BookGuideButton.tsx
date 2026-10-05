@@ -38,14 +38,14 @@ export function BookGuideButton({ guide, isLoggedIn }: Props) {
 
       {open && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40"
+          className="fixed inset-0 z-50 flex justify-center p-4 sm:p-6 bg-black/40 overflow-y-auto"
           onClick={() => setOpen(false)}
         >
           <div
-            className="bg-white rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto"
+            className="bg-white rounded-2xl shadow-xl w-full max-w-md flex flex-col self-start mt-4 sm:mt-8 mb-4"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 shrink-0">
               <div>
                 <h3 className="text-lg font-black text-gray-900">
                   Book {guide.name}
@@ -77,7 +77,7 @@ export function BookGuideButton({ guide, isLoggedIn }: Props) {
               </button>
             </div>
 
-            <div className="p-6">
+            <div className="p-6 overflow-y-auto">
               <GuideBookingForm
                 guide={guide}
                 onDone={() => setOpen(false)}

@@ -91,8 +91,22 @@ export function BookingForm({
   );
   const [gearQuantity, setGearQuantity] = useState(1);
 
-  // Fetch tour guides if we have a campsite
-    // Fetch gear if we have a campsite (only gear from the campsite's owner)
+  // Fetch tour guides for this campsite
+  useEffect(() => {
+    if (!campsite) return;
+    (async () => {
+      try {
+        const res = await fetch(`/api/tour-guides?campsite_id=${campsite.id}`);
+        if (!res.ok) return;
+        const data: TourGuide[] = await res.json();
+        setGuides(data);
+      } catch {
+        // silent
+      }
+    })();
+  }, [campsite]);
+
+  // Fetch gear if we have a campsite (only gear from the campsite's owner)
   useEffect(() => {
     if (!campsite) return;
     (async () => {
@@ -111,20 +125,7 @@ export function BookingForm({
     })();
   }, [campsite]);
 
-  // Fetch gear if we have a campsite (to offer as add-on)
-  useEffect(() => {
-    if (!campsite) return;
-    (async () => {
-      try {
-        const res = await fetch(`/api/gear`);
-        if (!res.ok) return;
-        const data = await res.json();
-        setAvailableGear(data);
-      } catch {
-        // silent
-      }
-    })();
-  }, [campsite]);
+ 
 
   // The gear item to use for pricing (either preset or picked from list)
   const activeGear: GearItem | null = useMemo(() => {

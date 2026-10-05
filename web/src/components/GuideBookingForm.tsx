@@ -78,7 +78,7 @@ export function GuideBookingForm({ guide, onDone }: Props) {
   };
 
   return (
-    <form onSubmit={submit} className="space-y-4">
+    <form onSubmit={submit} className="space-y-3">
       <div>
         <label className="block text-xs font-bold text-gray-700 mb-1.5">
           Trip start
@@ -131,7 +131,7 @@ export function GuideBookingForm({ guide, onDone }: Props) {
         <textarea
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
-          rows={3}
+          rows={2}
           maxLength={500}
           placeholder="Anything the guide should know?"
           className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-gearup-500 resize-none"
