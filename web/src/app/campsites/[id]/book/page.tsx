@@ -4,6 +4,7 @@ import { notFound, redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
 import { Navbar } from '@/components/Navbar';
 import { BookingForm } from '@/components/BookingForm';
+import { appImageSrc } from '@/components/AppImage';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL!;
 
@@ -110,7 +111,7 @@ export default async function BookCampsitePage({
             <div className="sticky top-24 bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
               <div className="relative h-44">
                 <Image
-                  src={campsite.image_url}
+                  src={appImageSrc(campsite.image_url)}
                   alt={campsite.name}
                   fill
                   sizes="400px"

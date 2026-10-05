@@ -2,7 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { cookies } from 'next/headers';
 import { AdminCampsiteActions } from '@/components/admin/AdminCampsiteActions';
-
+import { appImageSrc } from '@/components/AppImage';
 const API_URL = process.env.NEXT_PUBLIC_API_URL!;
 
 interface Campsite {
@@ -65,7 +65,7 @@ export default async function AdminCampsitesPage() {
             >
               <div className="relative w-40 shrink-0">
                 <Image
-                  src={c.image_url}
+                  src={appImageSrc(c.image_url)}
                   alt={c.name}
                   fill
                   sizes="160px"

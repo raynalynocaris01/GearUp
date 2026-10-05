@@ -5,7 +5,7 @@ import { cookies } from 'next/headers';
 import { Navbar } from '@/components/Navbar';
 import { CancelBookingButton } from '@/components/CancelBookingButton';
 export const dynamic = 'force-dynamic';
-
+import { appImageSrc } from '@/components/AppImage';
 const API_URL = process.env.NEXT_PUBLIC_API_URL!;
 
 interface Booking {
@@ -162,7 +162,11 @@ export default async function BookingsPage() {
               const title = b.campsite?.name ?? b.gear_item?.name ?? 'Booking';
 
               // Image: prefer campsite, then gear
-              const imageUrl = b.campsite?.image_url ?? b.gear_item?.image_url;
+              const rawImageUrl =
+                b.campsite?.image_url ?? b.gear_item?.image_url ?? null;
+              const imageUrl = rawImageUrl
+                ? appImageSrc(rawImageUrl)
+                : null;
 
               // Location: only campsites have this
               const location = b.campsite?.location;

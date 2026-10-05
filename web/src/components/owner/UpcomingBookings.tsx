@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
-
+import { appImageSrc } from '@/components/AppImage';
 interface Booking {
   id: number;
   check_in: string | null;
@@ -76,8 +76,11 @@ export function UpcomingBookings({ bookings, limit = 3 }: Props) {
           {upcoming.map((b) => {
             const title =
               b.campsite?.name ?? b.gear_item?.name ?? 'Booking';
-            const imageUrl =
-              b.campsite?.image_url ?? b.gear_item?.image_url ?? null;
+    const rawImageUrl =
+          b.campsite?.image_url ?? b.gear_item?.image_url ?? null;
+        const imageUrl = rawImageUrl
+          ? appImageSrc(rawImageUrl)
+          : null;
 
             return (
               <Link

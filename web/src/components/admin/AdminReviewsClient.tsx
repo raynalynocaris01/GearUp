@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react';
 import Image from 'next/image';
 import type { Review } from '@gearup/shared';
-
+import { appImageSrc } from '@/components/AppImage';
 type FilterKey = 'all' | '5' | '4' | '3' | 'low';
 
 const FILTERS: { key: FilterKey; label: string }[] = [
@@ -158,7 +158,7 @@ export function AdminReviewsClient({ reviews }: { reviews: Review[] }) {
                       <div className="relative w-10 h-10 rounded-lg overflow-hidden bg-gray-100 shrink-0">
                         {r.campsite?.image_url ? (
                           <Image
-                            src={r.campsite.image_url}
+                            src={appImageSrc(r.campsite.image_url)}
                             alt={r.campsite.name}
                             fill
                             sizes="40px"

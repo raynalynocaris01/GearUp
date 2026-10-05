@@ -233,7 +233,7 @@ export interface CreateCampsitePayload {
   region: string;
   price_per_night: number;
   price_unit: 'night' | 'entrance';
-  image_url: string;
+  image_url?: string;
   capacity: number;
 }
 

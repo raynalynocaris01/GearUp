@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import Image from 'next/image';
-
+import { appImageSrc } from '@/components/AppImage';
 interface FeaturedCardProps {
   category: 'Campsite' | 'Gear Rental' | 'Tour Guide' | 'Event';
   title: string;
@@ -45,7 +45,7 @@ export function FeaturedCard({
       <div className="relative h-32 overflow-hidden bg-gray-100">
         {imageUrl ? (
           <Image
-            src={imageUrl}
+            src={appImageSrc(imageUrl)}
             alt={title}
             fill
             sizes="256px"

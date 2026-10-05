@@ -15,7 +15,7 @@ import { useRouter, useFocusEffect } from 'expo-router';
 import { bookings, hasToken } from '../../lib/api';
 import type { Booking } from '@gearup/shared';
 import { colors } from '../../theme';
-
+import { imgSrc } from '../../lib/images';
 type BookingWithReview = Booking & {
   review?: unknown;
 };
@@ -231,8 +231,9 @@ export default function BookingsScreen() {
               item.gear_item?.name ??
               (item.tour_guide ? 'Tour Guide Booking' : 'Booking');
 
-            const imageUrl =
-              item.campsite?.image_url ?? item.gear_item?.image_url ?? null;
+                    const rawImageUrl =
+          item.campsite?.image_url ?? item.gear_item?.image_url ?? null;
+        const imageUrl = rawImageUrl ? imgSrc(rawImageUrl) : null;
 
             // Tint for date units
             const dateUnit = isGearOnly ? 'day' : 'night';

@@ -2,7 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { cookies } from 'next/headers';
 import { DeleteCampsiteButton } from '@/components/owner/DeleteCampsiteButton';
-
+import { appImageSrc } from '@/components/AppImage';
 const API_URL = process.env.NEXT_PUBLIC_API_URL!;
 
 interface Campsite {
@@ -85,7 +85,7 @@ export default async function OwnerCampsitesPage() {
             >
               <div className="relative w-48 shrink-0">
                 <Image
-                  src={c.image_url}
+                  src={appImageSrc(c.image_url)}
                   alt={c.name}
                   fill
                   sizes="192px"

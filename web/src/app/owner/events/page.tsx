@@ -2,7 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { cookies } from 'next/headers';
 import { DeleteEventButton } from '@/components/owner/DeleteEventButton';
-
+import { appImageSrc } from '@/components/AppImage';
 const API_URL = process.env.NEXT_PUBLIC_API_URL!;
 
 interface Event {
@@ -120,7 +120,7 @@ export default async function OwnerEventsPage() {
               <div className="relative w-48 shrink-0 bg-gray-100">
                 {e.image_url ? (
                   <Image
-                    src={e.image_url}
+                    src={appImageSrc(e.image_url)}
                     alt={e.name}
                     fill
                     sizes="192px"

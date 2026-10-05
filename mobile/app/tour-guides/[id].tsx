@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { tourGuides } from '../../lib/api';
 import type { TourGuide } from '@gearup/shared';
 import { colors } from '../../theme';
+import { imgSrc } from '../../lib/images';
 
 export default function TourGuideDetailScreen() {
   const router = useRouter();
@@ -187,7 +188,7 @@ export default function TourGuideDetailScreen() {
                 activeOpacity={0.85}
               >
                 <Image
-                  source={{ uri: guide.campsite.image_url }}
+                  source={{ uri: imgSrc(guide.campsite.image_url) }}
                   style={styles.campsiteImage}
                 />
                 <View style={{ flex: 1 }}>

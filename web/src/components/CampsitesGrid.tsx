@@ -9,7 +9,7 @@ import {
   EMPTY_FILTERS,
   type FilterState,
 } from './CampsiteFilters';
-
+import { appImageSrc } from '@/components/AppImage';
 export interface Campsite {
   id: number;
   name: string;
@@ -160,7 +160,7 @@ export function CampsitesGrid({
             >
               <div className="relative h-44 overflow-hidden">
                 <Image
-                  src={c.image_url}
+                  src={appImageSrc(c.image_url)}
                   alt={c.name}
                   fill
                   sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"

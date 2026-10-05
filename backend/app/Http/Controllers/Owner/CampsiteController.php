@@ -38,7 +38,7 @@ class CampsiteController extends Controller
             'region' => ['required', 'string', 'max:255'],
             'price_per_night' => ['required', 'numeric', 'min:0'],
             'price_unit' => ['required', 'in:night,entrance'],
-            'image_url' => ['required', 'url'],
+            'image_url' => ['required', 'string', 'max:2048'],
             'capacity' => ['required', 'integer', 'min:1'],
         ]);
 
@@ -78,7 +78,7 @@ class CampsiteController extends Controller
             'region' => ['sometimes', 'string', 'max:255'],
             'price_per_night' => ['sometimes', 'numeric', 'min:0'],
             'price_unit' => ['sometimes', 'in:night,entrance'],
-            'image_url' => ['sometimes', 'url'],
+            'image_url' => ['sometimes', 'string', 'max:2048'],
             'capacity' => ['sometimes', 'integer', 'min:1'],
         ]);
 
@@ -129,8 +129,9 @@ public function uploadImage(Request $request, Campsite $campsite)
 
     $file->storeAs('campsites', $filename, 'public');
 
-    // Build the public URL
-    $url = rtrim(config('app.url'), '/') . '/storage/campsites/' . $filename;
+    // Store a relative path so it's host-agnostic. The frontend
+    // prepends the API base URL when rendering.
+    $url = '/storage/campsites/' . $filename;
 
     $campsite->update(['image_url' => $url]);
 

@@ -4,6 +4,7 @@ import { cookies } from 'next/headers';
 import { notFound } from 'next/navigation';
 import { Navbar } from '@/components/Navbar';
 import { EventRegisterButton } from '@/components/EventRegisterButton';
+import { appImageSrc } from '@/components/AppImage';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL!;
 
@@ -129,7 +130,7 @@ export default async function EventDetailPage({
 
       <div className="relative h-[400px] w-full">
         <Image
-          src={event.image_url}
+          src={appImageSrc(event.image_url)}
           alt={event.name}
           fill
           sizes="100vw"

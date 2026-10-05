@@ -3,7 +3,7 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import type { Campsite } from '@gearup/shared';
 import { colors } from '../../theme';
-
+import { imgSrc } from '../../lib/images';
 interface Props {
   campsites: Campsite[];
   limit?: number;
@@ -43,7 +43,7 @@ export function CampsiteOverview({ campsites, limit }: Props) {
                 <View style={styles.topRow}>
                   {c.image_url ? (
                     <Image
-                      source={{ uri: c.image_url }}
+                      source={{ uri: imgSrc(c.image_url) }}
                       style={styles.thumb}
                       resizeMode="cover"
                     />

@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react';
 import Image from 'next/image';
 import type { EventItem } from '@gearup/shared';
-
+import { appImageSrc } from '@/components/AppImage';
 type FilterKey = 'all' | 'published' | 'draft';
 
 const FILTERS: { key: FilterKey; label: string }[] = [
@@ -118,7 +118,7 @@ export function AdminEventsClient({ events }: { events: EventItem[] }) {
                       <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-gray-100 shrink-0">
                         {e.image_url ? (
                           <Image
-                            src={e.image_url}
+                            src={appImageSrc(e.image_url)}
                             alt={e.name}
                             fill
                             sizes="48px"

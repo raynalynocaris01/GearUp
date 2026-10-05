@@ -57,7 +57,7 @@ export function CampsiteForm({ mode, initial }: Props) {
 
   try {
     // 1. Save the campsite (create or update)
-    const payload = {
+    const payload: Record<string, unknown> = {
       name: form.name,
       description: form.description,
       location: form.location,
@@ -65,9 +65,11 @@ export function CampsiteForm({ mode, initial }: Props) {
       price_per_night: Number(form.price_per_night),
       price_unit: form.price_unit,
       capacity: Number(form.capacity),
-      // Only send image_url if we're NOT uploading a new one
-      image_url: imageFile ? form.image_url : form.image_url,
     };
+    // Only send image_url if we're NOT uploading a new file
+    if (!imageFile) {
+      payload.image_url = form.image_url;
+    }
 
     let campsiteId = initial?.id;
 

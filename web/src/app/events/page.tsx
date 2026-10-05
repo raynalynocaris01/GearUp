@@ -2,6 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { cookies } from 'next/headers';
 import { Navbar } from '@/components/Navbar';
+import { appImageSrc } from '@/components/AppImage';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL!;
 
@@ -121,7 +122,7 @@ export default async function EventsPage() {
               >
                 <div className="relative h-48 overflow-hidden">
                   <Image
-                    src={e.image_url}
+                    src={appImageSrc(e.image_url)}
                     alt={e.name}
                     fill
                     sizes="(max-width: 768px) 100vw, 33vw"

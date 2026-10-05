@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
-
+import { appImageSrc } from '@/components/AppImage';
 interface RecentBooking {
   id: number;
   status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
@@ -65,7 +65,7 @@ export function AdminRecentBookings({
                 <div className="relative w-11 h-11 rounded-lg overflow-hidden bg-gray-100 shrink-0">
                   {b.campsite?.image_url ? (
                     <Image
-                      src={b.campsite.image_url}
+                      src={appImageSrc(b.campsite.image_url)}
                       alt={b.campsite.name}
                       fill
                       sizes="44px"

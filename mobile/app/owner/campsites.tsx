@@ -14,6 +14,7 @@ import { owner } from '../../lib/api';
 import { OwnerHeader } from '../../components/owner/OwnerHeader';
 import type { Campsite } from '@gearup/shared';
 import { colors } from '../../theme';
+import { imgSrc } from '../../lib/images';
 
 export default function OwnerCampsitesScreen() {
   const router = useRouter();
@@ -92,7 +93,7 @@ export default function OwnerCampsitesScreen() {
             <View style={styles.card}>
               <View style={styles.cardTop}>
                 <Image
-                  source={{ uri: item.image_url }}
+                  source={{ uri: imgSrc(item.image_url) }}
                   style={styles.cardImage}
                 />
                 <View style={styles.cardBody}>

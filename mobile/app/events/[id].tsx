@@ -17,6 +17,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { events as eventApi, hasToken } from '../../lib/api';
 import type { EventItem, EventRegistration } from '@gearup/shared';
 import { colors } from '../../theme';
+import { imgSrc } from '../../lib/images';
 
 function formatRange(startIso: string, endIso: string): string {
   const start = new Date(startIso);
@@ -167,7 +168,7 @@ export default function EventDetailScreen() {
         {/* Hero */}
         <View style={styles.heroWrap}>
           <Image
-            source={{ uri: event.image_url }}
+            source={{ uri: imgSrc(event.image_url) }}
             style={styles.heroImg}
             resizeMode="cover"
           />

@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation';
 import { cookies } from 'next/headers';
 import { Navbar } from '@/components/Navbar';
 import { BookGuideButton } from '@/components/BookGuideButton';
-
+import { appImageSrc } from '@/components/AppImage';
 const API_URL = process.env.NEXT_PUBLIC_API_URL!;
 
 interface TourGuide {
@@ -206,7 +206,7 @@ export default async function TourGuideDetailPage({
                 >
                   <div className="relative w-24 h-24 rounded-xl overflow-hidden shrink-0 bg-gray-100">
                     <Image
-                      src={guide.campsite.image_url}
+                      src={appImageSrc(guide.campsite.image_url)}
                       alt={guide.campsite.name}
                       fill
                       sizes="96px"

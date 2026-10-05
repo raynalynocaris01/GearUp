@@ -13,6 +13,7 @@ import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { events as eventsApi } from '../lib/api';
 import { colors } from '../theme';
+import { imgSrc } from '../lib/images';
 
 interface Event {
   id: number;
@@ -162,7 +163,7 @@ export default function EventsScreen() {
                 >
                   <View style={styles.imageWrap}>
                     <Image
-                      source={{ uri: e.image_url }}
+                      source={{ uri: imgSrc(e.image_url) }}
                       style={styles.image}
                     />
                     <View style={styles.categoryBadge}>

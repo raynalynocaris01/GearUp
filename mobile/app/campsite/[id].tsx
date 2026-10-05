@@ -16,6 +16,7 @@ import { campsites, bookings, hasToken } from '../../lib/api';
 import type { Campsite } from '@gearup/shared';
 import { colors } from '../../theme';
 import { ReviewsSection } from '../../components/ReviewsSection';
+import { imgSrc } from '../../lib/images';
 
 export default function CampsiteDetailScreen() {
   const router = useRouter();
@@ -127,7 +128,7 @@ export default function CampsiteDetailScreen() {
       >
         {/* Hero image */}
         <View style={styles.heroWrap}>
-          <Image source={{ uri: campsite.image_url }} style={styles.hero} />
+          <Image source={{ uri: imgSrc(campsite.image_url) }} style={styles.hero} />
 
           <TouchableOpacity
             style={styles.backIcon}

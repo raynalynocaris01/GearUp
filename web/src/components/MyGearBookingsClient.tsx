@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react';
 import Image from 'next/image';
 import type { Booking } from '@gearup/shared';
 import { MyGearBookingActions } from '@/components/MyGearBookingActions';
-
+import { appImageSrc } from '@/components/AppImage';
 type FilterKey = 'all' | 'pending' | 'confirmed' | 'completed' | 'cancelled';
 
 const FILTERS: { key: FilterKey; label: string }[] = [
@@ -131,7 +131,7 @@ export function MyGearBookingsClient({ bookings }: { bookings: Booking[] }) {
                       <div className="relative w-11 h-11 rounded-lg overflow-hidden bg-gray-100 shrink-0">
                         {b.gear_item?.image_url ? (
                           <Image
-                            src={b.gear_item.image_url}
+                            src={appImageSrc(b.gear_item.image_url)}
                             alt={b.gear_item.name}
                             fill
                             sizes="44px"

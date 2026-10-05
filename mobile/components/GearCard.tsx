@@ -8,7 +8,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import type { GearItem } from '@gearup/shared';
 import { colors } from '../theme';
-
+import { imgSrc } from '../lib/images';
 interface Props {
   gear: GearItem;
   onPress: () => void;
@@ -27,7 +27,7 @@ export function GearCard({ gear, onPress }: Props) {
       {/* Image */}
       <View style={styles.imageWrap}>
         {gear.image_url ? (
-          <Image source={{ uri: gear.image_url }} style={styles.image} />
+          <Image source={{ uri: imgSrc(gear.image_url) }} style={styles.image} />
         ) : (
           <View style={styles.imagePlaceholder}>
             <Text style={styles.imageEmoji}>🎒</Text>

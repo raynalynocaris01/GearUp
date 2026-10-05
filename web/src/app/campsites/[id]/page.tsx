@@ -5,6 +5,7 @@ import { cookies } from 'next/headers';
 import { Navbar } from '@/components/Navbar';
 import { ReviewsSection } from '@/components/ReviewsSection';
 import { ReviewForm } from '@/components/ReviewForm';
+import { appImageSrc } from '@/components/AppImage';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL!;
 
@@ -127,7 +128,7 @@ export default async function CampsiteDetailPage({
         {/* Hero image */}
         <div className="relative h-[420px] rounded-2xl overflow-hidden mb-8">
           <Image
-            src={campsite.image_url}
+            src={appImageSrc(campsite.image_url)}
             alt={campsite.name}
             fill
             priority

@@ -20,7 +20,7 @@ import {
   EMPTY_FILTERS,
   type FilterState,
 } from '../../components/FilterChips';
-
+import { imgSrc } from '../../lib/images';
 function matchesPriceFilter(
   price: number,
   range: FilterState['priceRange'],

@@ -1,5 +1,5 @@
 import Link from 'next/link';
-
+import { appImageSrc } from '@/components/AppImage';
 export type CampsiteOverviewItem = {
   id: number;
   name: string;
@@ -92,7 +92,7 @@ export function CampsiteOverview({ campsites }: Props) {
                       className="w-10 h-10 rounded-lg bg-gray-100 shrink-0 bg-cover bg-center"
                       style={{
                         backgroundImage: c.image_url
-                          ? `url(${c.image_url})`
+                          ? `url(${appImageSrc(c.image_url)})`
                           : undefined,
                       }}
                     />

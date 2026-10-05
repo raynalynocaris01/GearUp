@@ -13,6 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { gear } from '../../lib/api';
 import type { GearItem } from '@gearup/shared';
 import { colors } from '../../theme';
+import { imgSrc } from '../../lib/images';
 
 export default function GearDetailScreen() {
   const router = useRouter();
@@ -74,7 +75,7 @@ export default function GearDetailScreen() {
         {/* Hero */}
         <View style={styles.heroWrap}>
           {item.image_url ? (
-            <Image source={{ uri: item.image_url }} style={styles.hero} />
+            <Image source={{ uri: imgSrc(item.image_url) }} style={styles.hero} />
           ) : (
             <View style={styles.heroPlaceholder}>
               <Text style={styles.heroEmoji}>🎒</Text>

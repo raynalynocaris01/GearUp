@@ -17,6 +17,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { gear, bookings } from '../../../lib/api';
 import type { GearItem } from '@gearup/shared';
 import { colors } from '../../../theme';
+import { imgSrc } from '../../../lib/images';
 
 function toDateString(d: Date): string {
   const yyyy = d.getFullYear();
@@ -160,7 +161,7 @@ export default function NewGearBookingScreen() {
         <View style={styles.gearCard}>
           {item.image_url ? (
             <Image
-              source={{ uri: item.image_url }}
+              source={{ uri: imgSrc(item.image_url) }}
               style={styles.gearImage}
             />
           ) : (

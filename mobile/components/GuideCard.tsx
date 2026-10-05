@@ -8,7 +8,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import type { TourGuide } from '@gearup/shared';
 import { colors } from '../theme';
-
+import { imgSrc } from '../lib/images';
 interface Props {
   guide: TourGuide;
   onPress: () => void;
@@ -27,7 +27,7 @@ export function GuideCard({ guide, onPress }: Props) {
       <View style={styles.imageWrap}>
         {guide.campsite?.image_url ? (
           <Image
-            source={{ uri: guide.campsite.image_url }}
+            source={{ uri: imgSrc(guide.campsite.image_url) }}
             style={styles.image}
           />
         ) : (

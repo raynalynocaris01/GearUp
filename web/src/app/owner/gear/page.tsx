@@ -2,7 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { cookies } from 'next/headers';
 import { DeleteGearButton } from '@/components/owner/DeleteGearButton';
-
+import { appImageSrc } from '@/components/AppImage';
 const API_URL = process.env.NEXT_PUBLIC_API_URL!;
 
 interface GearItem {
@@ -81,7 +81,7 @@ export default async function OwnerGearPage() {
               <div className="relative w-48 shrink-0 bg-gray-100">
                 {g.image_url ? (
                   <Image
-                    src={g.image_url}
+                    src={appImageSrc(g.image_url)}
                     alt={g.name}
                     fill
                     sizes="192px"

@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { events as eventApi, hasToken } from '../../lib/api';
 import type { EventRegistration } from '@gearup/shared';
 import { colors } from '../../theme';
+import { imgSrc } from '../../lib/images';
 
 function formatRange(startIso: string, endIso: string): string {
   const start = new Date(startIso);
@@ -152,7 +153,7 @@ export default function MyEventsScreen() {
                 <View style={styles.thumb}>
                   {item.event?.image_url ? (
                     <Image
-                      source={{ uri: item.event.image_url }}
+                      source={{ uri: imgSrc(item.event.image_url) }}
                       style={styles.thumbImg}
                       resizeMode="cover"
                     />

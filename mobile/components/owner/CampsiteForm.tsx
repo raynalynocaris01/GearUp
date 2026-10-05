@@ -91,6 +91,12 @@ export function CampsiteForm({ mode, initial }: Props) {
 
     setSubmitting(true);
     try {
+      // Build the payload with only the fields we know we have.
+      // image_url is intentionally omitted when a new file is picked —
+      // the upload step sets it server-side.
+      const willUploadNewImage =
+        !!imageUri && imageUri !== initial?.image_url;
+
       const payload = {
         name: form.name.trim(),
         description: form.description.trim(),
@@ -98,8 +104,8 @@ export function CampsiteForm({ mode, initial }: Props) {
         region: form.region.trim(),
         price_per_night: Number(form.price_per_night),
         price_unit: form.price_unit,
-        image_url: form.image_url,
         capacity: Number(form.capacity),
+        ...(willUploadNewImage ? {} : { image_url: form.image_url }),
       };
 
       let campsiteId = initial?.id;

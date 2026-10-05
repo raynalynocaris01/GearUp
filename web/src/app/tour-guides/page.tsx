@@ -2,7 +2,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { cookies } from 'next/headers';
 import { Navbar } from '@/components/Navbar';
-
+import { appImageSrc } from '@/components/AppImage';
 const API_URL = process.env.NEXT_PUBLIC_API_URL!;
 
 interface TourGuide {
@@ -163,7 +163,7 @@ function GuideCard({ guide }: { guide: TourGuide }) {
       <div className="relative h-44 overflow-hidden bg-gearup-50">
         {guide.campsite?.image_url ? (
           <Image
-            src={guide.campsite.image_url}
+            src={appImageSrc(guide.campsite.image_url)}
             alt={guide.name}
             fill
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
