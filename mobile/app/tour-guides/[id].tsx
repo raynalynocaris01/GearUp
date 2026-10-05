@@ -217,6 +217,37 @@ export default function TourGuideDetailScreen() {
             {price > 0 && (
               <Text style={styles.rateUnit}>per trip</Text>
             )}
+            {guide.is_independent ? (
+              <TouchableOpacity
+                style={styles.bookBtn}
+                onPress={() =>
+                  router.push(`/tour-guides/${guide.id}/book` as any)
+                }
+                activeOpacity={0.85}
+              >
+                <Ionicons name="calendar-outline" size={18} color="#fff" />
+                <Text style={styles.bookBtnText}>Book this guide</Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                style={styles.bookBtnSecondary}
+                onPress={() =>
+                  guide.campsite
+                    ? router.push(`/campsite/${guide.campsite.id}` as any)
+                    : undefined
+                }
+                activeOpacity={0.85}
+              >
+                <Ionicons
+                  name="information-circle-outline"
+                  size={18}
+                  color={colors.gearupGreen}
+                />
+                <Text style={styles.bookBtnSecondaryText}>
+                  Book via campsite
+                </Text>
+              </TouchableOpacity>
+            )}
           </View>
         </View>
       </ScrollView>
@@ -411,5 +442,41 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#166534',
     marginTop: 2,
+  },
+  bookBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: colors.gearupGreen,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 10,
+    marginTop: 16,
+    alignSelf: 'stretch',
+  },
+  bookBtnText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '800',
+  },
+  bookBtnSecondary: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: colors.gearupGreen,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 10,
+    marginTop: 16,
+    alignSelf: 'stretch',
+  },
+  bookBtnSecondaryText: {
+    color: colors.gearupGreen,
+    fontSize: 14,
+    fontWeight: '800',
   },
 });

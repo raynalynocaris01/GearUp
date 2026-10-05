@@ -11,7 +11,8 @@ export default function RootLayout() {
         <Stack.Screen name="my-gear/index" />
         <Stack.Screen name="my-gear/new" />
         <Stack.Screen name="my-gear/[id]/edit" />
-         <Stack.Screen name="my-gear/bookings" />
+        <Stack.Screen name="my-gear/bookings" />
+        <Stack.Screen name="tour-guides/[id]/book" />
         <Stack.Screen name="signup" />
       </Stack>
       <StatusBar style="auto" />
