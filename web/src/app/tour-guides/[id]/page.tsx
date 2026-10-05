@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { cookies } from 'next/headers';
 import { Navbar } from '@/components/Navbar';
+import { BookGuideButton } from '@/components/BookGuideButton';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL!;
 
@@ -232,13 +233,13 @@ export default async function TourGuideDetailPage({
             )}
           </div>
 
-          {/* Right: booking card */}
+                    {/* Right: booking card */}
           <div className="lg:col-span-1">
             <div className="sticky top-24 bg-white border border-gray-100 rounded-2xl shadow-lg p-6">
               <div className="flex items-baseline justify-between">
                 <div>
                   <p className="text-3xl font-black text-gearup-600">
-                    {price > 0 ? `₱${price.toFixed(0)}` : 'Contact'}
+                    {price > 0 ? `PHP ${price.toFixed(0)}` : 'Contact'}
                   </p>
                   <p className="text-sm text-gray-500">per trip</p>
                 </div>
@@ -246,9 +247,20 @@ export default async function TourGuideDetailPage({
 
               <hr className="my-6 border-gray-100" />
 
+              {guide.is_independent ? (
+                <BookGuideButton guide={guide} isLoggedIn={!!user} />
+              ) : (
+                <Link
+                  href={`/campsites/${guide.campsite?.id ?? ''}`}
+                  className="block w-full bg-gearup-600 hover:bg-gearup-700 text-white font-semibold text-center py-3 rounded-lg transition"
+                >
+                  Book via campsite
+                </Link>
+              )}
+
               <Link
                 href="/tour-guides"
-                className="block w-full bg-gearup-600 hover:bg-gearup-700 text-white font-semibold text-center py-3 rounded-lg transition"
+                className="block w-full text-center text-xs font-medium text-gray-500 hover:text-gearup-600 mt-3"
               >
                 Browse more guides
               </Link>
@@ -256,7 +268,7 @@ export default async function TourGuideDetailPage({
               <p className="text-xs text-gray-500 text-center mt-3">
                 {guide.campsite
                   ? 'Book this guide when you reserve the campsite.'
-                  : 'Contact the guide directly to arrange a booking.'}
+                  : 'Independent guide - book directly here.'}
               </p>
             </div>
           </div>
