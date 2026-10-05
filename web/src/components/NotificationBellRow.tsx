@@ -2,12 +2,14 @@
 
 import { useEffect, useState } from 'react';
 
-interface Props {
+ interface Props {
   href?: string;
+  variant?: 'light' | 'dark';
 }
 
 export function NotificationBellRow({
   href = '/owner/notifications',
+  variant = 'light',
 }: Props) {
   const [count, setCount] = useState(0);
 
@@ -40,10 +42,16 @@ export function NotificationBellRow({
     };
   }, []);
 
+  const containerClass =
+    variant === 'dark'
+      ? 'text-white/70 hover:bg-white/10 hover:text-white'
+      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900';
+  const zeroClass = variant === 'dark' ? 'text-white/40' : 'text-gray-400';
+
   return (
     <a
       href={href}
-      className="w-full flex items-center gap-3 px-5 py-3 text-sm font-semibold text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition"
+      className={`w-full flex items-center gap-3 px-5 py-3 text-sm font-semibold transition ${containerClass}`}
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -65,7 +73,7 @@ export function NotificationBellRow({
           {count > 99 ? '99+' : count}
         </span>
       ) : (
-        <span className="ml-auto text-[10px] text-gray-400">0</span>
+        <span className={`ml-auto text-[10px] ${zeroClass}`}>0</span>
       )}
     </a>
   );

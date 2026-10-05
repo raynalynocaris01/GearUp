@@ -1,6 +1,8 @@
+import { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { notifications as notifApi } from '../../lib/api';
 
 interface Props {
   adminName: string;
@@ -53,6 +55,26 @@ export function AdminDrawerContent({
 }: Props) {
   const router = useRouter();
   const initial = adminName.charAt(0).toUpperCase();
+
+  const [unread, setUnread] = useState(0);
+
+  useEffect(() => {
+    let active = true;
+    const load = async () => {
+      try {
+        const res = await notifApi.unreadCount();
+        if (active) setUnread(res.data.count ?? 0);
+      } catch {
+        // silent
+      }
+    };
+    load();
+    const interval = setInterval(load, 30000);
+    return () => {
+      active = false;
+      clearInterval(interval);
+    };
+  }, []);
 
   const go = (href: string) => {
     onClose();
@@ -113,6 +135,32 @@ export function AdminDrawerContent({
       </View>
 
       <View style={{ flex: 1 }} />
+
+      {/* Notifications */}
+      <TouchableOpacity
+        style={styles.notifRow}
+        activeOpacity={0.8}
+        onPress={() => {
+          onClose();
+          router.push('/admin/notifications' as any);
+        }}
+      >
+        <Ionicons
+          name="notifications-outline"
+          size={18}
+          color="rgba(255,255,255,0.7)"
+        />
+        <Text style={styles.notifLabel}>Notifications</Text>
+        {unread > 0 ? (
+          <View style={styles.notifBadge}>
+            <Text style={styles.notifBadgeText}>
+              {unread > 99 ? '99+' : unread}
+            </Text>
+          </View>
+        ) : (
+          <Text style={styles.notifZero}>0</Text>
+        )}
+      </TouchableOpacity>
 
       {/* Secondary */}
       <TouchableOpacity
@@ -262,6 +310,40 @@ const styles = StyleSheet.create({
   },
   navLabelActive: {
     color: '#fff',
+  },
+  notifRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingHorizontal: 24,
+    paddingVertical: 14,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.08)',
+  },
+  notifLabel: {
+    flex: 1,
+    fontSize: 13,
+    fontWeight: '600',
+    color: 'rgba(255,255,255,0.75)',
+  },
+  notifBadge: {
+    minWidth: 20,
+    height: 20,
+    paddingHorizontal: 6,
+    borderRadius: 10,
+    backgroundColor: '#dc2626',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  notifBadgeText: {
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: '800',
+  },
+  notifZero: {
+    fontSize: 11,
+    color: 'rgba(255,255,255,0.4)',
+    fontWeight: '700',
   },
   secondary: {
     flexDirection: 'row',

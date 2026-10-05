@@ -86,6 +86,13 @@ export default function AdminLayout() {
       <Drawer.Screen name="bookings" options={{ title: 'Bookings' }} />
       <Drawer.Screen name="reviews" options={{ title: 'Reviews' }} />
       <Drawer.Screen name="events" options={{ title: 'Events' }} />
+      <Drawer.Screen
+        name="notifications"
+        options={{
+          title: 'Notifications',
+          drawerItemStyle: { display: 'none' },
+        }}
+      />
     </Drawer>
   );
 }

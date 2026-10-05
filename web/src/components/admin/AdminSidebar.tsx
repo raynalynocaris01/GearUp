@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState } from 'react';
 import type { ReactNode } from 'react';
+import { NotificationBellRow } from '@/components/NotificationBellRow';
 
 type IconName =
   | 'dashboard'
@@ -206,6 +207,8 @@ export function AdminSidebar({
 
       {/* Bottom */}
       <div className="border-t border-white/10 shrink-0 pb-14">
+        <NotificationBellRow href="/admin/notifications" variant="dark" />
+
         {/* User block */}
         <div className="px-4 py-3 flex items-center gap-3">
           <div className="w-9 h-9 rounded-full bg-gearup-600 text-white flex items-center justify-center font-bold text-sm shrink-0">
