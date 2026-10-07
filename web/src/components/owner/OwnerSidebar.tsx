@@ -167,7 +167,7 @@ export function OwnerSidebar({
       {/* Brand */}
       <Link
         href="/"
-        className="flex items-center gap-3 px-5 py-4 border-b border-gray-100 shrink-0"
+        className="flex items-center gap-3 px-5 py-3.5 border-b border-gray-100 shrink-0"
       >
         <Image
           src="/logo.png"
@@ -183,7 +183,7 @@ export function OwnerSidebar({
       </Link>
 
       {/* Owner context */}
-      <div className="px-5 py-3 border-b border-gray-100 shrink-0">
+      <div className="px-5 py-2.5 border-b border-gray-100 shrink-0">
         <p className="text-[11px] uppercase tracking-wider text-gray-400 font-semibold">
           {campName ?? 'Owner Dashboard'}
         </p>
@@ -193,7 +193,7 @@ export function OwnerSidebar({
       </div>
 
       {/* Nav (scrollable) */}
-      <nav className="flex-1 overflow-y-auto px-2 py-2 min-h-0">
+      <nav className="flex-1 overflow-y-auto px-2 py-1 min-h-0">
         <div className="space-y-0.5">
           {NAV.map((item) => {
             const active = isActive(item);
@@ -202,7 +202,7 @@ export function OwnerSidebar({
                 key={item.href}
                 href={item.href}
                 onClick={() => setMobileOpen(false)}
-                className={`flex items-center gap-3 px-3 py-2.5 text-sm font-semibold rounded-lg transition ${
+                className={`flex items-center gap-3 px-3 py-2 text-sm font-semibold rounded-lg transition ${
                   active
                     ? 'bg-gearup-50 text-gearup-700'
                     : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
@@ -219,13 +219,13 @@ export function OwnerSidebar({
       </nav>
 
             {/* Bottom (fixed) */}
-      <div className="border-t border-gray-100 shrink-0 pb-16">
+      <div className="border-t border-gray-100 shrink-0 pb-4">
         
                 {/* Notification bell */}
          <NotificationBellRow href="/owner/notifications" />
 
         {/* User block */}
-        <div className="px-5 py-4 border-t border-gray-100 flex items-center gap-3">
+        <div className="px-5 py-3 border-t border-gray-100 flex items-center gap-3">
           <div className="w-9 h-9 rounded-full bg-gearup-600 text-white flex items-center justify-center font-bold text-sm shrink-0">
             {initial}
           </div>
@@ -246,14 +246,14 @@ export function OwnerSidebar({
           type="button"
           onClick={handleLogout}
           disabled={loggingOut}
-          className="w-full text-left px-5 py-3 text-sm font-semibold text-red-600 hover:bg-red-50 transition disabled:opacity-50 border-t border-gray-100 flex items-center gap-3"
+          className="w-full text-left px-5 py-2.5 text-sm font-semibold text-red-600 hover:bg-red-50 transition disabled:opacity-50 border-t border-gray-100 flex items-center gap-3"
         >
           <Icon name="logout" size={20} />
           <span>{loggingOut ? 'Logging out...' : 'Log out'}</span>
         </button>
 
         {/* Back to GearUp */}
-        <div className="px-5 py-4 border-t border-gray-100">
+        <div className="px-5 py-3 border-t border-gray-100">
           <Link
             href="/"
             className="inline-flex items-center gap-2 text-xs font-medium text-gray-500 hover:text-gearup-600 transition"

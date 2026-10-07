@@ -154,7 +154,7 @@ export function AdminSidebar({
       {/* Brand */}
       <Link
         href="/admin"
-        className="flex items-center gap-3 px-5 py-5 border-b border-white/10 shrink-0"
+        className="flex items-center gap-3 px-5 py-4 border-b border-white/10 shrink-0"
       >
         <Image
           src="/logo.png"
@@ -174,7 +174,7 @@ export function AdminSidebar({
       </Link>
 
       {/* Nav (scrollable) */}
-      <nav className="flex-1 overflow-y-auto px-2 py-3 min-h-0">
+      <nav className="flex-1 overflow-y-auto px-2 py-2 min-h-0">
         <div className="space-y-0.5">
           {NAV.map((item) => {
             const active = isActive(item);
@@ -187,7 +187,7 @@ export function AdminSidebar({
                 key={item.href}
                 href={item.href}
                 onClick={() => setMobileOpen(false)}
-                className={`relative flex items-center gap-3 px-3 py-2.5 text-sm font-semibold rounded-lg transition ${
+                className={`relative flex items-center gap-3 px-3 py-2 text-sm font-semibold rounded-lg transition ${
                   active
                     ? 'bg-white/15 text-white'
                     : 'text-white/70 hover:bg-white/10 hover:text-white'
@@ -216,11 +216,11 @@ export function AdminSidebar({
       </nav>
 
       {/* Bottom */}
-      <div className="border-t border-white/10 shrink-0 pb-14">
+      <div className="border-t border-white/10 shrink-0 pb-8">
         <NotificationBellRow href="/admin/notifications" variant="dark" />
 
         {/* User block */}
-        <div className="px-4 py-3 flex items-center gap-3">
+        <div className="px-4 py-2.5 flex items-center gap-3">
           <div className="w-9 h-9 rounded-full bg-gearup-600 text-white flex items-center justify-center font-bold text-sm shrink-0">
             {initial}
           </div>
@@ -241,7 +241,7 @@ export function AdminSidebar({
           type="button"
           onClick={handleLogout}
           disabled={loggingOut}
-          className="w-full text-left px-4 py-2.5 text-sm font-semibold text-red-200/90 hover:bg-red-500/15 hover:text-red-100 transition disabled:opacity-50 flex items-center gap-3"
+          className="w-full text-left px-4 py-2 text-sm font-semibold text-red-200/90 hover:bg-red-500/15 hover:text-red-100 transition disabled:opacity-50 flex items-center gap-3"
         >
           <Icon name="logout" size={18} />
           <span>{loggingOut ? 'Logging out...' : 'Log out'}</span>
