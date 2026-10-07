@@ -208,6 +208,7 @@ export interface OwnerDashboardChart {
 export interface TourGuide {
   id: number;
   campsite_id: number | null;
+  created_by: number | null;
   name: string;
   contact_number: string;
   email: string | null;
@@ -223,6 +224,11 @@ export interface TourGuide {
     location: string;
     image_url: string;
     owner_id: number | null;
+  } | null;
+  creator?: {
+    id: number;
+    name: string;
+    email: string;
   } | null;
 }
 
@@ -242,8 +248,9 @@ export interface CreateTourGuidePayload {
   contact_number: string;
   email?: string;
   description?: string;
-  price_per_trip: number;
+  price_per_trip?: number;
   location?: string;
+  campsite_id?: number | null;
 }
 export interface AppNotification {
   id: number;
@@ -307,6 +314,10 @@ export const ownerApi = (client: ApiClient) => ({
       ...payload,
       is_independent: true,
     }),
+
+  // Update an existing guide
+  updateGuide: (id: number | string, payload: Partial<CreateTourGuidePayload>) =>
+    client.put<TourGuide>(`/owner/tour-guides/${id}`, payload),
     
       // Reviews
   listReviews: (limit = 3) =>
@@ -456,6 +467,21 @@ export const adminApi = (client: ApiClient) => ({
   // Events
   listEvents: (params?: { published?: boolean; limit?: number }) =>
     client.get<EventItem[]>('/admin/events', { params }),
+
+  // Tour guides
+  listTourGuides: (params?: { independent?: boolean }) =>
+    client.get<TourGuide[]>('/admin/tour-guides', { params }),
+
+  createTourGuide: (payload: CreateTourGuidePayload) =>
+    client.post<TourGuide>('/admin/tour-guides', payload),
+
+  updateTourGuide: (
+    id: number | string,
+    payload: Partial<CreateTourGuidePayload>,
+  ) => client.put<TourGuide>(`/admin/tour-guides/${id}`, payload),
+
+  deleteTourGuide: (id: number | string) =>
+    client.delete<{ message: string }>(`/admin/tour-guides/${id}`),
 });
 
 // ──────────────────────────────────────────────────────────
