@@ -305,14 +305,20 @@ export default async function OwnerDashboardPage() {
           >
             Manage Campsites
           </Link>
-          <Link
-            href="/owner/gear"
-            className="border border-gray-200 hover:bg-gray-50 text-gray-800 font-semibold text-sm px-5 py-3 rounded-lg transition"
-          >
-            Manage Gear
-          </Link>
-          <Link
-            href="/owner/bookings"
+                      <Link
+              href="/owner/gear"
+              className="border border-gray-200 hover:bg-gray-50 text-gray-800 font-semibold text-sm px-5 py-3 rounded-lg transition"
+            >
+              Manage Gear
+            </Link>
+            <Link
+              href="/owner/tour-guides"
+              className="border border-gray-200 hover:bg-gray-50 text-gray-800 font-semibold text-sm px-5 py-3 rounded-lg transition"
+            >
+              Manage Tour Guides
+            </Link>
+            <Link
+              href="/owner/bookings"
             className="border border-gray-200 hover:bg-gray-50 text-gray-800 font-semibold text-sm px-5 py-3 rounded-lg transition"
           >
             View Bookings

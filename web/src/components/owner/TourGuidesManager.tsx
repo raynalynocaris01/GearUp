@@ -9,6 +9,7 @@ interface TourGuide {
   contact_number: string;
   email: string | null;
   description: string | null;
+  price_per_trip?: string;
 }
 
 interface Props {
@@ -27,12 +28,19 @@ export function TourGuidesManager({ campsiteId, initialGuides }: Props) {
   const [form, setForm] = useState({
     name: '',
     contact_number: '',
+    price_per_trip: '',
     email: '',
     description: '',
   });
 
   const resetForm = () =>
-    setForm({ name: '', contact_number: '', email: '', description: '' });
+    setForm({
+      name: '',
+      contact_number: '',
+      price_per_trip: '',
+      email: '',
+      description: '',
+    });
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,6 +56,9 @@ export function TourGuidesManager({ campsiteId, initialGuides }: Props) {
           body: JSON.stringify({
             name: form.name,
             contact_number: form.contact_number,
+            price_per_trip: form.price_per_trip
+              ? Number(form.price_per_trip)
+              : 0,
             email: form.email || undefined,
             description: form.description || undefined,
           }),
@@ -113,11 +124,19 @@ export function TourGuidesManager({ campsiteId, initialGuides }: Props) {
               key={g.id}
               className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex items-start justify-between gap-4"
             >
-              <div className="flex-1">
-                <h3 className="font-bold text-gray-900">{g.name}</h3>
+                            <div className="flex-1">
+                <div className="flex items-center justify-between gap-3">
+                  <h3 className="font-bold text-gray-900">{g.name}</h3>
+                  {g.price_per_trip && Number(g.price_per_trip) > 0 && (
+                    <span className="text-sm font-bold text-gearup-600 shrink-0">
+                      PHP {Number(g.price_per_trip).toFixed(0)}
+                    </span>
+                  )}
+                </div>
                 <p className="text-sm text-gray-600 mt-1">
-                  📞 {g.contact_number}
+                  {g.contact_number}
                 </p>
+
                 {g.email && (
                   <p className="text-sm text-gray-600">✉️ {g.email}</p>
                 )}
@@ -199,6 +218,23 @@ export function TourGuidesManager({ campsiteId, initialGuides }: Props) {
                 className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gearup-600 focus:border-transparent"
               />
             </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              Price per trip (PHP)
+            </label>
+            <input
+              type="number"
+              min={0}
+              step="0.01"
+              value={form.price_per_trip}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, price_per_trip: e.target.value }))
+              }
+              placeholder="e.g. 1800"
+              className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gearup-600 focus:border-transparent"
+            />
           </div>
 
           <div>
