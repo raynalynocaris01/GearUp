@@ -14,6 +14,7 @@ type IconName =
   | 'bookings'
   | 'reviews'
   | 'events'
+  | 'tourGuides'
   | 'logout'
   | 'arrowLeft';
 
@@ -31,6 +32,7 @@ const NAV: NavItem[] = [
   { href: '/admin/bookings', label: 'Bookings', icon: 'bookings' },
   { href: '/admin/reviews', label: 'Reviews', icon: 'reviews' },
   { href: '/admin/events', label: 'Events', icon: 'events' },
+  { href: '/admin/tour-guides', label: 'Tour Guides', icon: 'tourGuides' },
 ];
 
 function Icon({ name, size = 18 }: { name: IconName; size?: number }) {
@@ -87,6 +89,14 @@ function Icon({ name, size = 18 }: { name: IconName; size?: number }) {
     events: (
       <>
         <path d="M12 2l2.4 4.8 5.3.8-3.8 3.7.9 5.3L12 14.2l-4.8 2.4.9-5.3L4.3 7.6l5.3-.8L12 2z" />
+      </>
+    ),
+    tourGuides: (
+      <>
+        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+        <circle cx="9" cy="7" r="4" />
+        <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
       </>
     ),
     logout: (
