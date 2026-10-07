@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\BookingController as AdminBookingController;
 use App\Http\Controllers\Admin\CampsiteController as AdminCampsiteController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
  use App\Http\Controllers\Admin\UserController as AdminUserController;
+use App\Http\Controllers\Admin\TourGuideController as AdminTourGuideController;
 use App\Http\Controllers\Admin\ReviewController as AdminReviewController;
 use App\Http\Controllers\Admin\EventController as AdminEventController;
 use Illuminate\Support\Facades\Route;
@@ -166,4 +167,10 @@ Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(functi
 
     // Events
     Route::get('/events', [AdminEventController::class, 'index']);
+
+    // Tour guides
+    Route::get('/tour-guides', [AdminTourGuideController::class, 'index']);
+    Route::post('/tour-guides', [AdminTourGuideController::class, 'store']);
+    Route::put('/tour-guides/{tourGuide}', [AdminTourGuideController::class, 'update']);
+    Route::delete('/tour-guides/{tourGuide}', [AdminTourGuideController::class, 'destroy']);
 });

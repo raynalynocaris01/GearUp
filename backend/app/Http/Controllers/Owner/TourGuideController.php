@@ -52,6 +52,7 @@ class TourGuideController extends Controller
 
         $data = $request->validate($this->guideRules());
         $data['created_by'] = $request->user()->id;
+        $data['price_per_trip'] = $data['price_per_trip'] ?? 0;
 
         $guide = $campsite->tourGuides()->create($data);
 
@@ -69,6 +70,7 @@ class TourGuideController extends Controller
         $data['is_independent'] = true;
         $data['campsite_id'] = null;
         $data['created_by'] = $request->user()->id;
+        $data['price_per_trip'] = $data['price_per_trip'] ?? 0;
 
         $guide = TourGuide::create($data);
 
@@ -109,7 +111,7 @@ class TourGuideController extends Controller
             'contact_number' => ['required', 'string', 'max:50'],
             'email' => ['nullable', 'email', 'max:255'],
             'description' => ['nullable', 'string', 'max:1000'],
-            'price_per_trip' => ['required', 'numeric', 'min:0'],
+            'price_per_trip' => ['nullable', 'numeric', 'min:0'],
             'location' => ['nullable', 'string', 'max:255'],
         ];
     }
