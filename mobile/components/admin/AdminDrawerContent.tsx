@@ -45,6 +45,12 @@ const NAV: NavItem[] = [
     icon: 'sparkles-outline',
     href: '/admin/events',
   },
+  {
+    key: 'tour-guides',
+    label: 'Tour Guides',
+    icon: 'compass-outline',
+    href: '/admin/tour-guides',
+  },
 ];
 
 export function AdminDrawerContent({

@@ -86,6 +86,7 @@ export default function AdminLayout() {
       <Drawer.Screen name="bookings" options={{ title: 'Bookings' }} />
       <Drawer.Screen name="reviews" options={{ title: 'Reviews' }} />
       <Drawer.Screen name="events" options={{ title: 'Events' }} />
+      <Drawer.Screen name="tour-guides" options={{ title: 'Tour Guides' }} />
       <Drawer.Screen
         name="notifications"
         options={{
