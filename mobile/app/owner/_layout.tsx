@@ -115,6 +115,7 @@ export default function OwnerLayout() {
       <Drawer.Screen name="campsites" options={{ title: 'Campsites' }} />
       <Drawer.Screen name="gear" options={{ title: 'Gear' }} />
       <Drawer.Screen name="events" options={{ title: 'Events' }} />
+      <Drawer.Screen name="tour-guides" options={{ title: 'Tour Guides' }} />
       <Drawer.Screen name="reviews" options={{ title: 'Reviews' }} />
       <Drawer.Screen name="settings" options={{ title: 'Settings' }} />
       <Drawer.Screen

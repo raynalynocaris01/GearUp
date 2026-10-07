@@ -266,6 +266,32 @@ setReviews(reviewsRes.data);
                   color="#9ca3af"
                 />
               </TouchableOpacity>
+
+              <View style={styles.divider} />
+
+              <TouchableOpacity
+                style={styles.actionRow}
+                onPress={() => router.push('/owner/tour-guides')}
+              >
+                <View style={styles.actionIconWrap}>
+                  <Ionicons
+                    name="people-outline"
+                    size={22}
+                    color={colors.gearupGreen}
+                  />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.actionLabel}>Manage tour guides</Text>
+                  <Text style={styles.actionHint}>
+                    Add or remove guides on your listings
+                  </Text>
+                </View>
+                <Ionicons
+                  name="chevron-forward"
+                  size={20}
+                  color="#9ca3af"
+                />
+              </TouchableOpacity>
             </View>
           </>
         )}
