@@ -203,6 +203,7 @@ class DemoSeeder extends Seeder
         // ─── Tour Guides (attached) ─────────────────────
         TourGuide::create([
             'campsite_id' => $grandiVista->id,
+            'created_by' => $owner1->id,
             'name' => 'Raynalyn Ocaris',
             'contact_number' => '0960-877-2220',
             'email' => 'raynalyn@guide.test',
@@ -213,6 +214,7 @@ class DemoSeeder extends Seeder
 
         TourGuide::create([
             'campsite_id' => $talinis->id,
+            'created_by' => $owner2->id,
             'name' => 'Juan Dela Cruz',
             'contact_number' => '0917-123-4567',
             'email' => 'juan@guide.test',
@@ -223,6 +225,7 @@ class DemoSeeder extends Seeder
 
         TourGuide::create([
             'campsite_id' => $pulangbato->id,
+            'created_by' => $owner1->id,
             'name' => 'Marco Reyes',
             'contact_number' => '0918-777-1111',
             'email' => 'marco@guide.test',
@@ -234,6 +237,7 @@ class DemoSeeder extends Seeder
         // ─── Tour Guides (independent) ──────────────────
         TourGuide::create([
             'campsite_id' => null,
+            'created_by' => $owner1->id,
             'name' => 'Isabel Torres',
             'contact_number' => '0917-555-8888',
             'email' => 'isabel@guide.test',
@@ -245,6 +249,7 @@ class DemoSeeder extends Seeder
 
         TourGuide::create([
             'campsite_id' => null,
+            'created_by' => $owner3->id,
             'name' => 'Ben Aquino',
             'contact_number' => '0917-222-3333',
             'email' => 'ben@guide.test',
