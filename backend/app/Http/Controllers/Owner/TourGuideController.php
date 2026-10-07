@@ -26,7 +26,7 @@ class TourGuideController extends Controller
      * "Owned" means: guides attached to the user's campsites
      * OR independent guides the user created.
      */
-    public function all(Request $request)
+        public function all(Request $request)
     {
         $userId = $request->user()->id;
 
@@ -35,13 +35,7 @@ class TourGuideController extends Controller
         $guides = TourGuide::with('campsite:id,name')
             ->where(function ($q) use ($campsiteIds, $userId) {
                 $q->whereIn('campsite_id', $campsiteIds)
-                  ->orWhere(function ($q2) use ($userId) {
-                      // Independent guides created by this user.
-                      // We'll add a user_id column? No — instead use is_independent
-                      // + the owner who created them. But we don't have created_by.
-                      // Simpler: independent guides are globally visible for now.
-                      $q2->where('is_independent', true);
-                  });
+                  ->orWhere('created_by', $userId);
             })
             ->orderByDesc('created_at')
             ->get();
@@ -57,6 +51,7 @@ class TourGuideController extends Controller
         $this->authorizeOwner($request, $campsite);
 
         $data = $request->validate($this->guideRules());
+        $data['created_by'] = $request->user()->id;
 
         $guide = $campsite->tourGuides()->create($data);
 
@@ -73,6 +68,7 @@ class TourGuideController extends Controller
 
         $data['is_independent'] = true;
         $data['campsite_id'] = null;
+        $data['created_by'] = $request->user()->id;
 
         $guide = TourGuide::create($data);
 
@@ -80,13 +76,26 @@ class TourGuideController extends Controller
     }
 
     /**
+     * PUT /api/owner/tour-guides/{tourGuide}
+     * Update a guide the authenticated user owns.
+     */
+    public function update(Request $request, TourGuide $tourGuide)
+    {
+        $this->authorizeGuide($request, $tourGuide);
+
+        $data = $request->validate($this->guideRules());
+
+        $tourGuide->update($data);
+
+        return response()->json($tourGuide->fresh('campsite'));
+    }
+
+    /**
      * DELETE /api/owner/tour-guides/{tourGuide}
      */
     public function destroy(Request $request, TourGuide $tourGuide)
     {
-        if ($tourGuide->campsite) {
-            $this->authorizeOwner($request, $tourGuide->campsite);
-        }
+        $this->authorizeGuide($request, $tourGuide);
 
         $tourGuide->delete();
 
@@ -110,5 +119,25 @@ class TourGuideController extends Controller
         if ($campsite->owner_id !== $request->user()->id) {
             abort(403, 'You do not own this campsite.');
         }
+    }
+
+    /**
+     * A guide is "owned" if:
+     * - The user created it (created_by matches), OR
+     * - It's attached to a campsite the user owns.
+     */
+    private function authorizeGuide(Request $request, TourGuide $tourGuide): void
+    {
+        $userId = $request->user()->id;
+
+        if ($tourGuide->created_by === $userId) {
+            return;
+        }
+
+        if ($tourGuide->campsite && $tourGuide->campsite->owner_id === $userId) {
+            return;
+        }
+
+        abort(403, 'You do not own this tour guide.');
     }
 }

@@ -12,6 +12,7 @@ class TourGuide extends Model
 
     protected $fillable = [
         'campsite_id',
+        'created_by',
         'name',
         'contact_number',
         'email',
@@ -29,6 +30,11 @@ class TourGuide extends Model
     public function campsite(): BelongsTo
     {
         return $this->belongsTo(Campsite::class);
+    }
+
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
     }
 
     public function bookings()
