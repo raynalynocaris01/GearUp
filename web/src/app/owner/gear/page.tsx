@@ -2,7 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { cookies } from 'next/headers';
 import { DeleteGearButton } from '@/components/owner/DeleteGearButton';
-import { appImageSrc } from '@/components/AppImage';
+import { appImageSrc } from '@/components/AppImage';  
 const API_URL = process.env.NEXT_PUBLIC_API_URL!;
 
 interface GearItem {
@@ -47,12 +47,20 @@ export default async function OwnerGearPage() {
             {gear.length} {gear.length === 1 ? 'item' : 'items'} listed
           </p>
         </div>
-        <Link
-          href="/owner/gear/new"
-          className="bg-gearup-600 hover:bg-gearup-700 text-white font-semibold text-sm px-5 py-3 rounded-lg transition"
-        >
-          + Add Gear Item
-        </Link>
+        <div className="flex items-center gap-3">
+          <Link
+            href="/my-gear/bookings"
+            className="text-sm font-semibold text-gray-700 border border-gray-200 hover:bg-gray-50 px-5 py-3 rounded-lg transition"
+          >
+            View rentals
+          </Link>
+          <Link
+            href="/owner/gear/new"
+            className="bg-gearup-600 hover:bg-gearup-700 text-white font-semibold text-sm px-5 py-3 rounded-lg transition"
+          >
+            + Add Gear Item
+          </Link>
+        </div>
       </div>
 
       {gear.length === 0 ? (

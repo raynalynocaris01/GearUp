@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import type { Booking } from '@gearup/shared';
 import { MyGearBookingActions } from '@/components/MyGearBookingActions';
 import { appImageSrc } from '@/components/AppImage';
@@ -116,7 +117,7 @@ export function MyGearBookingsClient({ bookings }: { bookings: Booking[] }) {
                   Status
                 </th>
                 <th className="text-right text-xs font-bold text-gray-500 uppercase tracking-wider px-5 py-3">
-                  Total
+                  Your share
                 </th>
                 <th className="text-right text-xs font-bold text-gray-500 uppercase tracking-wider px-5 py-3">
                   Actions
@@ -129,10 +130,18 @@ export function MyGearBookingsClient({ bookings }: { bookings: Booking[] }) {
                   <td className="px-5 py-4">
                     <div className="flex items-center gap-3">
                       <div className="relative w-11 h-11 rounded-lg overflow-hidden bg-gray-100 shrink-0">
-                        {b.gear_item?.image_url ? (
+                        {(b.gear_items?.[0]?.image_url ??
+                          b.gear_item?.image_url) ? (
                           <Image
-                            src={appImageSrc(b.gear_item.image_url)}
-                            alt={b.gear_item.name}
+                            src={appImageSrc(
+                              b.gear_items?.[0]?.image_url ??
+                                b.gear_item!.image_url!,
+                            )}
+                            alt={
+                              b.gear_items?.[0]?.name ??
+                              b.gear_item?.name ??
+                              'Gear'
+                            }
                             fill
                             sizes="44px"
                             className="object-cover"
@@ -141,14 +150,35 @@ export function MyGearBookingsClient({ bookings }: { bookings: Booking[] }) {
                         ) : null}
                       </div>
                       <div className="min-w-0">
-                        <p className="font-semibold text-gray-900 text-sm truncate">
-                          {b.gear_item?.name ?? 'Gear item'}
-                        </p>
-                        {b.gear_quantity ? (
-                          <p className="text-xs text-gray-500">
-                            Qty {b.gear_quantity}
-                          </p>
-                        ) : null}
+                        {b.gear_items && b.gear_items.length > 0 ? (
+                          <>
+                            <p className="font-semibold text-gray-900 text-sm truncate">
+                              {b.gear_items[0].name}
+                              {b.gear_items.length > 1
+                                ? ` +${b.gear_items.length - 1} more`
+                                : ''}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {b.gear_items
+                                .map(
+                                  (l) =>
+                                    `${l.pivot.quantity}\u00d7 ${l.name}`,
+                                )
+                                .join(', ')}
+                            </p>
+                          </>
+                        ) : (
+                          <>
+                            <p className="font-semibold text-gray-900 text-sm truncate">
+                              {b.gear_item?.name ?? 'Gear rental'}
+                            </p>
+                            {b.gear_quantity ? (
+                              <p className="text-xs text-gray-500">
+                                Qty {b.gear_quantity}
+                              </p>
+                            ) : null}
+                          </>
+                        )}
                       </div>
                     </div>
                   </td>
@@ -175,11 +205,31 @@ export function MyGearBookingsClient({ bookings }: { bookings: Booking[] }) {
                   </td>
                   <td className="px-5 py-4 text-right">
                     <p className="text-sm font-black text-gearup-600">
-                      PHP {b.total_price}
+                      PHP{' '}
+                      {b.gear_items && b.gear_items.length > 0
+                        ? b.gear_items
+                            .reduce(
+                              (sum, l) =>
+                                sum + parseFloat(l.pivot.subtotal),
+                              0,
+                            )
+                            .toFixed(2)
+                        : b.total_price}
                     </p>
                   </td>
                   <td className="px-5 py-4 text-right">
-                    <MyGearBookingActions bookingId={b.id} status={b.status} />
+                    <div className="flex items-center justify-end gap-3">
+                      <Link
+                        href={`/my-gear/bookings/${b.id}`}
+                        className="text-xs font-semibold text-gearup-600 hover:underline whitespace-nowrap"
+                      >
+                        View
+                      </Link>
+                      <MyGearBookingActions
+                        bookingId={b.id}
+                        status={b.status}
+                      />
+                    </div>
                   </td>
                 </tr>
               ))}

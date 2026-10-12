@@ -18,8 +18,18 @@ class BookingController extends Controller
         $user = $request->user();
         $campsiteIds = $user->campsites()->pluck('id');
         $gearItemIds = $user->gearItems()->pluck('id');
+        $userId = $user->id;
 
-        $bookings = Booking::with(['campsite', 'tourGuide', 'gearItem', 'user:id,name,email'])
+        $bookings = Booking::with([
+            'campsite',
+            'tourGuide',
+            'gearItem',
+            'user:id,name,email',
+            'gearItems' => function ($q) use ($userId) {
+                // Only eager-load the campsite owner's own gear lines
+                $q->where('gear_items.owner_id', $userId);
+            },
+        ])
             ->where(function ($q) use ($campsiteIds, $gearItemIds) {
                 $q->whereIn('campsite_id', $campsiteIds)
                 ->orWhereIn('gear_item_id', $gearItemIds);

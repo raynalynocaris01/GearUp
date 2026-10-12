@@ -21,9 +21,20 @@ class GearBookingController extends Controller
         $query = Booking::with([
             'user:id,name,email',
             'gearItem:id,name,image_url,category,price_per_day,owner_id',
+            'gearItems' => function ($q) use ($userId) {
+                // Only eager-load this host's lines from the pivot
+                $q->where('gear_items.owner_id', $userId);
+            },
         ])
-            ->whereHas('gearItem', function ($q) use ($userId) {
-                $q->where('owner_id', $userId);
+            ->where(function ($q) use ($userId) {
+                // Legacy single-gear bookings
+                $q->whereHas('gearItem', function ($x) use ($userId) {
+                    $x->where('owner_id', $userId);
+                })
+                // Multi-gear pivot bookings
+                ->orWhereHas('gearItems', function ($x) use ($userId) {
+                    $x->where('owner_id', $userId);
+                });
             });
 
         if ($status = $request->query('status')) {
@@ -33,6 +44,29 @@ class GearBookingController extends Controller
         $bookings = $query->orderByDesc('created_at')->get();
 
         return response()->json($bookings);
+    }
+
+    /**
+     * GET /api/my/gear-bookings/{booking}
+     * Returns a single booking with only the authenticated host's
+     * gear lines. Used by the host-side booking detail page.
+     */
+    public function show(Request $request, Booking $booking)
+    {
+        $this->authorizeHost($request, $booking);
+
+        $userId = $request->user()->id;
+
+        $booking->load([
+            'user:id,name,email',
+            'campsite:id,name,location',
+            'gearItem:id,name,image_url,category,price_per_day,owner_id',
+            'gearItems' => function ($q) use ($userId) {
+                $q->where('gear_items.owner_id', $userId);
+            },
+        ]);
+
+        return response()->json($booking);
     }
 
     /**
@@ -122,14 +156,23 @@ class GearBookingController extends Controller
      */
     private function authorizeHost(Request $request, Booking $booking): void
     {
-        $booking->loadMissing('gearItem');
+        $userId = $request->user()->id;
+        $booking->loadMissing(['gearItem', 'gearItems']);
 
-        if (!$booking->gearItem) {
-            abort(404, 'This booking is not for a gear item.');
+        // Legacy single-gear flow: booking.gear_item_id points at one gear item
+        if ($booking->gearItem && $booking->gearItem->owner_id === $userId) {
+            return;
         }
 
-        if ($booking->gearItem->owner_id !== $request->user()->id) {
-            abort(403, 'You do not own this gear item.');
+        // Multi-gear flow: check the pivot table for any line owned by this user
+        if (
+            $booking->gearItems->contains(
+                fn ($item) => $item->owner_id === $userId,
+            )
+        ) {
+            return;
         }
+
+        abort(403, 'This booking is not for one of your gear items.');
     }
 }

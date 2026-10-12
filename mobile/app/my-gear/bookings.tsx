@@ -169,15 +169,39 @@ export default function MyGearBookingsScreen() {
               </Text>
             </View>
           }
-          renderItem={({ item }) => {
+                   renderItem={({ item }) => {
             const pill = statusPill(item.status);
+            const hasPivot =
+              item.gear_items !== undefined && item.gear_items.length > 0;
+            const firstImageUrl = hasPivot
+              ? item.gear_items![0].image_url
+              : item.gear_item?.image_url;
+            const displayName = hasPivot
+              ? item.gear_items![0].name +
+                (item.gear_items!.length > 1
+                  ? ` +${item.gear_items!.length - 1} more`
+                  : '')
+              : item.gear_item?.name ?? 'Gear rental';
+            const shareTotal = hasPivot
+              ? item.gear_items!.reduce(
+                  (sum, l) => sum + parseFloat(l.pivot.subtotal),
+                  0,
+                )
+              : parseFloat(item.total_price);
+
             return (
-              <View style={styles.card}>
+              <TouchableOpacity
+                style={styles.card}
+                activeOpacity={0.85}
+                onPress={() =>
+                  router.push(`/my-gear/bookings/${item.id}` as any)
+                }
+              >
                 <View style={styles.cardTop}>
                   <View style={styles.thumb}>
-                    {item.gear_item?.image_url ? (
+                    {firstImageUrl ? (
                       <Image
-                        source={{ uri: item.gear_item.image_url }}
+                        source={{ uri: firstImageUrl }}
                         style={styles.thumbImg}
                         resizeMode="cover"
                       />
@@ -196,15 +220,24 @@ export default function MyGearBookingsScreen() {
                       </Text>
                     </View>
                     <Text style={styles.cardTitle} numberOfLines={1}>
-                      {item.gear_item?.name ?? 'Gear item'}
+                      {displayName}
                     </Text>
+                    {hasPivot && item.gear_items!.length > 1 && (
+                      <Text style={styles.cardSub} numberOfLines={2}>
+                        {item.gear_items!
+                          .map((l) => `${l.pivot.quantity}x ${l.name}`)
+                          .join(', ')}
+                      </Text>
+                    )}
                     <Text style={styles.cardSub} numberOfLines={1}>
-                      {item.user?.name ?? 'Unknown'} ·{' '}
-                      {fmtDate(item.gear_start_date ?? item.check_in)} →{' '}
+                      {item.user?.name ?? 'Unknown'} -{' '}
+                      {fmtDate(item.gear_start_date ?? item.check_in)} to{' '}
                       {fmtDate(item.gear_end_date ?? item.check_out)}
                     </Text>
                   </View>
-                  <Text style={styles.cardTotal}>PHP {item.total_price}</Text>
+                  <Text style={styles.cardTotal}>
+                    PHP {shareTotal.toFixed(2)}
+                  </Text>
                 </View>
 
                 <MyGearBookingActions
@@ -212,7 +245,7 @@ export default function MyGearBookingsScreen() {
                   status={item.status}
                   onChanged={() => load()}
                 />
-              </View>
+              </TouchableOpacity>
             );
           }}
         />

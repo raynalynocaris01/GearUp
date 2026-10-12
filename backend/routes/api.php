@@ -68,6 +68,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/my/gear/{gearItem}', [MyGearItemController::class, 'update']);
     Route::delete('/my/gear/{gearItem}', [MyGearItemController::class, 'destroy']);
     Route::get('/my/gear-bookings', [MyGearBookingController::class, 'index']);
+    Route::get('/my/gear-bookings/{booking}', [MyGearBookingController::class, 'show']);
     Route::post('/my/gear-bookings/{booking}/confirm', [MyGearBookingController::class, 'confirm']);
     Route::post('/my/gear-bookings/{booking}/complete', [MyGearBookingController::class, 'complete']);
     Route::post('/my/gear-bookings/{booking}/cancel', [MyGearBookingController::class, 'cancel']);
