@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -21,6 +21,7 @@ export default function GearRentalScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
+  const [filter, setFilter] = useState<'all' | 'owner' | 'individual'>('all');
 
   const load = async (showSpinner = false) => {
     if (showSpinner) setLoading(true);
@@ -50,6 +51,23 @@ export default function GearRentalScreen() {
     setRefreshing(true);
     load();
   };
+
+  const counts = useMemo(
+    () => ({
+      all: items.length,
+      owner: items.filter((g) => g.owner?.role === 'owner').length,
+      individual: items.filter((g) => g.owner?.role !== 'owner').length,
+    }),
+    [items],
+  );
+
+  const visible = useMemo(() => {
+    if (filter === 'owner')
+      return items.filter((g) => g.owner?.role === 'owner');
+    if (filter === 'individual')
+      return items.filter((g) => g.owner?.role !== 'owner');
+    return items;
+  }, [items, filter]);
 
   return (
     <View style={styles.container}>
@@ -108,16 +126,49 @@ export default function GearRentalScreen() {
             />
           }
         >
-          {items.length === 0 ? (
+                    {/* Filter chips */}
+          <View style={styles.filterRow}>
+            {(
+              [
+                { key: 'all' as const, label: 'All' },
+                { key: 'owner' as const, label: 'Owner-provided' },
+                { key: 'individual' as const, label: 'Individual' },
+              ]
+            ).map((f) => {
+              const active = filter === f.key;
+              return (
+                <TouchableOpacity
+                  key={f.key}
+                  style={[styles.chip, active && styles.chipActive]}
+                  onPress={() => setFilter(f.key)}
+                  activeOpacity={0.8}
+                >
+                  <Text
+                    style={[styles.chipText, active && styles.chipTextActive]}
+                  >
+                    {f.label}
+                  </Text>
+                  <Text
+                    style={[styles.chipCount, active && styles.chipCountActive]}
+                  >
+                    {counts[f.key]}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+
+          {visible.length === 0 ? (
             <View style={styles.centerBox}>
-              <Text style={styles.emptyEmoji}>🎒</Text>
               <Text style={styles.centerText}>
-                No gear available yet. Check back soon.
+                {filter === 'all'
+                  ? 'No gear available yet. Check back soon.'
+                  : 'No gear in this filter. Try a different one.'}
               </Text>
             </View>
           ) : (
             <View style={styles.list}>
-              {items.map((g) => (
+              {visible.map((g) => (
                 <GearCard
                   key={g.id}
                   gear={g}
@@ -208,4 +259,30 @@ const styles = StyleSheet.create({
 
   scrollContent: { padding: 16 },
   list: { gap: 14 },
+
+  filterRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 16,
+  },
+  chip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 999,
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+  },
+  chipActive: {
+    backgroundColor: colors.gearupGreen,
+    borderColor: colors.gearupGreen,
+  },
+  chipText: { fontSize: 13, fontWeight: '700', color: '#374151' },
+  chipTextActive: { color: '#fff' },
+  chipCount: { fontSize: 11, fontWeight: '800', color: '#9ca3af' },
+  chipCountActive: { color: 'rgba(255,255,255,0.8)' },
 });
