@@ -77,19 +77,25 @@ class BookingController extends Controller
                 ]);
             }
 
-            $overlap = Booking::where('campsite_id', $campsite->id)
+            $existingGuests = (int) Booking::where('campsite_id', $campsite->id)
                 ->whereNotIn('status', ['cancelled'])
                 ->where(function ($q) use ($data) {
                     $q->where('check_in', '<', $data['check_out'])
                       ->where('check_out', '>', $data['check_in']);
                 })
-                ->exists();
+                ->sum('guests');
 
-            if ($overlap) {
+            $remaining = $campsite->capacity - $existingGuests;
+
+            if ($data['guests'] > $remaining) {
+                $msg = $remaining > 0
+                    ? "This campsite only has {$remaining} spot"
+                        . ($remaining === 1 ? '' : 's')
+                        . " left for those dates."
+                    : 'This campsite is fully booked for those dates.';
+
                 throw ValidationException::withMessages([
-                    'check_in' => [
-                        'Those dates are already booked for this campsite.',
-                    ],
+                    'guests' => [$msg],
                 ]);
             }
 
