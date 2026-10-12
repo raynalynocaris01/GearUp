@@ -34,6 +34,19 @@ export function AdminTourGuidesClient({ guides }: Props) {
   const [confirmDelete, setConfirmDelete] = useState<TourGuide | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
 
+  // Inline edit state
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editForm, setEditForm] = useState({
+    name: '',
+    contact_number: '',
+    price_per_trip: '',
+    location: '',
+    email: '',
+    description: '',
+  });
+  const [savingEdit, setSavingEdit] = useState(false);
+  const [editError, setEditError] = useState('');
+
   const counts = useMemo(
     () => ({
       all: guides.length,
@@ -117,6 +130,65 @@ export function AdminTourGuidesClient({ guides }: Props) {
       setError('Network error.');
     } finally {
       setDeletingId(null);
+    }
+  };
+
+  const startEdit = (g: TourGuide) => {
+    setEditingId(g.id);
+    setEditError('');
+    setEditForm({
+      name: g.name,
+      contact_number: g.contact_number,
+      price_per_trip: g.price_per_trip ?? '',
+      location: g.location ?? '',
+      email: g.email ?? '',
+      description: g.description ?? '',
+    });
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setEditError('');
+  };
+
+  const handleSaveEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingId) return;
+    setEditError('');
+    setSavingEdit(true);
+    try {
+      const res = await fetch(
+        `/api/admin/tour-guides/${editingId}`,
+        {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: editForm.name.trim(),
+            contact_number: editForm.contact_number.trim(),
+            price_per_trip: editForm.price_per_trip
+              ? Number(editForm.price_per_trip)
+              : 0,
+            location: editForm.location.trim() || null,
+            email: editForm.email.trim() || null,
+            description: editForm.description.trim() || null,
+            campsite_id: null,
+          }),
+        },
+      );
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(
+          data?.message ??
+            data?.errors?.name?.[0] ??
+            'Could not update guide.',
+        );
+      }
+      setEditingId(null);
+      router.refresh();
+    } catch (err: any) {
+      setEditError(err?.message ?? 'Network error.');
+    } finally {
+      setSavingEdit(false);
     }
   };
 
@@ -290,7 +362,7 @@ export function AdminTourGuidesClient({ guides }: Props) {
         </form>
       )}
 
-      {/* Guides list */}
+            {/* Guides list */}
       {visible.length === 0 ? (
         <div className="bg-white rounded-2xl border border-dashed border-gray-200 p-12 text-center">
           <p className="text-base font-bold text-gray-900 mb-1">
@@ -304,72 +376,228 @@ export function AdminTourGuidesClient({ guides }: Props) {
         </div>
       ) : (
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm divide-y divide-gray-100">
-          {visible.map((g) => (
-            <div key={g.id} className="p-5 flex items-start gap-4">
-              <div className="w-11 h-11 rounded-full bg-gearup-600 text-white flex items-center justify-center font-bold text-sm shrink-0">
-                {g.name.charAt(0).toUpperCase()}
-              </div>
+          {visible.map((g) => {
+            const isEditing = editingId === g.id;
+            return (
+              <div key={g.id} className="p-5">
+                <div className="flex items-start gap-4">
+                  <div className="w-11 h-11 rounded-full bg-gearup-600 text-white flex items-center justify-center font-bold text-sm shrink-0">
+                    {g.name.charAt(0).toUpperCase()}
+                  </div>
 
-              <div className="flex-1 min-w-0">
-                <div className="flex flex-wrap items-center gap-2">
-                  <h3 className="font-bold text-gray-900">{g.name}</h3>
-                  {g.is_independent ? (
-                    <span className="text-[10px] font-extrabold tracking-wider px-2 py-0.5 rounded bg-purple-100 text-purple-700">
-                      INDEPENDENT
-                    </span>
-                  ) : (
-                    <span className="text-[10px] font-extrabold tracking-wider px-2 py-0.5 rounded bg-green-100 text-green-700">
-                      ATTACHED
-                    </span>
-                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3 className="font-bold text-gray-900">{g.name}</h3>
+                      {g.is_independent ? (
+                        <span className="text-[10px] font-extrabold tracking-wider px-2 py-0.5 rounded bg-purple-100 text-purple-700">
+                          INDEPENDENT
+                        </span>
+                      ) : (
+                        <span className="text-[10px] font-extrabold tracking-wider px-2 py-0.5 rounded bg-green-100 text-green-700">
+                          ATTACHED
+                        </span>
+                      )}
+                    </div>
+
+                    {g.campsite?.name && (
+                      <p className="text-xs text-gray-500 mt-0.5">
+                        at{' '}
+                        <span className="font-semibold text-gray-700">
+                          {g.campsite.name}
+                        </span>
+                      </p>
+                    )}
+
+                    {g.creator?.name && (
+                      <p className="text-xs text-gray-500 mt-0.5">
+                        Created by{' '}
+                        <span className="font-semibold text-gray-700">
+                          {g.creator.name}
+                        </span>
+                      </p>
+                    )}
+
+                    <p className="text-sm text-gray-600 mt-1">
+                      {g.contact_number}
+                      {g.email ? ` - ${g.email}` : ''}
+                    </p>
+
+                    {g.description && (
+                      <p className="text-sm text-gray-500 mt-2 line-clamp-2 italic">
+                        {g.description}
+                      </p>
+                    )}
+
+                    {g.price_per_trip &&
+                      Number(g.price_per_trip) > 0 && (
+                        <p className="text-sm font-bold text-gearup-600 mt-2">
+                          PHP {Number(g.price_per_trip).toFixed(0)} per trip
+                        </p>
+                      )}
+                  </div>
+
+                  <div className="flex items-center gap-2 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        isEditing ? cancelEdit() : startEdit(g)
+                      }
+                      className="text-xs font-semibold text-gearup-600 border border-gearup-200 bg-gearup-50 hover:bg-gearup-100 px-3 py-2 rounded-lg transition"
+                    >
+                      {isEditing ? 'Close' : 'Edit'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setConfirmDelete(g)}
+                      disabled={deletingId === g.id}
+                      className="text-xs font-semibold text-red-600 border border-red-200 bg-red-50 hover:bg-red-100 px-3 py-2 rounded-lg transition disabled:opacity-50"
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </div>
 
-                {g.campsite?.name && (
-                  <p className="text-xs text-gray-500 mt-0.5">
-                    at{' '}
-                    <span className="font-semibold text-gray-700">
-                      {g.campsite.name}
-                    </span>
-                  </p>
-                )}
+                {isEditing && (
+                  <form
+                    onSubmit={handleSaveEdit}
+                    className="mt-5 pt-5 border-t border-gray-100 space-y-4"
+                  >
+                    <h4 className="font-bold text-gray-900 text-sm">
+                      Edit guide
+                    </h4>
 
-                {g.creator?.name && (
-                  <p className="text-xs text-gray-500 mt-0.5">
-                    Created by{' '}
-                    <span className="font-semibold text-gray-700">
-                      {g.creator.name}
-                    </span>
-                  </p>
-                )}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                          Full name *
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={editForm.name}
+                          onChange={(e) =>
+                            setEditForm((f) => ({
+                              ...f,
+                              name: e.target.value,
+                            }))
+                          }
+                          className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-gearup-600"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                          Contact number *
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={editForm.contact_number}
+                          onChange={(e) =>
+                            setEditForm((f) => ({
+                              ...f,
+                              contact_number: e.target.value,
+                            }))
+                          }
+                          className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-gearup-600"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                          Price per trip (PHP)
+                        </label>
+                        <input
+                          type="number"
+                          min={0}
+                          step="0.01"
+                          value={editForm.price_per_trip}
+                          onChange={(e) =>
+                            setEditForm((f) => ({
+                              ...f,
+                              price_per_trip: e.target.value,
+                            }))
+                          }
+                          className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-gearup-600"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                          Location (optional)
+                        </label>
+                        <input
+                          type="text"
+                          value={editForm.location}
+                          onChange={(e) =>
+                            setEditForm((f) => ({
+                              ...f,
+                              location: e.target.value,
+                            }))
+                          }
+                          className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-gearup-600"
+                        />
+                      </div>
+                    </div>
 
-                <p className="text-sm text-gray-600 mt-1">
-                  {g.contact_number}
-                  {g.email ? ` - ${g.email}` : ''}
-                </p>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                        Email (optional)
+                      </label>
+                      <input
+                        type="email"
+                        value={editForm.email}
+                        onChange={(e) =>
+                          setEditForm((f) => ({
+                            ...f,
+                            email: e.target.value,
+                          }))
+                        }
+                        className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-gearup-600"
+                      />
+                    </div>
 
-                {g.description && (
-                  <p className="text-sm text-gray-500 mt-2 line-clamp-2 italic">
-                    {g.description}
-                  </p>
-                )}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                        Description (optional)
+                      </label>
+                      <textarea
+                        rows={3}
+                        value={editForm.description}
+                        onChange={(e) =>
+                          setEditForm((f) => ({
+                            ...f,
+                            description: e.target.value,
+                          }))
+                        }
+                        className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-gearup-600 resize-none"
+                      />
+                    </div>
 
-                {g.price_per_trip && Number(g.price_per_trip) > 0 && (
-                  <p className="text-sm font-bold text-gearup-600 mt-2">
-                    PHP {Number(g.price_per_trip).toFixed(0)} per trip
-                  </p>
+                    {editError && (
+                      <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg p-3">
+                        {editError}
+                      </p>
+                    )}
+
+                    <div className="flex justify-end gap-3">
+                      <button
+                        type="button"
+                        onClick={cancelEdit}
+                        className="px-5 py-2.5 rounded-lg text-sm font-semibold text-gray-700 hover:bg-gray-100 transition"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={savingEdit}
+                        className="bg-gearup-600 hover:bg-gearup-700 disabled:opacity-60 text-white font-semibold text-sm px-6 py-2.5 rounded-lg transition"
+                      >
+                        {savingEdit ? 'Saving...' : 'Save changes'}
+                      </button>
+                    </div>
+                  </form>
                 )}
               </div>
-
-              <button
-                type="button"
-                onClick={() => setConfirmDelete(g)}
-                disabled={deletingId === g.id}
-                className="text-xs font-semibold text-red-600 border border-red-200 bg-red-50 hover:bg-red-100 px-3 py-2 rounded-lg transition disabled:opacity-50 shrink-0"
-              >
-                Delete
-              </button>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
