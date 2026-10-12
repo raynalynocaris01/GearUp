@@ -51,19 +51,21 @@ export function Navbar({ user }: NavbarProps) {
 
         {/* Nav links */}
         <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-gray-700">
-          {LINKS.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className={`transition ${
-                isActive(link.href, link.exact)
-                  ? 'text-gearup-600 font-semibold'
-                  : 'hover:text-gearup-600'
-              }`}
-            >
-              {link.label}
-            </Link>
-          ))}
+          {LINKS.filter((link) => !user || link.href !== '/about').map(
+            (link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={`transition ${
+                  isActive(link.href, link.exact)
+                    ? 'text-gearup-600 font-semibold'
+                    : 'hover:text-gearup-600'
+                }`}
+              >
+                {link.label}
+              </Link>
+            ),
+          )}
 
           {user && user.role !== 'owner' && (
             <Link
