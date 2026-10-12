@@ -38,6 +38,19 @@ export function MyTourGuidesClient({ initialGuides, onRefresh }: Props) {
   const [error, setError] = useState('');
   const [deletingId, setDeletingId] = useState<number | null>(null);
 
+  // Inline edit state
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editForm, setEditForm] = useState({
+    name: '',
+    contact_number: '',
+    price_per_trip: '',
+    location: '',
+    email: '',
+    description: '',
+  });
+  const [savingEdit, setSavingEdit] = useState(false);
+  const [editError, setEditError] = useState('');
+
   const [form, setForm] = useState({
     name: '',
     contact_number: '',
@@ -136,6 +149,57 @@ export function MyTourGuidesClient({ initialGuides, onRefresh }: Props) {
         },
       ],
     );
+  };
+
+  const startEdit = (g: TourGuide) => {
+    setEditingId(g.id);
+    setEditError('');
+    setEditForm({
+      name: g.name,
+      contact_number: g.contact_number,
+      price_per_trip: g.price_per_trip ?? '',
+      location: g.location ?? '',
+      email: g.email ?? '',
+      description: g.description ?? '',
+    });
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setEditError('');
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingId) return;
+    if (!editForm.name.trim() || !editForm.contact_number.trim()) {
+      Alert.alert('Missing fields', 'Name and contact number are required.');
+      return;
+    }
+    setEditError('');
+    setSavingEdit(true);
+    try {
+      await owner.updateGuide(editingId, {
+        name: editForm.name.trim(),
+        contact_number: editForm.contact_number.trim(),
+        price_per_trip: editForm.price_per_trip
+          ? Number(editForm.price_per_trip)
+          : 0,
+        location: editForm.location.trim() || undefined,
+        email: editForm.email.trim() || undefined,
+        description: editForm.description.trim() || undefined,
+      });
+      setEditingId(null);
+      await onRefresh?.();
+    } catch (err: any) {
+      const msg =
+        err?.response?.data?.message ??
+        err?.response?.data?.errors?.name?.[0] ??
+        err?.message ??
+        'Could not update guide.';
+      setEditError(msg);
+    } finally {
+      setSavingEdit(false);
+    }
   };
 
   return (
@@ -320,88 +384,211 @@ export function MyTourGuidesClient({ initialGuides, onRefresh }: Props) {
           </View>
         ) : (
           <View style={styles.listCard}>
-            {visible.map((g, idx) => (
-              <View key={g.id}>
-                {idx > 0 ? <View style={styles.divider} /> : null}
-                <View style={styles.row}>
-                  <View style={styles.avatar}>
-                    <Text style={styles.avatarText}>
-                      {g.name.charAt(0).toUpperCase()}
-                    </Text>
-                  </View>
-
-                  <View style={{ flex: 1, minWidth: 0 }}>
-                    <View style={styles.nameRow}>
-                      <Text style={styles.name} numberOfLines={1}>
-                        {g.name}
+            {visible.map((g, idx) => {
+              const isEditing = editingId === g.id;
+              return (
+                <View key={g.id}>
+                  {idx > 0 ? <View style={styles.divider} /> : null}
+                  <View style={styles.row}>
+                    <View style={styles.avatar}>
+                      <Text style={styles.avatarText}>
+                        {g.name.charAt(0).toUpperCase()}
                       </Text>
-                      <View
-                        style={[
-                          styles.tag,
-                          g.is_independent
-                            ? styles.tagIndependent
-                            : styles.tagAttached,
-                        ]}
-                      >
-                        <Text
-                          style={[
-                            styles.tagText,
-                            g.is_independent
-                              ? styles.tagTextIndependent
-                              : styles.tagTextAttached,
-                          ]}
-                        >
-                          {g.is_independent ? 'INDEPENDENT' : 'ATTACHED'}
-                        </Text>
-                      </View>
                     </View>
 
-                    {g.campsite?.name ? (
-                      <Text style={styles.atCampsite} numberOfLines={1}>
-                        at{' '}
-                        <Text style={styles.atCampsiteName}>
-                          {g.campsite.name}
+                    <View style={{ flex: 1, minWidth: 0 }}>
+                      <View style={styles.nameRow}>
+                        <Text style={styles.name} numberOfLines={1}>
+                          {g.name}
                         </Text>
-                      </Text>
-                    ) : null}
+                        <View
+                          style={[
+                            styles.tag,
+                            g.is_independent
+                              ? styles.tagIndependent
+                              : styles.tagAttached,
+                          ]}
+                        >
+                          <Text
+                            style={[
+                              styles.tagText,
+                              g.is_independent
+                                ? styles.tagTextIndependent
+                                : styles.tagTextAttached,
+                            ]}
+                          >
+                            {g.is_independent ? 'INDEPENDENT' : 'ATTACHED'}
+                          </Text>
+                        </View>
+                      </View>
 
-                    <Text style={styles.contact} numberOfLines={1}>
-                      {g.contact_number}
-                      {g.email ? ` - ${g.email}` : ''}
-                    </Text>
+                      {g.campsite?.name ? (
+                        <Text style={styles.atCampsite} numberOfLines={1}>
+                          at{' '}
+                          <Text style={styles.atCampsiteName}>
+                            {g.campsite.name}
+                          </Text>
+                        </Text>
+                      ) : null}
 
-                    {g.description ? (
-                      <Text style={styles.description} numberOfLines={2}>
-                        {g.description}
+                      <Text style={styles.contact} numberOfLines={1}>
+                        {g.contact_number}
+                        {g.email ? ` - ${g.email}` : ''}
                       </Text>
-                    ) : null}
 
-                    {g.price_per_trip &&
-                    Number(g.price_per_trip) > 0 ? (
-                      <Text style={styles.price}>
-                        PHP {Number(g.price_per_trip).toFixed(0)} per trip
-                      </Text>
-                    ) : null}
+                      {g.description ? (
+                        <Text style={styles.description} numberOfLines={2}>
+                          {g.description}
+                        </Text>
+                      ) : null}
+
+                      {g.price_per_trip &&
+                      Number(g.price_per_trip) > 0 ? (
+                        <Text style={styles.price}>
+                          PHP {Number(g.price_per_trip).toFixed(0)} per trip
+                        </Text>
+                      ) : null}
+                    </View>
+
+                    <View style={styles.actionCol}>
+                      <TouchableOpacity
+                        style={styles.editBtn}
+                        onPress={() =>
+                          isEditing ? cancelEdit() : startEdit(g)
+                        }
+                        activeOpacity={0.8}
+                      >
+                        <Text style={styles.editBtnText}>
+                          {isEditing ? 'Close' : 'Edit'}
+                        </Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={[
+                          styles.removeBtn,
+                          deletingId === g.id && { opacity: 0.5 },
+                        ]}
+                        onPress={() => confirmDelete(g)}
+                        disabled={deletingId === g.id}
+                        activeOpacity={0.8}
+                      >
+                        {deletingId === g.id ? (
+                          <ActivityIndicator size="small" color="#dc2626" />
+                        ) : (
+                          <Text style={styles.removeBtnText}>Remove</Text>
+                        )}
+                      </TouchableOpacity>
+                    </View>
                   </View>
 
-                  <TouchableOpacity
-                    style={[
-                      styles.removeBtn,
-                      deletingId === g.id && { opacity: 0.5 },
-                    ]}
-                    onPress={() => confirmDelete(g)}
-                    disabled={deletingId === g.id}
-                    activeOpacity={0.8}
-                  >
-                    {deletingId === g.id ? (
-                      <ActivityIndicator size="small" color="#dc2626" />
-                    ) : (
-                      <Text style={styles.removeBtnText}>Remove</Text>
-                    )}
-                  </TouchableOpacity>
+                  {isEditing && (
+                    <View style={styles.editForm}>
+                      <Text style={styles.formTitle}>Edit guide</Text>
+
+                      <Text style={styles.label}>Full name *</Text>
+                      <TextInput
+                        style={styles.input}
+                        value={editForm.name}
+                        onChangeText={(v) =>
+                          setEditForm((f) => ({ ...f, name: v }))
+                        }
+                        placeholderTextColor="#9ca3af"
+                      />
+
+                      <Text style={styles.label}>Contact number *</Text>
+                      <TextInput
+                        style={styles.input}
+                        value={editForm.contact_number}
+                        onChangeText={(v) =>
+                          setEditForm((f) => ({ ...f, contact_number: v }))
+                        }
+                        keyboardType="phone-pad"
+                        placeholderTextColor="#9ca3af"
+                      />
+
+                      <Text style={styles.label}>Price per trip (PHP)</Text>
+                      <TextInput
+                        style={styles.input}
+                        value={editForm.price_per_trip}
+                        onChangeText={(v) =>
+                          setEditForm((f) => ({ ...f, price_per_trip: v }))
+                        }
+                        keyboardType="numeric"
+                        placeholderTextColor="#9ca3af"
+                      />
+
+                      <Text style={styles.label}>Location (optional)</Text>
+                      <TextInput
+                        style={styles.input}
+                        value={editForm.location}
+                        onChangeText={(v) =>
+                          setEditForm((f) => ({ ...f, location: v }))
+                        }
+                        placeholderTextColor="#9ca3af"
+                      />
+
+                      <Text style={styles.label}>Email (optional)</Text>
+                      <TextInput
+                        style={styles.input}
+                        value={editForm.email}
+                        onChangeText={(v) =>
+                          setEditForm((f) => ({ ...f, email: v }))
+                        }
+                        keyboardType="email-address"
+                        autoCapitalize="none"
+                        placeholderTextColor="#9ca3af"
+                      />
+
+                      <Text style={styles.label}>Description (optional)</Text>
+                      <TextInput
+                        style={[styles.input, styles.inputMultiline]}
+                        value={editForm.description}
+                        onChangeText={(v) =>
+                          setEditForm((f) => ({ ...f, description: v }))
+                        }
+                        multiline
+                        numberOfLines={3}
+                        placeholderTextColor="#9ca3af"
+                      />
+
+                      {editError ? (
+                        <View style={styles.errorBox}>
+                          <Text style={styles.errorText}>
+                            {editError}
+                          </Text>
+                        </View>
+                      ) : null}
+
+                      <View style={styles.formActions}>
+                        <TouchableOpacity
+                          style={styles.cancelBtn}
+                          onPress={cancelEdit}
+                          activeOpacity={0.8}
+                        >
+                          <Text style={styles.cancelBtnText}>Cancel</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={[
+                            styles.submitBtn,
+                            savingEdit && { opacity: 0.6 },
+                          ]}
+                          onPress={handleSaveEdit}
+                          disabled={savingEdit}
+                          activeOpacity={0.85}
+                        >
+                          {savingEdit ? (
+                            <ActivityIndicator color="#fff" size="small" />
+                          ) : (
+                            <Text style={styles.submitBtnText}>
+                              Save changes
+                            </Text>
+                          )}
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  )}
                 </View>
-              </View>
-            ))}
+              );
+            })}
           </View>
         )}
 
@@ -621,6 +808,25 @@ const styles = StyleSheet.create({
     marginTop: 5,
   },
 
+  actionCol: {
+    alignItems: 'flex-end',
+    gap: 6,
+  },
+  editBtn: {
+    borderWidth: 1,
+    borderColor: '#bbf7d0',
+    backgroundColor: '#f0fdf4',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    minWidth: 72,
+    alignItems: 'center',
+  },
+  editBtnText: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: colors.gearupGreen,
+  },
   removeBtn: {
     borderWidth: 1,
     borderColor: '#fecaca',
@@ -635,6 +841,15 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '800',
     color: '#dc2626',
+  },
+
+  editForm: {
+    paddingHorizontal: 14,
+    paddingBottom: 14,
+    paddingTop: 4,
+    borderTopWidth: 1,
+    borderTopColor: '#f1f5f9',
+    backgroundColor: '#fafafa',
   },
 
   footerHint: { marginTop: 16, paddingHorizontal: 4 },
