@@ -510,7 +510,9 @@ export interface Review {
       id: number;
       name: string;
       email: string;
+      role?: string;
     } | null;
+
   };
 }
 
@@ -551,6 +553,7 @@ export interface GearItem {
     id: number;
     name: string;
     email: string;
+    role: 'admin' | 'owner' | 'customer';
   };
 }
 

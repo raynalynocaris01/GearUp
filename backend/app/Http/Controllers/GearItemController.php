@@ -13,7 +13,7 @@ class GearItemController extends Controller
      */
     public function index(Request $request)
     {
-        $query = GearItem::with('owner:id,name,email');
+        $query = GearItem::with('owner:id,name,email,role');
 
         if ($request->filled('category')) {
             $query->where('category', $request->string('category'));
@@ -38,7 +38,7 @@ class GearItemController extends Controller
     public function show(GearItem $gearItem)
     {
         return response()->json(
-            $gearItem->load('owner:id,name,email')
+            $gearItem->load('owner:id,name,email,role')
         );
     }
 }
