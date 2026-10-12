@@ -2,6 +2,7 @@ import { useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
+  TextInput,
   StyleSheet,
   ScrollView,
   ActivityIndicator,
@@ -22,6 +23,7 @@ export default function GearRentalScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
   const [filter, setFilter] = useState<'all' | 'owner' | 'individual'>('all');
+  const [search, setSearch] = useState('');
 
   const load = async (showSpinner = false) => {
     if (showSpinner) setLoading(true);
@@ -52,22 +54,36 @@ export default function GearRentalScreen() {
     load();
   };
 
+  const searchMatches = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return items;
+    return items.filter((g) => {
+      const haystack = [g.name, g.description ?? '', g.category]
+        .join(' ')
+        .toLowerCase();
+      return haystack.includes(q);
+    });
+  }, [items, search]);
+
   const counts = useMemo(
     () => ({
-      all: items.length,
-      owner: items.filter((g) => g.owner?.role === 'owner').length,
-      individual: items.filter((g) => g.owner?.role !== 'owner').length,
+      all: searchMatches.length,
+      owner: searchMatches.filter((g) => g.owner?.role === 'owner').length,
+      individual: searchMatches.filter((g) => g.owner?.role !== 'owner')
+        .length,
     }),
-    [items],
+    [searchMatches],
   );
 
   const visible = useMemo(() => {
     if (filter === 'owner')
-      return items.filter((g) => g.owner?.role === 'owner');
+      return searchMatches.filter((g) => g.owner?.role === 'owner');
     if (filter === 'individual')
-      return items.filter((g) => g.owner?.role !== 'owner');
-    return items;
-  }, [items, filter]);
+      return searchMatches.filter((g) => g.owner?.role !== 'owner');
+    return searchMatches;
+  }, [searchMatches, filter]);
+
+  const hasSearch = search.trim().length > 0;
 
   return (
     <View style={styles.container}>
@@ -126,7 +142,37 @@ export default function GearRentalScreen() {
             />
           }
         >
-                    {/* Filter chips */}
+          {/* Search */}
+          <View style={styles.searchWrap}>
+            <Ionicons
+              name="search"
+              size={18}
+              color="#9ca3af"
+              style={styles.searchIcon}
+            />
+            <TextInput
+              style={styles.searchInput}
+              value={search}
+              onChangeText={setSearch}
+              placeholder="Search gear by name, category, or description..."
+              placeholderTextColor="#9ca3af"
+              autoCapitalize="none"
+              autoCorrect={false}
+              returnKeyType="search"
+            />
+            {search.length > 0 && (
+              <TouchableOpacity
+                onPress={() => setSearch('')}
+                style={styles.searchClear}
+                accessibilityLabel="Clear search"
+                activeOpacity={0.7}
+              >
+                <Ionicons name="close-circle" size={18} color="#9ca3af" />
+              </TouchableOpacity>
+            )}
+          </View>
+
+          {/* Filter chips */}
           <View style={styles.filterRow}>
             {(
               [
@@ -161,9 +207,11 @@ export default function GearRentalScreen() {
           {visible.length === 0 ? (
             <View style={styles.centerBox}>
               <Text style={styles.centerText}>
-                {filter === 'all'
-                  ? 'No gear available yet. Check back soon.'
-                  : 'No gear in this filter. Try a different one.'}
+                {hasSearch
+                  ? `No gear matches "${search.trim()}". Try a different search or clear it.`
+                  : filter === 'all'
+                    ? 'No gear available yet. Check back soon.'
+                    : 'No gear in this filter. Try a different one.'}
               </Text>
             </View>
           ) : (
@@ -259,6 +307,33 @@ const styles = StyleSheet.create({
 
   scrollContent: { padding: 16 },
   list: { gap: 14 },
+
+  searchWrap: {
+    position: 'relative',
+    marginBottom: 12,
+  },
+  searchIcon: {
+    position: 'absolute',
+    left: 14,
+    top: 13,
+    zIndex: 1,
+  },
+  searchInput: {
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    borderRadius: 12,
+    paddingLeft: 42,
+    paddingRight: 42,
+    paddingVertical: 11,
+    fontSize: 14,
+    color: '#111827',
+  },
+  searchClear: {
+    position: 'absolute',
+    right: 12,
+    top: 11,
+  },
 
   filterRow: {
     flexDirection: 'row',
