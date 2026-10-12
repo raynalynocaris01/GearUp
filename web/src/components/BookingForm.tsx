@@ -129,7 +129,7 @@ export function BookingForm({
     })();
   }, [campsite]);
 
-  // Fetch gear if we have a campsite (only gear from the campsite's owner)
+  // Fetch all gear — section split happens below (ownerGear / individualGear)
   useEffect(() => {
     if (!campsite) return;
     (async () => {
@@ -137,11 +137,7 @@ export function BookingForm({
         const res = await fetch(`/api/gear`);
         if (!res.ok) return;
         const data: GearItem[] = await res.json();
-        // Only show gear owned by the same owner as this campsite
-        const sameOwner = data.filter(
-          (g) => g.owner_id === campsite.owner_id,
-        );
-        setAvailableGear(sameOwner);
+        setAvailableGear(data);
       } catch {
         // silent
       }

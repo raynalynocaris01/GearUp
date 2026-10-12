@@ -240,8 +240,10 @@ export default function BookingsScreen() {
             const dateUnitPlural = isGearOnly ? 'days' : 'nights';
 
             return (
-              <View
+              <TouchableOpacity
                 style={[styles.card, cancelled && styles.cardCancelled]}
+                activeOpacity={0.85}
+                onPress={() => router.push(`/booking/${item.id}`)}
               >
                                 {imageUrl ? (
                   <Image
@@ -309,8 +311,27 @@ export default function BookingsScreen() {
                     </View>
                   )}
 
-                  {/* Gear line for campsite+gear bookings */}
-                  {isCampsiteGear && item.gear_item && (
+                                    {/* Multi-gear summary */}
+                  {item.gear_items && item.gear_items.length > 0 && (
+                    <View style={styles.metaRow}>
+                      <Ionicons
+                        name="bag-handle-outline"
+                        size={12}
+                        color={colors.textMuted}
+                      />
+                      <Text style={styles.meta} numberOfLines={2}>
+                        {item.gear_items
+                          .map(
+                            (line) =>
+                              `${line.pivot.quantity}x ${line.name}`,
+                          )
+                          .join(', ')}
+                      </Text>
+                    </View>
+                  )}
+
+                  {/* Legacy single-gear line for gear-only rentals */}
+                  {isGearOnly && item.gear_item && (
                     <View style={styles.metaRow}>
                       <Ionicons
                         name="bag-handle-outline"
@@ -319,7 +340,7 @@ export default function BookingsScreen() {
                       />
                       <Text style={styles.meta}>
                         {item.gear_item.name}
-                        {item.gear_quantity && ` × ${item.gear_quantity}`}
+                        {item.gear_quantity && ` x ${item.gear_quantity}`}
                       </Text>
                     </View>
                   )}
@@ -402,7 +423,7 @@ export default function BookingsScreen() {
                     </View>
                   )}
                 </View>
-              </View>
+              </TouchableOpacity>
             );
           }}
         />
