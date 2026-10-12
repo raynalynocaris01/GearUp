@@ -129,6 +129,22 @@ export const campsiteApi = (client: ApiClient) => ({
 // BOOKINGS
 // ──────────────────────────────────────────────────────────
 
+/**
+ * A gear line on a booking. Backend returns the GearItem with pivot
+ * attributes attached, so the fields are: GearItem props + `pivot`.
+ */
+export interface BookingGearLine extends GearItem {
+  pivot: {
+    booking_id: number;
+    gear_item_id: number;
+    quantity: number;
+    price_per_day: string;
+    subtotal: string;
+    created_at: string;
+    updated_at: string;
+  };
+}
+
 export interface Booking {
   id: number;
   user_id: number;
@@ -149,12 +165,18 @@ export interface Booking {
   campsite?: Campsite | null;
   tour_guide?: TourGuide | null;
   gear_item?: GearItem | null;
+  gear_items?: BookingGearLine[];
   review?: Review | null;
   user?: {
     id: number;
     name: string;
     email: string;
   };
+}
+
+export interface CreateBookingGearLine {
+  gear_item_id: number;
+  quantity: number;
 }
 
 export interface CreateBookingPayload {
@@ -166,6 +188,7 @@ export interface CreateBookingPayload {
   gear_start_date?: string | null;
   gear_end_date?: string | null;
   gear_quantity?: number | null;
+  gear_items?: CreateBookingGearLine[];
   guests: number;
   notes?: string;
 }
@@ -554,6 +577,18 @@ export interface GearItem {
     name: string;
     email: string;
     role: 'admin' | 'owner' | 'customer';
+  };
+}
+
+export interface BookingGearLine extends GearItem {
+  pivot: {
+    booking_id: number;
+    gear_item_id: number;
+    quantity: number;
+    price_per_day: string;
+    subtotal: string;
+    created_at: string;
+    updated_at: string;
   };
 }
 

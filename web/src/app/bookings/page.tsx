@@ -8,6 +8,19 @@ export const dynamic = 'force-dynamic';
 import { appImageSrc } from '@/components/AppImage';
 const API_URL = process.env.NEXT_PUBLIC_API_URL!;
 
+interface BookingGearLine {
+  id: number;
+  name: string;
+  category: string;
+  price_per_day: string;
+  image_url: string | null;
+  pivot: {
+    gear_item_id: number;
+    quantity: number;
+    subtotal: string;
+  };
+}
+
 interface Booking {
   id: number;
   check_in: string | null;
@@ -37,6 +50,7 @@ interface Booking {
   gear_quantity: number | null;
   gear_start_date: string | null;
   gear_end_date: string | null;
+  gear_items?: BookingGearLine[];
   review?: { id: number } | null;
 }
 
@@ -262,8 +276,25 @@ export default async function BookingsPage() {
                       )}
                     </div>
 
-                    {/* Gear line for campsite+gear bookings */}
-                    {isCampsiteGear && b.gear_item && (
+                                        {/* Gear summary — condensed multi-gear line */}
+                    {b.gear_items && b.gear_items.length > 0 && (
+                      <div className="mt-3 text-sm text-gray-600 flex items-start gap-2">
+                        <span className="shrink-0">🎒</span>
+                        <span>
+                          {b.gear_items.map((line, i) => (
+                            <span key={line.id}>
+                              {i > 0 && ', '}
+                              <span className="font-semibold text-gray-900">
+                                {line.pivot.quantity}× {line.name}
+                              </span>
+                            </span>
+                          ))}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Legacy single-gear line (gear-only rentals) */}
+                    {isGearOnly && b.gear_item && (
                       <div className="mt-2 text-sm text-gray-600 flex items-center gap-2">
                         <span>🎒</span>
                         <span>
@@ -286,27 +317,34 @@ export default async function BookingsPage() {
                       </p>
                     )}
 
-                    {/* Action buttons — depend on status */}
-                    {b.status === 'pending' || b.status === 'confirmed' ? (
-                      <div className="mt-4 flex justify-end">
-                        <CancelBookingButton bookingId={b.id} />
+                    {/* Action buttons */}
+                    <div className="mt-4 flex items-center justify-between gap-3">
+                      <Link
+                        href={`/bookings/${b.id}`}
+                        className="text-sm font-semibold text-gearup-600 hover:underline"
+                      >
+                        View details →
+                      </Link>
+
+                      <div>
+                        {b.status === 'pending' || b.status === 'confirmed' ? (
+                          <CancelBookingButton bookingId={b.id} />
+                        ) : b.status === 'completed' && b.campsite ? (
+                          b.review ? (
+                            <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-gearup-700 bg-gearup-50 border border-gearup-200 px-4 py-2 rounded-lg">
+                              ✓ Reviewed
+                            </span>
+                          ) : (
+                            <Link
+                              href={`/campsites/${b.campsite.id}`}
+                              className="inline-block text-sm font-semibold text-white bg-gearup-600 hover:bg-gearup-700 px-5 py-2.5 rounded-lg transition"
+                            >
+                              Leave a review
+                            </Link>
+                          )
+                        ) : null}
                       </div>
-                    ) : b.status === 'completed' && b.campsite ? (
-                      <div className="mt-4 flex justify-end">
-                        {b.review ? (
-                          <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-gearup-700 bg-gearup-50 border border-gearup-200 px-4 py-2 rounded-lg">
-                            ✓ Reviewed
-                          </span>
-                        ) : (
-                          <Link
-                            href={`/campsites/${b.campsite.id}`}
-                            className="inline-block text-sm font-semibold text-white bg-gearup-600 hover:bg-gearup-700 px-5 py-2.5 rounded-lg transition"
-                          >
-                            Leave a review
-                          </Link>
-                        )}
-                      </div>
-                    ) : null}
+                    </div>
                   </div>
                 </div>
               );

@@ -83,13 +83,36 @@ export function BookingForm({
   // Tour guides (only relevant when campsite is present)
   const [guides, setGuides] = useState<TourGuide[]>([]);
   const [selectedGuideId, setSelectedGuideId] = useState<number | null>(null);
+  const toggleGear = (id: number) => {
+    setSelectedGear((prev) => {
+      const existing = prev.find((r) => r.gear_item_id === id);
+      if (existing) {
+        return prev.filter((r) => r.gear_item_id !== id);
+      }
+      return [...prev, { gear_item_id: id, quantity: 1 }];
+    });
+  };
 
+  const setGearQty = (id: number, qty: number) => {
+    setSelectedGear((prev) =>
+      prev.map((r) =>
+        r.gear_item_id === id ? { ...r, quantity: qty } : r,
+      ),
+    );
+  };
   // Gear picker (only relevant when campsite is present)
   const [availableGear, setAvailableGear] = useState<GearItem[]>([]);
+
+  // Legacy single-gear (used by the gear-only rental flow)
   const [selectedGearId, setSelectedGearId] = useState<number | null>(
     initialGearItemId ?? null,
   );
   const [gearQuantity, setGearQuantity] = useState(1);
+
+  // Multi-gear (campsite bookings only)
+  const [selectedGear, setSelectedGear] = useState<
+    { gear_item_id: number; quantity: number }[]
+  >([]);
 
   // Fetch tour guides for this campsite
   useEffect(() => {
@@ -127,6 +150,23 @@ export function BookingForm({
 
  
 
+  // Multi-select gear sections (campsite bookings only)
+  const ownerGear = useMemo(
+    () =>
+      availableGear.filter(
+        (g) => g.owner_id === campsite?.owner_id && g.is_available && g.stock > 0,
+      ),
+    [availableGear, campsite?.owner_id],
+  );
+
+  const individualGear = useMemo(
+    () =>
+      availableGear.filter(
+        (g) => g.owner_id !== campsite?.owner_id && g.is_available && g.stock > 0,
+      ),
+    [availableGear, campsite?.owner_id],
+  );
+
   // The gear item to use for pricing (either preset or picked from list)
   const activeGear: GearItem | null = useMemo(() => {
     if (presetGearItem) return presetGearItem;
@@ -140,6 +180,7 @@ export function BookingForm({
     campsitePrice,
     guidePrice,
     gearPrice,
+    gearLines,
     totalPrice,
   } = useMemo(() => {
     const n = nightsBetween(checkIn, checkOut);
@@ -160,11 +201,44 @@ export function BookingForm({
       ? parseFloat(selectedGuide.price_per_trip)
       : 0;
 
-    // Gear price: price_per_day × days × quantity
+        // Gear price: price_per_day × days × quantity
+    // Campsite mode → sum across all multi-selected gear lines.
+    // Gear-only mode → legacy single-gear math.
     let gearTotal = 0;
-    if (activeGear) {
+    const gearLines: {
+      gear_item_id: number;
+      name: string;
+      unit: number;
+      qty: number;
+      subtotal: number;
+    }[] = [];
+
+    if (campsite && !presetGearItem) {
+      for (const row of selectedGear) {
+        const item = availableGear.find((g) => g.id === row.gear_item_id);
+        if (!item) continue;
+        const unit = parseFloat(item.price_per_day);
+        const subtotal = unit * Math.max(n, 1) * row.quantity;
+        gearTotal += subtotal;
+        gearLines.push({
+          gear_item_id: item.id,
+          name: item.name,
+          unit,
+          qty: row.quantity,
+          subtotal,
+        });
+      }
+    } else if (activeGear) {
       const unit = parseFloat(activeGear.price_per_day);
-      gearTotal = unit * Math.max(n, 1) * gearQuantity;
+      const subtotal = unit * Math.max(n, 1) * gearQuantity;
+      gearTotal = subtotal;
+      gearLines.push({
+        gear_item_id: activeGear.id,
+        name: activeGear.name,
+        unit,
+        qty: gearQuantity,
+        subtotal,
+      });
     }
 
     return {
@@ -172,6 +246,7 @@ export function BookingForm({
       campsitePrice: cPrice,
       guidePrice: gPrice,
       gearPrice: gearTotal,
+      gearLines,
       totalPrice: cPrice + gPrice + gearTotal,
     };
   }, [
@@ -182,7 +257,10 @@ export function BookingForm({
     guides,
     selectedGuideId,
     activeGear,
+    availableGear,
+    selectedGear,
     gearQuantity,
+    presetGearItem,
   ]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -206,6 +284,13 @@ export function BookingForm({
       setGeneralError(`Only ${activeGear.stock} units available.`);
       return;
     }
+    for (const row of selectedGear) {
+      const item = availableGear.find((g) => g.id === row.gear_item_id);
+      if (item && row.quantity > item.stock) {
+        setGeneralError(`Only ${item.stock} of ${item.name} available.`);
+        return;
+      }
+    }
 
     setSubmitting(true);
 
@@ -221,7 +306,18 @@ export function BookingForm({
       payload.tour_guide_id = selectedGuideId;
     }
 
-    if (activeGear) {
+    if (campsite && !presetGearItem) {
+      // Multi-gear (campsite bookings)
+      if (selectedGear.length > 0) {
+        payload.gear_items = selectedGear.map((row) => ({
+          gear_item_id: row.gear_item_id,
+          quantity: row.quantity,
+        }));
+        payload.gear_start_date = checkIn;
+        payload.gear_end_date = checkOut;
+      }
+    } else if (activeGear) {
+      // Legacy single-gear (gear-only rental flow)
       payload.gear_item_id = activeGear.id;
       payload.gear_quantity = gearQuantity;
       payload.gear_start_date = checkIn;
@@ -428,124 +524,195 @@ export function BookingForm({
         </div>
       )}
 
-      {/* Gear picker — only if campsite (add-on mode) */}
-      {campsite && availableGear.length > 0 && (
+            {/* Gear picker — multi-select, only if campsite (add-on mode) */}
+      {campsite && !presetGearItem && (ownerGear.length > 0 || individualGear.length > 0) && (
         <div>
           <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
             Add gear to your trip? (optional)
           </h3>
-          <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
-            <label
-              className={`block border rounded-lg p-4 cursor-pointer transition ${
-                selectedGearId === null
-                  ? 'border-gearup-600 bg-gearup-50'
-                  : 'border-gray-200 hover:border-gray-300'
-              }`}
-            >
-              <div className="flex items-start gap-3">
-                <input
-                  type="radio"
-                  name="gear"
-                  checked={selectedGearId === null}
-                  onChange={() => {
-                    setSelectedGearId(null);
-                    setGearQuantity(1);
-                  }}
-                  className="mt-1 h-4 w-4 accent-gearup-600"
-                />
-                <div className="flex-1">
-                  <p className="font-semibold text-gray-900 text-sm">
-                    No gear
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    Just the campsite.
-                  </p>
-                </div>
-              </div>
-            </label>
 
-            {availableGear
-              .filter((g) => g.is_available && g.stock > 0)
-              .map((g) => {
-                const price = parseFloat(g.price_per_day);
-                const active = selectedGearId === g.id;
-                return (
-                  <label
-                    key={g.id}
-                    className={`block border rounded-lg p-4 cursor-pointer transition ${
-                      active
-                        ? 'border-gearup-600 bg-gearup-50'
-                        : 'border-gray-200 hover:border-gray-300'
-                    }`}
-                  >
-                    <div className="flex items-start gap-3">
-                      <input
-                        type="radio"
-                        name="gear"
-                        checked={active}
-                        onChange={() => {
-                          setSelectedGearId(g.id);
-                          setGearQuantity(1);
-                        }}
-                        className="mt-1 h-4 w-4 accent-gearup-600"
-                      />
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between gap-3">
-                          <div>
-                            <p className="font-semibold text-gray-900 text-sm">
-                              {g.name}
-                            </p>
-                            <p className="text-xs text-gearup-600 font-semibold">
-                              {g.category} · {g.stock} in stock
+          {ownerGear.length > 0 && (
+            <div className="mb-4">
+              <p className="text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">
+                Provided by this campsite
+              </p>
+              <div className="space-y-2">
+                {ownerGear.map((g) => {
+                  const price = parseFloat(g.price_per_day);
+                  const row = selectedGear.find(
+                    (r) => r.gear_item_id === g.id,
+                  );
+                  const active = !!row;
+                  return (
+                    <div
+                      key={g.id}
+                      className={`border rounded-lg p-4 transition ${
+                        active
+                          ? 'border-gearup-600 bg-gearup-50'
+                          : 'border-gray-200'
+                      }`}
+                    >
+                      <label className="flex items-start gap-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={active}
+                          onChange={() => toggleGear(g.id)}
+                          className="mt-1 h-4 w-4 accent-gearup-600"
+                        />
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between gap-3">
+                            <div>
+                              <p className="font-semibold text-gray-900 text-sm">
+                                {g.name}
+                              </p>
+                              <p className="text-xs text-gearup-600 font-semibold">
+                                {g.category} · {g.stock} in stock
+                              </p>
+                            </div>
+                            <p className="text-sm font-bold text-gearup-600 shrink-0">
+                              +₱{price.toFixed(0)}/day
                             </p>
                           </div>
-                          <p className="text-sm font-bold text-gearup-600 shrink-0">
-                            +₱{price.toFixed(0)}/day
-                          </p>
+                          {g.description && (
+                            <p className="text-xs text-gray-500 mt-1 line-clamp-2">
+                              {g.description}
+                            </p>
+                          )}
                         </div>
-                        {g.description && (
-                          <p className="text-xs text-gray-500 mt-1 line-clamp-2">
-                            {g.description}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  </label>
-                );
-              })}
-          </div>
+                      </label>
 
-          {/* Quantity picker — only when a gear is selected */}
-          {activeGear && !presetGearItem && (
-            <div className="mt-3 flex items-center justify-between border border-gray-300 rounded-lg px-4 py-3">
-              <div>
-                <p className="text-sm font-medium text-gray-900">Quantity</p>
-                <p className="text-xs text-gray-500">
-                  Max {activeGear.stock}
-                </p>
+                      {active && row && (
+                        <div className="mt-3 flex items-center justify-between border-t border-green-200 pt-3">
+                          <p className="text-xs text-gray-600">Quantity</p>
+                          <div className="flex items-center gap-3">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setGearQty(
+                                  g.id,
+                                  Math.max(1, row.quantity - 1),
+                                )
+                              }
+                              className="w-8 h-8 rounded-full border-2 border-gearup-600 text-gearup-600 text-lg font-bold hover:bg-gearup-50 transition flex items-center justify-center"
+                              aria-label="Decrease quantity"
+                            >
+                              −
+                            </button>
+                            <span className="text-base font-bold text-gray-900 min-w-[2ch] text-center">
+                              {row.quantity}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setGearQty(
+                                  g.id,
+                                  Math.min(g.stock, row.quantity + 1),
+                                )
+                              }
+                              className="w-8 h-8 rounded-full border-2 border-gearup-600 text-gearup-600 text-lg font-bold hover:bg-gearup-50 transition flex items-center justify-center"
+                              aria-label="Increase quantity"
+                            >
+                              +
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
-              <div className="flex items-center gap-4">
-                <button
-                  type="button"
-                  onClick={() => setGearQuantity((q) => Math.max(1, q - 1))}
-                  className="w-9 h-9 rounded-full border-2 border-gearup-600 text-gearup-600 text-xl font-bold hover:bg-gearup-50 transition flex items-center justify-center"
-                  aria-label="Decrease quantity"
-                >
-                  −
-                </button>
-                <span className="text-lg font-bold text-gray-900 min-w-[2ch] text-center">
-                  {gearQuantity}
-                </span>
-                <button
-                  type="button"
-                  onClick={() =>
-                    setGearQuantity((q) => Math.min(activeGear.stock, q + 1))
-                  }
-                  className="w-9 h-9 rounded-full border-2 border-gearup-600 text-gearup-600 text-xl font-bold hover:bg-gearup-50 transition flex items-center justify-center"
-                  aria-label="Increase quantity"
-                >
-                  +
-                </button>
+            </div>
+          )}
+
+          {individualGear.length > 0 && (
+            <div>
+              <p className="text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">
+                From individuals
+              </p>
+              <div className="space-y-2">
+                {individualGear.map((g) => {
+                  const price = parseFloat(g.price_per_day);
+                  const row = selectedGear.find(
+                    (r) => r.gear_item_id === g.id,
+                  );
+                  const active = !!row;
+                  return (
+                    <div
+                      key={g.id}
+                      className={`border rounded-lg p-4 transition ${
+                        active
+                          ? 'border-gearup-600 bg-gearup-50'
+                          : 'border-gray-200'
+                      }`}
+                    >
+                      <label className="flex items-start gap-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={active}
+                          onChange={() => toggleGear(g.id)}
+                          className="mt-1 h-4 w-4 accent-gearup-600"
+                        />
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between gap-3">
+                            <div>
+                              <p className="font-semibold text-gray-900 text-sm">
+                                {g.name}
+                              </p>
+                              <p className="text-xs text-gearup-600 font-semibold">
+                                {g.category} · {g.stock} in stock
+                              </p>
+                            </div>
+                            <p className="text-sm font-bold text-gearup-600 shrink-0">
+                              +₱{price.toFixed(0)}/day
+                            </p>
+                          </div>
+                          {g.description && (
+                            <p className="text-xs text-gray-500 mt-1 line-clamp-2">
+                              {g.description}
+                            </p>
+                          )}
+                        </div>
+                      </label>
+
+                      {active && row && (
+                        <div className="mt-3 flex items-center justify-between border-t border-green-200 pt-3">
+                          <p className="text-xs text-gray-600">Quantity</p>
+                          <div className="flex items-center gap-3">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setGearQty(
+                                  g.id,
+                                  Math.max(1, row.quantity - 1),
+                                )
+                              }
+                              className="w-8 h-8 rounded-full border-2 border-gearup-600 text-gearup-600 text-lg font-bold hover:bg-gearup-50 transition flex items-center justify-center"
+                              aria-label="Decrease quantity"
+                            >
+                              −
+                            </button>
+                            <span className="text-base font-bold text-gray-900 min-w-[2ch] text-center">
+                              {row.quantity}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setGearQty(
+                                  g.id,
+                                  Math.min(g.stock, row.quantity + 1),
+                                )
+                              }
+                              className="w-8 h-8 rounded-full border-2 border-gearup-600 text-gearup-600 text-lg font-bold hover:bg-gearup-50 transition flex items-center justify-center"
+                              aria-label="Increase quantity"
+                            >
+                              +
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -629,16 +796,21 @@ export function BookingForm({
             </div>
           )}
 
-          {activeGear && (
-            <div className="flex justify-between items-center">
+                    {gearLines.map((line) => (
+            <div
+              key={line.gear_item_id}
+              className="flex justify-between items-center"
+            >
               <span>
-                {activeGear.name}: ₱{activeGear.price_per_day} ×{' '}
+                {line.name}: ₱{line.unit.toFixed(2)} ×{' '}
                 {Math.max(nights, 1)}{' '}
-                {Math.max(nights, 1) === 1 ? 'day' : 'days'} × {gearQuantity}
+                {Math.max(nights, 1) === 1 ? 'day' : 'days'} × {line.qty}
               </span>
-              <span className="font-semibold">₱{gearPrice.toFixed(2)}</span>
+              <span className="font-semibold">
+                ₱{line.subtotal.toFixed(2)}
+              </span>
             </div>
-          )}
+          ))}
         </div>
 
         <div className="border-t border-green-300 my-4" />

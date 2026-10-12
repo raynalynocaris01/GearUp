@@ -16,7 +16,13 @@ class BookingController extends Controller
     public function index(Request $request)
     {
         return response()->json(
-            Booking::with(['campsite', 'tourGuide', 'gearItem', 'review'])
+            Booking::with([
+                'campsite',
+                'tourGuide',
+                'gearItem',
+                'gearItems',
+                'review',
+            ])
                 ->where('user_id', $request->user()->id)
                 ->orderByDesc('created_at')
                 ->get()

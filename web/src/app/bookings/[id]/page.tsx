@@ -1,0 +1,395 @@
+import Image from 'next/image';
+import Link from 'next/link';
+import { notFound, redirect } from 'next/navigation';
+import { cookies } from 'next/headers';
+import { Navbar } from '@/components/Navbar';
+import { CancelBookingButton } from '@/components/CancelBookingButton';
+import { appImageSrc } from '@/components/AppImage';
+
+export const dynamic = 'force-dynamic';
+const API_URL = process.env.NEXT_PUBLIC_API_URL!;
+
+interface BookingGearLine {
+  id: number;
+  name: string;
+  category: string;
+  price_per_day: string;
+  image_url: string | null;
+  pivot: {
+    gear_item_id: number;
+    quantity: number;
+    subtotal: string;
+  };
+}
+
+interface Booking {
+  id: number;
+  check_in: string | null;
+  check_out: string | null;
+  gear_start_date: string | null;
+  gear_end_date: string | null;
+  guests: number;
+  total_price: string;
+  status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
+  notes: string | null;
+  campsite?: {
+    id: number;
+    name: string;
+    location: string;
+    region?: string;
+    image_url: string;
+    price_per_night?: string;
+    price_unit?: string;
+  } | null;
+  tour_guide?: {
+    id: number;
+    name: string;
+    price_per_trip: string;
+  } | null;
+  gear_item?: {
+    id: number;
+    name: string;
+    category: string;
+    price_per_day: string;
+    image_url: string | null;
+  } | null;
+  gear_quantity: number | null;
+  gear_items?: BookingGearLine[];
+  review?: { id: number } | null;
+}
+
+async function getCurrentUser() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get('auth_token')?.value;
+  if (!token) return null;
+  try {
+    const res = await fetch(`${API_URL}/user`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: 'application/json',
+      },
+      cache: 'no-store',
+    });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
+
+async function getBooking(id: string, token: string): Promise<Booking | null> {
+  try {
+    const res = await fetch(`${API_URL}/bookings/${id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: 'application/json',
+      },
+      cache: 'no-store',
+    });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
+
+function formatDate(iso: string | null): string {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  return d.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
+}
+
+function daysBetween(a: string | null, b: string | null): number {
+  if (!a || !b) return 0;
+  const start = new Date(a).getTime();
+  const end = new Date(b).getTime();
+  return Math.max(1, Math.round((end - start) / (1000 * 60 * 60 * 24)));
+}
+
+export default async function BookingDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+  const cookieStore = await cookies();
+  const token = cookieStore.get('auth_token')?.value;
+  if (!token) redirect('/login');
+
+  const [user, booking] = await Promise.all([
+    getCurrentUser(),
+    getBooking(id, token),
+  ]);
+
+  if (!user) redirect('/login');
+  if (!booking) notFound();
+
+  const cancelled = booking.status === 'cancelled';
+  const isGearOnly = !booking.campsite && booking.gear_item;
+
+  const startDate =
+    isGearOnly && booking.gear_start_date
+      ? booking.gear_start_date
+      : booking.check_in;
+  const endDate =
+    isGearOnly && booking.gear_end_date
+      ? booking.gear_end_date
+      : booking.check_out;
+  const nights = daysBetween(startDate, endDate);
+
+  const title =
+    booking.campsite?.name ?? booking.gear_item?.name ?? 'Booking';
+
+  const rawImage =
+    booking.campsite?.image_url ?? booking.gear_item?.image_url ?? null;
+  const imageUrl = rawImage ? appImageSrc(rawImage) : null;
+
+  const hasMultiGear =
+    booking.gear_items !== undefined && booking.gear_items.length > 0;
+
+  // Price breakdown math
+  const campsiteUnit = parseFloat(booking.campsite?.price_per_night ?? '0');
+  const isEntrance = booking.campsite?.price_unit === 'entrance';
+  const campsiteSubtotal = booking.campsite
+    ? isEntrance
+      ? campsiteUnit * booking.guests
+      : campsiteUnit * nights * booking.guests
+    : 0;
+
+  const guideSubtotal = booking.tour_guide
+    ? parseFloat(booking.tour_guide.price_per_trip)
+    : 0;
+
+  const gearSubtotal = hasMultiGear
+    ? booking.gear_items!.reduce(
+        (sum, line) => sum + parseFloat(line.pivot.subtotal),
+        0,
+      )
+    : booking.gear_item
+      ? parseFloat(booking.gear_item.price_per_day) *
+        nights *
+        (booking.gear_quantity ?? 1)
+      : 0;
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <Navbar user={user} />
+
+      <div className="max-w-3xl mx-auto px-6 py-10">
+        <Link
+          href="/bookings"
+          className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gearup-600 mb-6"
+        >
+          ← Back to My Bookings
+        </Link>
+
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          {/* Hero image */}
+          <div className="relative h-56 bg-gray-100">
+            {imageUrl ? (
+              <Image
+                src={imageUrl}
+                alt={title}
+                fill
+                sizes="768px"
+                className="object-cover"
+                unoptimized
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-5xl">
+                🎒
+              </div>
+            )}
+          </div>
+
+          <div className="p-8">
+            {/* Status + title */}
+            <div className="flex items-center gap-3 mb-3">
+              <span
+                className={`inline-block text-[10px] font-extrabold tracking-wider px-2 py-1 rounded ${
+                  cancelled
+                    ? 'bg-red-100 text-red-700'
+                    : booking.status === 'pending'
+                      ? 'bg-yellow-100 text-yellow-800'
+                      : booking.status === 'completed'
+                        ? 'bg-blue-100 text-blue-700'
+                        : 'bg-green-100 text-green-700'
+                }`}
+              >
+                {booking.status.toUpperCase()}
+              </span>
+              <span className="text-xs text-gray-500">
+                Booking #{booking.id}
+              </span>
+            </div>
+
+            <h1 className="text-3xl font-black text-gray-900 mb-1">
+              {title}
+            </h1>
+            {booking.campsite?.location && (
+              <p className="text-sm text-gray-500">
+                {booking.campsite.location}
+                {booking.campsite.region
+                  ? ` · ${booking.campsite.region}`
+                  : ''}
+              </p>
+            )}
+            {isGearOnly && booking.gear_item?.category && (
+              <p className="text-sm text-gearup-600 font-semibold mt-1">
+                {booking.gear_item.category} · Rental only
+              </p>
+            )}
+
+            {/* Trip info */}
+            <div className="mt-6 space-y-2 text-sm text-gray-700">
+              {startDate && endDate && (
+                <div>
+                  <span className="font-semibold text-gray-900">
+                    {formatDate(startDate)} → {formatDate(endDate)}
+                  </span>{' '}
+                  <span className="text-gray-500">
+                    ({nights} {nights === 1 ? 'day' : 'days'})
+                  </span>
+                </div>
+              )}
+              {!isGearOnly && (
+                <div>
+                  {booking.guests}{' '}
+                  {booking.guests === 1 ? 'guest' : 'guests'}
+                </div>
+              )}
+              {booking.tour_guide && (
+                <div>
+                  Tour guide:{' '}
+                  <Link
+                    href={`/tour-guides/${booking.tour_guide.id}`}
+                    className="font-semibold text-gearup-600 hover:underline"
+                  >
+                    {booking.tour_guide.name}
+                  </Link>
+                </div>
+              )}
+              {booking.notes && (
+                <div className="italic text-gray-500 pt-2">
+                  &quot;{booking.notes}&quot;
+                </div>
+              )}
+            </div>
+
+            {/* Price breakdown */}
+            <div className="mt-8 bg-green-50 border border-green-200 rounded-xl p-6">
+              <h2 className="text-sm font-bold text-green-900 uppercase tracking-wider mb-4">
+                Price breakdown
+              </h2>
+              <div className="space-y-2 text-sm text-green-900">
+                {booking.campsite && (
+                  <div className="flex justify-between items-center">
+                    <span>
+                      Campsite: ₱{campsiteUnit.toFixed(2)} ×{' '}
+                      {isEntrance
+                        ? `${booking.guests} ${booking.guests === 1 ? 'guest' : 'guests'}`
+                        : `${nights} ${nights === 1 ? 'night' : 'nights'} × ${booking.guests} ${booking.guests === 1 ? 'guest' : 'guests'}`}
+                    </span>
+                    <span className="font-semibold">
+                      ₱{campsiteSubtotal.toFixed(2)}
+                    </span>
+                  </div>
+                )}
+
+                {booking.tour_guide && (
+                  <div className="flex justify-between items-center">
+                    <span>Tour guide: {booking.tour_guide.name}</span>
+                    <span className="font-semibold">
+                      ₱{guideSubtotal.toFixed(2)}
+                    </span>
+                  </div>
+                )}
+
+                {hasMultiGear && (
+                  <div className="pt-2">
+                    <p className="text-xs font-bold text-green-900 uppercase tracking-wider mb-2">
+                      Gear
+                    </p>
+                    <div className="space-y-2 pl-3 border-l-2 border-green-300">
+                      {booking.gear_items!.map((line) => (
+                        <div
+                          key={line.id}
+                          className="flex justify-between items-center"
+                        >
+                          <span>
+                            {line.name}: ₱
+                            {parseFloat(line.price_per_day).toFixed(2)} ×{' '}
+                            {nights} {nights === 1 ? 'day' : 'days'} ×{' '}
+                            {line.pivot.quantity}
+                          </span>
+                          <span className="font-semibold">
+                            ₱{parseFloat(line.pivot.subtotal).toFixed(2)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {!hasMultiGear && booking.gear_item && (
+                  <div className="flex justify-between items-center">
+                    <span>
+                      {booking.gear_item.name}: ₱
+                      {parseFloat(booking.gear_item.price_per_day).toFixed(2)}{' '}
+                      × {nights} {nights === 1 ? 'day' : 'days'} ×{' '}
+                      {booking.gear_quantity ?? 1}
+                    </span>
+                    <span className="font-semibold">
+                      ₱{gearSubtotal.toFixed(2)}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              <div className="border-t border-green-300 my-4" />
+
+              <div className="flex justify-between items-center">
+                <span className="text-base font-bold text-green-900">
+                  Total
+                </span>
+                <span className="text-2xl font-black text-green-900">
+                  ₱{parseFloat(booking.total_price).toFixed(2)}
+                </span>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="mt-6 flex items-center justify-between gap-3">
+              <div>
+                {booking.status === 'pending' ||
+                booking.status === 'confirmed' ? (
+                  <CancelBookingButton bookingId={booking.id} />
+                ) : null}
+              </div>
+
+              {booking.status === 'completed' &&
+                booking.campsite &&
+                !booking.review && (
+                  <Link
+                    href={`/campsites/${booking.campsite.id}`}
+                    className="inline-block text-sm font-semibold text-white bg-gearup-600 hover:bg-gearup-700 px-5 py-2.5 rounded-lg transition"
+                  >
+                    Leave a review
+                  </Link>
+                )}
+              {booking.review && (
+                <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-gearup-700 bg-gearup-50 border border-gearup-200 px-4 py-2 rounded-lg">
+                  ✓ Reviewed
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
