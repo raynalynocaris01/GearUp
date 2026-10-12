@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Booking extends Model
 {
@@ -51,9 +52,23 @@ class Booking extends Model
         return $this->belongsTo(TourGuide::class);
     }
 
+    /**
+     * Legacy single-gear relation — used by the standalone gear
+     * rental flow (one gear item per booking).
+     */
     public function gearItem(): BelongsTo
     {
         return $this->belongsTo(GearItem::class);
+    }
+
+    /**
+     * Multi-gear relation for campsite bookings.
+     */
+    public function gearItems(): BelongsToMany
+    {
+        return $this->belongsToMany(GearItem::class, 'booking_gear_items')
+            ->withPivot(['quantity', 'price_per_day', 'subtotal'])
+            ->withTimestamps();
     }
 
     public function review()
