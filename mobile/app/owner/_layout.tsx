@@ -138,6 +138,20 @@ export default function OwnerLayout() {
         name="gear/[id]/edit"
         options={{ title: 'Edit Gear', drawerItemStyle: { display: 'none' } }}
       />
+      <Drawer.Screen
+        name="gear/bookings"
+        options={{
+          title: 'Gear Rentals',
+          drawerItemStyle: { display: 'none' },
+        }}
+      />
+      <Drawer.Screen
+        name="gear/bookings/[id]"
+        options={{
+          title: 'Rental Details',
+          drawerItemStyle: { display: 'none' },
+        }}
+      />
             <Drawer.Screen
         name="events/new"
         options={{ title: 'New Event', drawerItemStyle: { display: 'none' } }}

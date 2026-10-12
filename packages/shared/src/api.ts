@@ -617,6 +617,9 @@ export const myGearApi = (client: ApiClient) => ({
 
   get: (id: number | string) => client.get<GearItem>(`/my/gear/${id}`),
 
+  getBooking: (id: number | string) =>
+    client.get<Booking>(`/my/gear-bookings/${id}`),
+
   create: (payload: CreateGearItemPayload) =>
     client.post<GearItem>('/my/gear', payload),
 

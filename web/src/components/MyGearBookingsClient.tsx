@@ -36,7 +36,13 @@ function fmtDate(iso: string | null): string {
   }
 }
 
-export function MyGearBookingsClient({ bookings }: { bookings: Booking[] }) {
+export function MyGearBookingsClient({
+  bookings,
+  detailHrefBase = '/my-gear/bookings',
+}: {
+  bookings: Booking[];
+  detailHrefBase?: string;
+}) {
   const [filter, setFilter] = useState<FilterKey>('all');
 
   const counts = useMemo(
@@ -219,8 +225,8 @@ export function MyGearBookingsClient({ bookings }: { bookings: Booking[] }) {
                   </td>
                   <td className="px-5 py-4 text-right">
                     <div className="flex items-center justify-end gap-3">
-                      <Link
-                        href={`/my-gear/bookings/${b.id}`}
+                                          <Link
+                        href={`${detailHrefBase}/${b.id}`}
                         className="text-xs font-semibold text-gearup-600 hover:underline whitespace-nowrap"
                       >
                         View

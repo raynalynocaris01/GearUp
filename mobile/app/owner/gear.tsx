@@ -10,6 +10,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { owner } from '../../lib/api';
 import { OwnerHeader } from '../../components/owner/OwnerHeader';
 import type { GearItem } from '@gearup/shared';
@@ -48,13 +49,30 @@ export default function OwnerGearScreen() {
 
   return (
     <View style={styles.container}>
-      <OwnerHeader
-        title="My Gear"
-        rightAction={{
-          icon: 'add',
-          onPress: () => router.push('/owner/gear/new'),
-        }}
-      />
+      <OwnerHeader title="My Gear" />
+
+      <View style={styles.quickActions}>
+        <TouchableOpacity
+          style={styles.viewRentalsBtn}
+          onPress={() => router.push('/owner/gear/bookings' as any)}
+          activeOpacity={0.85}
+        >
+          <Ionicons
+            name="receipt-outline"
+            size={16}
+            color={colors.gearupGreen}
+          />
+          <Text style={styles.viewRentalsText}>View rentals</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.addBtn}
+          onPress={() => router.push('/owner/gear/new')}
+          activeOpacity={0.85}
+        >
+          <Ionicons name="add" size={16} color="#fff" />
+          <Text style={styles.addBtnText}>Add gear</Text>
+        </TouchableOpacity>
+      </View>
 
       {loading ? (
         <View style={styles.centerBox}>
@@ -262,4 +280,43 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   primaryButtonText: { color: '#fff', fontSize: 14, fontWeight: '700' },
+
+  quickActions: {
+    flexDirection: 'row',
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 8,
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#f1f5f9',
+  },
+  viewRentalsBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 10,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    backgroundColor: '#fff',
+  },
+  viewRentalsText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.gearupGreen,
+  },
+  addBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 10,
+    borderRadius: 10,
+    backgroundColor: colors.gearupGreen,
+  },
+  addBtnText: { fontSize: 12, fontWeight: '700', color: '#fff' },
 });

@@ -49,7 +49,7 @@ export default async function OwnerGearPage() {
         </div>
         <div className="flex items-center gap-3">
           <Link
-            href="/my-gear/bookings"
+            href="/owner/gear/bookings"
             className="text-sm font-semibold text-gray-700 border border-gray-200 hover:bg-gray-50 px-5 py-3 rounded-lg transition"
           >
             View rentals
