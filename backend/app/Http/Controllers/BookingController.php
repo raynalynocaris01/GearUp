@@ -34,14 +34,20 @@ class BookingController extends Controller
             'gear_start_date' => ['nullable', 'date', 'after_or_equal:today'],
             'gear_end_date' => ['nullable', 'date', 'after:gear_start_date'],
             'gear_quantity' => ['nullable', 'integer', 'min:1'],
+            'gear_items' => ['nullable', 'array'],
+            'gear_items.*.gear_item_id' => ['required', 'integer', 'exists:gear_items,id'],
+            'gear_items.*.quantity' => ['required', 'integer', 'min:1'],
             'guests' => ['required', 'integer', 'min:1'],
             'notes' => ['nullable', 'string', 'max:500'],
         ]);
 
+        $hasMultiGear = !empty($data['gear_items']);
+
         if (
             empty($data['campsite_id']) &&
             empty($data['tour_guide_id']) &&
-            empty($data['gear_item_id'])
+            empty($data['gear_item_id']) &&
+            !$hasMultiGear
         ) {
             throw ValidationException::withMessages([
                 'campsite_id' => [
@@ -56,6 +62,13 @@ class BookingController extends Controller
         $campsitePrice = 0;
         $guidePrice = 0;
         $gearPrice = 0;
+
+        /**
+         * Multi-gear lines for campsite bookings. Each entry:
+         *   ['gear_item_id' => int, 'quantity' => int, 'price_per_day' => float, 'subtotal' => float]
+         * Legacy single-gear (gear_item_id + gear_quantity) is preserved below.
+         */
+        $gearLines = [];
 
         // ── Campsite pricing ────────────────────────────
         if (!empty($data['campsite_id'])) {
@@ -162,10 +175,69 @@ class BookingController extends Controller
             $gearPrice = (float) $gearItem->price_per_day * $days * $qty;
         }
 
+        // ── Multi-gear pricing (campsite bookings) ─────────────────
+        // Gear dates are the campsite's check_in/check_out.
+        if ($hasMultiGear) {
+            if (!$campsite) {
+                throw ValidationException::withMessages([
+                    'gear_items' => [
+                        'Multiple gear items are only supported on campsite bookings.',
+                    ],
+                ]);
+            }
+
+            // Merge duplicate gear_item_ids into a single line (Q1 default = (a))
+            $merged = [];
+            foreach ($data['gear_items'] as $row) {
+                $gid = (int) $row['gear_item_id'];
+                $qty = (int) $row['quantity'];
+                if (isset($merged[$gid])) {
+                    $merged[$gid] += $qty;
+                } else {
+                    $merged[$gid] = $qty;
+                }
+            }
+
+            $gs = new \DateTime($data['check_in']);
+            $ge = new \DateTime($data['check_out']);
+            $days = max(1, $gs->diff($ge)->days);
+
+            foreach ($merged as $gid => $qty) {
+                $item = GearItem::findOrFail($gid);
+
+                if (!$item->is_available) {
+                    throw ValidationException::withMessages([
+                        'gear_items' => [
+                            "{$item->name} is not currently available.",
+                        ],
+                    ]);
+                }
+
+                if ($item->stock < $qty) {
+                    throw ValidationException::withMessages([
+                        'gear_items' => [
+                            "Only {$item->stock} of {$item->name} left in stock.",
+                        ],
+                    ]);
+                }
+
+                $linePrice = (float) $item->price_per_day;
+                $subtotal = $linePrice * $days * $qty;
+                $gearLines[] = [
+                    'gear_item_id' => $item->id,
+                    'quantity' => $qty,
+                    'price_per_day' => $linePrice,
+                    'subtotal' => $subtotal,
+                ];
+
+                $gearPrice += $subtotal;
+            }
+        }
+
         $total = $campsitePrice + $guidePrice + $gearPrice;
 
-        $booking = DB::transaction(function () use ($data, $request, $campsite, $tourGuide, $gearItem, $total) {
-            return Booking::create([
+        $booking = DB::transaction(function () use ($data, $request, $campsite, $tourGuide, $gearItem, $gearLines, $total) {
+            $booking = Booking::create([
                 'user_id' => $request->user()->id,
                 'campsite_id' => $campsite?->id,
                 'tour_guide_id' => $tourGuide?->id,
@@ -180,11 +252,22 @@ class BookingController extends Controller
                 'status' => 'pending',
                 'notes' => $data['notes'] ?? null,
             ]);
+
+            foreach ($gearLines as $line) {
+                $booking->gearItems()->attach($line['gear_item_id'], [
+                    'quantity' => $line['quantity'],
+                    'price_per_day' => $line['price_per_day'],
+                    'subtotal' => $line['subtotal'],
+                ]);
+            }
+
+            return $booking;
         });
+
         $this->notifyBookingCreated($booking);
 
         return response()->json(
-            $booking->load(['campsite', 'tourGuide', 'gearItem']),
+            $booking->load(['campsite', 'tourGuide', 'gearItem', 'gearItems']),
             201
         );
     }
@@ -196,7 +279,13 @@ class BookingController extends Controller
         }
 
         return response()->json(
-            $booking->load(['campsite', 'tourGuide', 'gearItem', 'review'])
+            $booking->load([
+                'campsite',
+                'tourGuide',
+                'gearItem',
+                'gearItems',
+                'review',
+            ])
         );
     }
 
@@ -209,7 +298,7 @@ class BookingController extends Controller
         $booking->update(['status' => 'cancelled']);
 
         return response()->json(
-            $booking->load(['campsite', 'tourGuide', 'gearItem'])
+            $booking->load(['campsite', 'tourGuide', 'gearItem', 'gearItems'])
         );
     }
 
@@ -221,6 +310,7 @@ class BookingController extends Controller
     {
         $actorId = $booking->user_id;
 
+        // Campsite owner notification
         if ($booking->campsite_id) {
             $booking->loadMissing('campsite');
             $ownerId = $booking->campsite?->owner_id;
@@ -234,7 +324,26 @@ class BookingController extends Controller
                     '/owner/bookings',
                 );
             }
-        } elseif ($booking->gear_item_id) {
+        }
+
+        // Tour guide owner notification (only when no campsite owner was notified)
+        if (!$booking->campsite_id && $booking->tour_guide_id) {
+            $booking->loadMissing('tourGuide.campsite');
+            $ownerId = $booking->tourGuide?->campsite?->owner_id;
+            if ($ownerId) {
+                NotificationService::notifyOthers(
+                    $actorId,
+                    $ownerId,
+                    'booking.created',
+                    'New tour guide booking',
+                    "Booking #{$booking->id} for {$booking->tourGuide->name}",
+                    '/owner/bookings',
+                );
+            }
+        }
+
+        // Legacy single-gear notification (standalone gear rental flow)
+        if ($booking->gear_item_id) {
             $booking->loadMissing('gearItem');
             $ownerId = $booking->gearItem?->owner_id;
             if ($ownerId) {
@@ -247,17 +356,28 @@ class BookingController extends Controller
                     '/my-gear/bookings',
                 );
             }
-        } elseif ($booking->tour_guide_id) {
-            $booking->loadMissing('tourGuide.campsite');
-            $ownerId = $booking->tourGuide?->campsite?->owner_id;
-            if ($ownerId) {
+        }
+
+        // Multi-gear notification: one per gear owner, summarized (Q3 default = (a))
+        $booking->loadMissing('gearItems');
+        if ($booking->gearItems->isNotEmpty()) {
+            $byOwner = [];
+            foreach ($booking->gearItems as $item) {
+                $byOwner[$item->owner_id][] = $item->name;
+            }
+
+            foreach ($byOwner as $ownerId => $names) {
+                $count = count($names);
+                $label = $count === 1
+                    ? $names[0]
+                    : "{$count} gear items";
                 NotificationService::notifyOthers(
                     $actorId,
                     $ownerId,
-                    'booking.created',
-                    'New tour guide booking',
-                    "Booking #{$booking->id} for {$booking->tourGuide->name}",
-                    '/owner/bookings',
+                    'gear.rented',
+                    'Your gear was rented',
+                    "Booking #{$booking->id} includes {$label}",
+                    '/my-gear/bookings',
                 );
             }
         }
