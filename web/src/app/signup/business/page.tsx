@@ -105,7 +105,7 @@ export default function BusinessSignupPage() {
       {/* LEFT: hero */}
       <div className="hidden lg:flex lg:w-1/2 relative text-white">
         <Image
-          src="/camping-bg.jpg"
+          src="/camping.jpg"
           alt="Camping under the stars"
           fill
           priority

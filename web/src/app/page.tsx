@@ -182,7 +182,7 @@ export default async function HomePage() {
       {/* HERO */}
             <section className="relative h-[440px] text-white overflow-hidden">
         <Image
-          src="/camping-bg.jpg"
+          src="/camping.jpg"
           alt="Camping"
           fill
           priority
