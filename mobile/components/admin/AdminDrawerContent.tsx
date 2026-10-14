@@ -39,12 +39,13 @@ const NAV: NavItem[] = [
     icon: 'star-outline',
     href: '/admin/reviews',
   },
-  {
-    key: 'events',
-    label: 'Events',
-    icon: 'sparkles-outline',
-    href: '/admin/events',
-  },
+  // [Events disabled 2026-10-14] - uncomment to re-enable
+  // {
+  //   key: 'events',
+  //   label: 'Events',
+  //   icon: 'sparkles-outline',
+  //   href: '/admin/events',
+  // },
   {
     key: 'tour-guides',
     label: 'Tour Guides',

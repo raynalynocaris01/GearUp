@@ -40,16 +40,13 @@ export default function TabsLayout() {
           ),
         }}
       />
-      {/* [Events disabled 2026-10-14] - uncomment to re-enable */}
-      {/* <Tabs.Screen
+      {/* [Events disabled 2026-10-14] - change tabBarButton to restore */}
+      <Tabs.Screen
         name="my-events"
         options={{
-          title: 'My Events',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="sparkles-outline" size={size} color={color} />
-          ),
+          href: null,
         }}
-      /> */}
+      />
       <Tabs.Screen
         name="bookings"
         options={{
