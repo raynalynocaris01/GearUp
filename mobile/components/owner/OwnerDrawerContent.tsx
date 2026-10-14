@@ -16,7 +16,8 @@ const NAV: NavItem[] = [
   { route: '/owner/bookings', label: 'Bookings', icon: 'calendar-outline' },
   { route: '/owner/campsites', label: 'Campsites', icon: 'home-outline' },
   { route: '/owner/gear', label: 'Gear', icon: 'bag-handle-outline' },
-  { route: '/owner/events', label: 'Events', icon: 'calendar-number-outline' },
+  // [Events disabled 2026-10-14] - uncomment to re-enable
+  // { route: '/owner/events', label: 'Events', icon: 'calendar-number-outline' },
   { route: '/owner/tour-guides', label: 'Tour Guides', icon: 'people-outline' },
   { route: '/owner/reviews', label: 'Reviews', icon: 'star-outline' },
   { route: '/owner/settings', label: 'Settings', icon: 'settings-outline' },

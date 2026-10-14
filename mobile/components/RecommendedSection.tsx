@@ -93,9 +93,10 @@ export function RecommendedSection({ data }: Props) {
   const campsite = data.campsites[0];
   const gear = data.gear[0];
   const guide = data.guides[0];
-  const event = data.events[0];
+  // [Events disabled 2026-10-14] - uncomment to re-enable
+  // const event = data.events[0];
 
-  if (!campsite && !gear && !guide && !event) return null;
+  if (!campsite && !gear && !guide) return null;
 
   return (
     <View style={styles.container}>
@@ -156,7 +157,8 @@ export function RecommendedSection({ data }: Props) {
           />
         )}
 
-        {event && (
+        {/* [Events disabled 2026-10-14] - uncomment to re-enable */}
+        {/* {event && (
           <FeaturedCard
             category="Event"
             title={event.name}
@@ -165,7 +167,7 @@ export function RecommendedSection({ data }: Props) {
             priceLabel={`PHP ${Number(event.price_per_person).toFixed(0)} / person`}
             onPress={() => router.push(`/events/${event.id}`)}
           />
-        )}
+        )} */}
 
         {/* View All card */}
         <TouchableOpacity

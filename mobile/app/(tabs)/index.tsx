@@ -49,13 +49,14 @@ const FEATURES = [
     action: 'tour-guides',
   },
   
-  {
-    icon: 'calendar-outline',
-    label: 'Join Events',
-    desc: 'Meet up and join adventures',
-    color: '#9333ea',
-    action: 'events',
-  },
+  // [Events disabled 2026-10-14] - uncomment to re-enable
+  // {
+  //   icon: 'calendar-outline',
+  //   label: 'Join Events',
+  //   desc: 'Meet up and join adventures',
+  //   color: '#9333ea',
+  //   action: 'events',
+  // },
   {
     icon: 'cloud-upload-outline',
     label: 'List Your Gear',
@@ -141,13 +142,12 @@ export default function HomeScreen() {
     Alert.alert('Coming soon', 'This feature is being built.');
   };
 
-  const handleFeaturePress = (
+    const handleFeaturePress = (
     action:
       | 'explore'
       | 'coming-soon'
       | 'tour-guides'
       | 'gear-rental'
-      | 'events'
       | 'my-gear',
     label: string,
   ) => {
@@ -163,16 +163,17 @@ export default function HomeScreen() {
       router.push('/gear-rental');
       return;
     }
-    if (action === 'events') {
-      router.push('/events');
-      return;
-    }
+    // [Events disabled 2026-10-14] - uncomment to re-enable
+    // if (action === 'events') {
+    //   router.push('/events');
+    //   return;
+    // }
     if (action === 'my-gear') {
       router.push('/my-gear');
       return;
     }
     Alert.alert(
-      `${label} — Coming Soon`,
+      `${label} - Coming Soon`,
       'This feature is being built. Check back soon!',
     );
   };

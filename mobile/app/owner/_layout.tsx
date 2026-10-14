@@ -114,7 +114,8 @@ export default function OwnerLayout() {
       <Drawer.Screen name="bookings" options={{ title: 'Bookings' }} />
       <Drawer.Screen name="campsites" options={{ title: 'Campsites' }} />
       <Drawer.Screen name="gear" options={{ title: 'Gear' }} />
-      <Drawer.Screen name="events" options={{ title: 'Events' }} />
+      {/* [Events disabled 2026-10-14] - uncomment to re-enable */}
+      {/* <Drawer.Screen name="events" options={{ title: 'Events' }} /> */}
       <Drawer.Screen name="tour-guides" options={{ title: 'Tour Guides' }} />
       <Drawer.Screen name="reviews" options={{ title: 'Reviews' }} />
       <Drawer.Screen name="settings" options={{ title: 'Settings' }} />
@@ -152,7 +153,7 @@ export default function OwnerLayout() {
           drawerItemStyle: { display: 'none' },
         }}
       />
-            <Drawer.Screen
+            {/* <Drawer.Screen
         name="events/new"
         options={{ title: 'New Event', drawerItemStyle: { display: 'none' } }}
       />
@@ -164,7 +165,7 @@ export default function OwnerLayout() {
       <Drawer.Screen
         name="events/[id]/attendees"
         options={{ title: 'Attendees', drawerItemStyle: { display: 'none' } }}
-      />
+      /> */}
       <Drawer.Screen
         name="notifications"
         options={{ title: 'Notifications', drawerItemStyle: { display: 'none' } }}

@@ -40,7 +40,8 @@ export default function TabsLayout() {
           ),
         }}
       />
-      <Tabs.Screen
+      {/* [Events disabled 2026-10-14] - uncomment to re-enable */}
+      {/* <Tabs.Screen
         name="my-events"
         options={{
           title: 'My Events',
@@ -48,7 +49,7 @@ export default function TabsLayout() {
             <Ionicons name="sparkles-outline" size={size} color={color} />
           ),
         }}
-      />
+      /> */}
       <Tabs.Screen
         name="bookings"
         options={{
