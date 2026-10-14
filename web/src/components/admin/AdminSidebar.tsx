@@ -31,7 +31,8 @@ const NAV: NavItem[] = [
   { href: '/admin/campsites', label: 'Campsites', icon: 'campsites' },
   { href: '/admin/bookings', label: 'Bookings', icon: 'bookings' },
   { href: '/admin/reviews', label: 'Reviews', icon: 'reviews' },
-  { href: '/admin/events', label: 'Events', icon: 'events' },
+  // [Events disabled 2026-10-14] - uncomment to re-enable
+  // { href: '/admin/events', label: 'Events', icon: 'events' },
   { href: '/admin/tour-guides', label: 'Tour Guides', icon: 'tourGuides' },
 ];
 

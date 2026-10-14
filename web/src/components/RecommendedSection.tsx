@@ -135,7 +135,8 @@ export function RecommendedSection({ data }: Props) {
           />
         )}
 
-        {event && (
+        {/* [Events disabled 2026-10-14] - uncomment to re-enable */}
+        {/* {event && (
           <FeaturedCard
             category="Event"
             title={event.name}
@@ -144,7 +145,7 @@ export function RecommendedSection({ data }: Props) {
             priceLabel={`PHP ${Number(event.price_per_person).toFixed(0)} / person`}
             href={`/events/${event.id}`}
           />
-        )}
+        )} */}
 
                 {/* View All card */}
         <Link

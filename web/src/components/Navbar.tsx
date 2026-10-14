@@ -20,7 +20,8 @@ const LINKS = [
   { href: '/campsites', label: 'Campsites' },
   { href: '/tour-guides', label: 'Tour Guides' },
   { href: '/gear-rental', label: 'Gear Rental' },
-  { href: '/events', label: 'Events' },
+  // [Events disabled 2026-10-14] - uncomment to re-enable
+  // { href: '/events', label: 'Events' },
 ];
 
 export function Navbar({ user }: NavbarProps) {
