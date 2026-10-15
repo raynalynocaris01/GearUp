@@ -4,6 +4,7 @@ import { notFound, redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
 import { Navbar } from '@/components/Navbar';
 import { CancelBookingButton } from '@/components/CancelBookingButton';
+import { BookingStatusTracker } from '@/components/BookingStatusTracker';
 import { appImageSrc } from '@/components/AppImage';
 
 export const dynamic = 'force-dynamic';
@@ -32,6 +33,10 @@ interface Booking {
   total_price: string;
   status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
   notes: string | null;
+  created_at?: string;
+  confirmed_at?: string | null;
+  completed_at?: string | null;
+  cancelled_at?: string | null;
   campsite?: {
     id: number;
     name: string;
@@ -243,6 +248,17 @@ export default async function BookingDetailPage({
                 {booking.gear_item.category} · Rental only
               </p>
             )}
+
+            {/* Status tracker */}
+            <div className="mt-6">
+              <BookingStatusTracker
+                status={booking.status}
+                createdAt={booking.created_at ?? null}
+                confirmedAt={booking.confirmed_at ?? null}
+                completedAt={booking.completed_at ?? null}
+                cancelledAt={booking.cancelled_at ?? null}
+              />
+            </div>
 
             {/* Trip info */}
             <div className="mt-6 space-y-2 text-sm text-gray-700">

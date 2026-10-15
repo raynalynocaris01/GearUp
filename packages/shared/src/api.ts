@@ -162,6 +162,9 @@ export interface Booking {
   notes: string | null;
   created_at: string;
   updated_at: string;
+  confirmed_at: string | null;
+  completed_at: string | null;
+  cancelled_at: string | null;
   campsite?: Campsite | null;
   tour_guide?: TourGuide | null;
   gear_item?: GearItem | null;

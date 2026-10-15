@@ -335,8 +335,7 @@ export function BookingForm({
       return;
     }
 
-    router.push('/bookings?success=1');
-    router.refresh();
+    router.push(`/bookings/${data.id}/confirmed`);
   };
 
   const maxGuests = campsite?.capacity ?? 1;
