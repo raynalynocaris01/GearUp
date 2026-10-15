@@ -12,10 +12,11 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
-import { bookings } from '../../lib/api';
+import { bookings } from '../../../lib/api';
 import type { Booking } from '@gearup/shared';
-import { colors } from '../../theme';
-import { imgSrc } from '../../lib/images';
+import { colors } from '../../../theme';
+import { imgSrc } from '../../../lib/images';
+import { BookingStatusTracker } from '../../../components/BookingStatusTracker';
 
 function formatDate(iso: string | null): string {
   if (!iso) return '—';
@@ -221,6 +222,17 @@ export default function BookingDetailScreen() {
               {booking.gear_item.category} - Rental only
             </Text>
           )}
+
+          {/* Status tracker */}
+          <View style={{ marginTop: 12 }}>
+            <BookingStatusTracker
+              status={booking.status}
+              createdAt={booking.created_at ?? null}
+              confirmedAt={booking.confirmed_at ?? null}
+              completedAt={booking.completed_at ?? null}
+              cancelledAt={booking.cancelled_at ?? null}
+            />
+          </View>
 
           {/* Trip info */}
           <View style={styles.infoBlock}>

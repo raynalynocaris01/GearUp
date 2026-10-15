@@ -257,18 +257,10 @@ export default function NewBookingScreen() {
         payload.gear_end_date = checkOut;
       }
 
-      await bookings.create(payload);
+      const res = await bookings.create(payload);
+      const newBookingId = res.data.id;
 
-      Alert.alert(
-        'Booking confirmed!',
-        `Your reservation at ${campsite.name} is confirmed.`,
-        [
-          {
-            text: 'View Bookings',
-            onPress: () => router.replace('/(tabs)/bookings'),
-          },
-        ],
-      );
+      router.replace(`/booking/${newBookingId}/confirmed` as any);
     } catch (err: any) {
       const data = err.response?.data;
       const message =
