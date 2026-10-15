@@ -82,7 +82,10 @@ class GearBookingController extends Controller
             ], 422);
         }
 
-        $booking->update(['status' => 'confirmed']);
+                $booking->update([
+            'status' => 'confirmed',
+            'confirmed_at' => now(),
+        ]);
 
         NotificationService::notify(
             $booking->user_id,
@@ -108,7 +111,10 @@ class GearBookingController extends Controller
             ], 422);
         }
 
-        $booking->update(['status' => 'completed']);
+                $booking->update([
+            'status' => 'completed',
+            'completed_at' => now(),
+        ]);
 
         NotificationService::notify(
             $booking->user_id,
@@ -138,7 +144,10 @@ class GearBookingController extends Controller
             ], 422);
         }
 
-        $booking->update(['status' => 'cancelled']);
+                $booking->update([
+            'status' => 'cancelled',
+            'cancelled_at' => now(),
+        ]);
 
         NotificationService::notify(
             $booking->user_id,

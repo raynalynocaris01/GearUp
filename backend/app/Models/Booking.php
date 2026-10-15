@@ -24,6 +24,9 @@ class Booking extends Model
         'guests',
         'total_price',
         'status',
+        'confirmed_at',
+        'completed_at',
+        'cancelled_at',
         'notes',
     ];
 
@@ -35,6 +38,9 @@ class Booking extends Model
         'guests' => 'integer',
         'gear_quantity' => 'integer',
         'total_price' => 'decimal:2',
+        'confirmed_at' => 'datetime',
+        'completed_at' => 'datetime',
+        'cancelled_at' => 'datetime',
     ];
 
     public function user(): BelongsTo

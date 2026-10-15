@@ -48,7 +48,10 @@ class BookingController extends Controller
     {
         $this->authorizeOwner($request, $booking);
 
-        $booking->update(['status' => 'confirmed']);
+        $booking->update([
+            'status' => 'confirmed',
+            'confirmed_at' => now(),
+        ]);
 
         NotificationService::notify(
             $booking->user_id,
@@ -72,7 +75,10 @@ class BookingController extends Controller
             abort(422, 'Only confirmed bookings can be marked as completed.');
         }
 
-        $booking->update(['status' => 'completed']);
+        $booking->update([
+            'status' => 'completed',
+            'completed_at' => now(),
+        ]);
 
         NotificationService::notify(
             $booking->user_id,
@@ -91,7 +97,10 @@ class BookingController extends Controller
     {
         $this->authorizeOwner($request, $booking);
 
-        $booking->update(['status' => 'cancelled']);
+        $booking->update([
+            'status' => 'cancelled',
+            'cancelled_at' => now(),
+        ]);
 
         NotificationService::notify(
             $booking->user_id,

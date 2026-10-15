@@ -301,7 +301,10 @@ class BookingController extends Controller
             abort(403, 'Forbidden');
         }
 
-        $booking->update(['status' => 'cancelled']);
+        $booking->update([
+            'status' => 'cancelled',
+            'cancelled_at' => now(),
+        ]);
 
         return response()->json(
             $booking->load(['campsite', 'tourGuide', 'gearItem', 'gearItems'])
