@@ -41,7 +41,7 @@ class BookingController extends Controller
     public function show(Booking $booking)
     {
         $booking->load([
-            'campsite:id,name,location,image_url,owner_id',
+            'campsite:id,name,location,image_url,owner_id,price_per_night,price_unit',
             'campsite.owner:id,name,email',
             'tourGuide',
             'gearItem',

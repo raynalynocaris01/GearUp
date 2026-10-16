@@ -180,6 +180,12 @@ export default async function AdminBookingsPage({
                       <p className="text-sm font-black text-gearup-600">
                         PHP {b.total_price}
                       </p>
+                      <Link
+                        href={`/admin/bookings/${b.id}`}
+                        className="inline-block mt-1 text-xs font-semibold text-gearup-600 hover:underline"
+                      >
+                        View &rarr;
+                      </Link>
                     </td>
                   </tr>
                 );

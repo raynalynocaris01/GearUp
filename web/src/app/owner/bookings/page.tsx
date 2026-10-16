@@ -2,6 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { cookies } from 'next/headers';
 import { OwnerBookingActions } from '@/components/owner/OwnerBookingActions';
+import { appImageSrc } from '@/components/AppImage';
 export const dynamic = 'force-dynamic';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL!;
@@ -103,7 +104,7 @@ export default async function OwnerBookingsPage() {
                 <div className="relative w-40 shrink-0">
                   {b.campsite?.image_url ? (
                     <Image
-                      src={b.campsite.image_url}
+                      src={appImageSrc(b.campsite.image_url)}
                       alt={b.campsite.name ?? 'Campsite'}
                       fill
                       sizes="160px"
@@ -139,8 +140,8 @@ export default async function OwnerBookingsPage() {
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="text-2xl font-black text-gearup-600">
-                        ₱{b.total_price}
+                       <p className="text-2xl font-black text-gearup-600">
+                        PHP {b.total_price}
                       </p>
                     </div>
                   </div>
@@ -193,7 +194,13 @@ export default async function OwnerBookingsPage() {
                     </p>
                   )}
 
-                  <div className="mt-4 flex justify-end">
+                  <div className="mt-4 flex items-center justify-end gap-3">
+                    <Link
+                      href={`/owner/bookings/${b.id}`}
+                      className="text-xs font-semibold text-gearup-600 hover:underline"
+                    >
+                      View details &rarr;
+                    </Link>
                     <OwnerBookingActions
                       bookingId={b.id}
                       status={b.status}
