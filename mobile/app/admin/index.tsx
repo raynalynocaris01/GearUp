@@ -127,6 +127,15 @@ export default function AdminDashboard() {
           fg: '#d97706',
           href: '/admin/bookings',
         },
+        {
+          label: 'Tour Guides',
+          value: 'Manage',
+          delta: 'Platform-wide directory',
+          icon: 'compass-outline' as const,
+          bg: '#ffe4e6',
+          fg: '#e11d48',
+          href: '/admin/tour-guides',
+        },
       ]
     : [];
 
