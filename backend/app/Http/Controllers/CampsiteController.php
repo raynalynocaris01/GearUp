@@ -13,7 +13,10 @@ class CampsiteController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Campsite::query();
+        // Exclude sub-listings (e.g. rooms) from the top-level browse list.
+        // They are still reachable at /campsites/{id} and shown on the
+        // parent campsite's detail page.
+        $query = Campsite::query()->whereNull('parent_campsite_id');
 
         if ($request->boolean('featured')) {
             $query->where('is_featured', true);
@@ -31,6 +34,7 @@ class CampsiteController extends Controller
     {
         $campsite->load([
             'tourGuides',
+            'children',
             'reviews' => function ($q) {
                 $q->with('user:id,name')->orderByDesc('created_at');
             },

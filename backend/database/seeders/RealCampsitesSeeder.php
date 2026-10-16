@@ -75,7 +75,7 @@ class RealCampsitesSeeder extends Seeder
         Campsite::create([
             'owner_id' => $maria->id,
             'name' => 'Kanto Kuridas Camping Ground',
-            'description' => 'Cozy camping ground with an on-site café. Entrance fee is PHP 35 for a daytime visit or PHP 55 for overnight. The whole campsite can be rented for PHP 1,000 per night - perfect for barkada trips and family gatherings. Come for the food, stay for the cooler mountain air.',
+            'description' => 'Cozy camping ground with an on-site cafe. Entrance fee is PHP 35 for a daytime visit or PHP 55 for overnight. The whole campsite can be rented for PHP 1,000 per night - perfect for barkada trips and family gatherings. Come for the food, stay for the cooler mountain air.',
             'location' => 'Valencia, Negros Oriental',
             'region' => 'Negros Oriental',
             'price_per_night' => 55.00,
@@ -118,9 +118,10 @@ class RealCampsitesSeeder extends Seeder
             'is_available' => true,
         ]);
 
-        // ─── Sheintan Native Room (same owner, separate listing) ──────────
+        // ─── Sheintan Native Room (same owner, sub-listing) ───────────────
         Campsite::create([
             'owner_id' => $pedro->id,
+            'parent_campsite_id' => $sheintan->id,
             'name' => 'Sheintan Native Room',
             'description' => 'Native room available at Sheintan Ridge View Camping Ground. Simple and cozy. Book by calling 09396277913 or 09953384029.',
             'location' => 'Valencia, Negros Oriental',

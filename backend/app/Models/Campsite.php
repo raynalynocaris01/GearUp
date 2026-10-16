@@ -11,6 +11,7 @@ class Campsite extends Model
 
     protected $fillable = [
         'owner_id',
+        'parent_campsite_id',
         'name',
         'description',
         'location',
@@ -39,6 +40,23 @@ class Campsite extends Model
     public function owner()
     {
         return $this->belongsTo(User::class, 'owner_id');
+    }
+
+    /**
+     * If this campsite is a sub-listing (e.g. a room), returns the
+     * main campsite it belongs to.
+     */
+    public function parent()
+    {
+        return $this->belongsTo(Campsite::class, 'parent_campsite_id');
+    }
+
+    /**
+     * Sub-listings grouped under this campsite (e.g. rooms).
+     */
+    public function children()
+    {
+        return $this->hasMany(Campsite::class, 'parent_campsite_id');
     }
 
     public function tourGuides()

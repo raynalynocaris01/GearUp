@@ -22,12 +22,24 @@ interface Campsite {
   reviews_count: number;
   capacity: number;
   is_featured: boolean;
+  parent_campsite_id: number | null;
   reviews?: {
     id: number;
     rating: number;
     comment: string | null;
     created_at: string;
     user?: { id: number; name: string };
+  }[];
+  children?: {
+    id: number;
+    name: string;
+    description: string | null;
+    location: string;
+    region: string;
+    price_per_night: string;
+    price_unit: string;
+    image_url: string;
+    capacity: number;
   }[];
 }
 
@@ -177,6 +189,51 @@ export default async function CampsiteDetailPage({
                 {campsite.description}
               </p>
             </div>
+
+            {/* Also available at this location (sibling listings) */}
+            {campsite.children && campsite.children.length > 0 && (
+              <div className="mt-8">
+                <h2 className="text-xl font-bold text-gray-900 mb-3">
+                  Also available at this location
+                </h2>
+                <div className="space-y-3">
+                  {campsite.children.map((child) => (
+                    <Link
+                      key={child.id}
+                      href={`/campsites/${child.id}`}
+                      className="flex items-center gap-4 bg-white border border-gray-100 hover:border-gearup-600 rounded-xl p-4 transition group"
+                    >
+                      <div className="relative w-20 h-20 rounded-lg overflow-hidden bg-gray-100 shrink-0">
+                        {child.image_url && (
+                          <Image
+                            src={appImageSrc(child.image_url)}
+                            alt={child.name}
+                            fill
+                            sizes="80px"
+                            className="object-cover"
+                            unoptimized
+                          />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-bold text-gray-900 truncate">
+                          {child.name}
+                        </p>
+                        <p className="text-xs text-gray-500 mt-0.5">
+                          {child.location}
+                        </p>
+                        <p className="text-sm font-black text-gearup-600 mt-1">
+                          PHP {child.price_per_night} / {child.price_unit}
+                        </p>
+                      </div>
+                      <span className="text-xs font-semibold text-gearup-600 group-hover:underline shrink-0">
+                        View &rarr;
+                      </span>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div className="mt-8">
               <h2 className="text-xl font-bold text-gray-900 mb-3">
