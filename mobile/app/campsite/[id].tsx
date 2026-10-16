@@ -191,6 +191,58 @@ export default function CampsiteDetailScreen() {
           <Text style={styles.sectionTitle}>About this campsite</Text>
           <Text style={styles.description}>{campsite.description}</Text>
 
+          {/* Sibling listings (rooms, sub-campsites) */}
+          {campsite.children && campsite.children.length > 0 && (
+            <>
+              <View style={styles.divider} />
+              <Text style={styles.sectionTitle}>
+                Also available at this location
+              </Text>
+              <View style={{ gap: 10, marginTop: 8 }}>
+                {campsite.children.map((child) => (
+                  <TouchableOpacity
+                    key={child.id}
+                    style={styles.siblingCard}
+                    onPress={() =>
+                      router.push(`/campsite/${child.id}` as any)
+                    }
+                    activeOpacity={0.85}
+                  >
+                    {child.image_url ? (
+                      <Image
+                        source={{ uri: imgSrc(child.image_url) }}
+                        style={styles.siblingImage}
+                      />
+                    ) : (
+                      <View
+                        style={[
+                          styles.siblingImage,
+                          styles.siblingImageFallback,
+                        ]}
+                      />
+                    )}
+                    <View style={{ flex: 1, minWidth: 0 }}>
+                      <Text style={styles.siblingName} numberOfLines={1}>
+                        {child.name}
+                      </Text>
+                      <Text style={styles.siblingLocation} numberOfLines={1}>
+                        {child.location}
+                      </Text>
+                      <Text style={styles.siblingPrice}>
+                        PHP {child.price_per_night} / {child.price_unit}
+                      </Text>
+                    </View>
+                    <Ionicons
+                      name="chevron-forward"
+                      size={20}
+                      color="#9ca3af"
+                    />
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </>
+          )}
+
           <View style={styles.divider} />
 
           <Text style={styles.sectionTitle}>Region</Text>
@@ -318,6 +370,42 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: '#f1f5f9',
     marginVertical: 14,
+  },
+
+  siblingCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    padding: 12,
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    borderRadius: 12,
+  },
+  siblingImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 10,
+    backgroundColor: '#e5e7eb',
+  },
+  siblingImageFallback: {
+    backgroundColor: colors.gearup50,
+  },
+  siblingName: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#111827',
+  },
+  siblingLocation: {
+    fontSize: 11,
+    color: colors.textMuted,
+    marginTop: 2,
+  },
+  siblingPrice: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: colors.gearupGreen,
+    marginTop: 4,
   },
 
   sectionTitle: {

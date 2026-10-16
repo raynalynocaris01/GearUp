@@ -96,6 +96,7 @@ export const authApi = (client: ApiClient) => ({
 export interface Campsite {
   id: number;
   owner_id?: number | null;
+  parent_campsite_id?: number | null;
   name: string;
   description: string;
   location: string;
@@ -112,8 +113,9 @@ export interface Campsite {
   created_at: string;
   updated_at: string;
   tour_guides?: TourGuide[];
+  children?: Campsite[];
   reviews?: Review[];
-   revenue?: number;
+  revenue?: number;
   bookings_count?: number;
 }
 
