@@ -41,6 +41,30 @@ class BookingController extends Controller
     }
 
     /**
+     * GET /api/owner/bookings/{booking}
+     * Single booking scoped to the authenticated owner. Gear lines are
+     * filtered to only the owner's own items, matching the index method.
+     */
+    public function show(Request $request, Booking $booking)
+    {
+        $this->authorizeOwner($request, $booking);
+
+        $userId = $request->user()->id;
+
+        $booking->load([
+            'campsite',
+            'tourGuide',
+            'gearItem',
+            'user:id,name,email',
+            'gearItems' => function ($q) use ($userId) {
+                $q->where('gear_items.owner_id', $userId);
+            },
+        ]);
+
+        return response()->json($booking);
+    }
+
+    /**
      * POST /api/owner/bookings/{booking}/confirm
      * Owner can confirm a pending booking (future: booking lifecycle).
      */

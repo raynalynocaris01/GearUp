@@ -117,6 +117,7 @@ Route::middleware(['auth:sanctum', 'role:owner'])->prefix('owner')->group(functi
 
     // Bookings
     Route::get('/bookings',                          [OwnerBookingController::class, 'index']);
+    Route::get('/bookings/{booking}',                [OwnerBookingController::class, 'show']);
     Route::post('/bookings/{booking}/confirm',       [OwnerBookingController::class, 'confirm']);
     Route::post('/bookings/{booking}/cancel',        [OwnerBookingController::class, 'cancel']);
     Route::post('/bookings/{booking}/complete',      [OwnerBookingController::class, 'complete']);
@@ -162,6 +163,7 @@ Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(functi
 
     // Bookings
     Route::get('/bookings', [AdminBookingController::class, 'index']);
+    Route::get('/bookings/{booking}', [AdminBookingController::class, 'show']);
 
     // Reviews
     Route::get('/reviews', [AdminReviewController::class, 'index']);

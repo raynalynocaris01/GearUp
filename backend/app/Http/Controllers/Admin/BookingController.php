@@ -32,4 +32,24 @@ class BookingController extends Controller
             $query->orderByDesc('created_at')->get()
         );
     }
+
+    /**
+     * GET /api/admin/bookings/{booking}
+     * Full booking detail — admin sees every field including all gear lines
+     * from every owner. Read-only.
+     */
+    public function show(Booking $booking)
+    {
+        $booking->load([
+            'campsite:id,name,location,image_url,owner_id',
+            'campsite.owner:id,name,email',
+            'tourGuide',
+            'gearItem',
+            'gearItems',
+            'user:id,name,email',
+            'review',
+        ]);
+
+        return response()->json($booking);
+    }
 }
