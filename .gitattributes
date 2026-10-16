@@ -1,0 +1,95 @@
+# GearUp repo-wide line ending + binary file handling
+#
+# [Added 2026-10-16] Prevents CRLF warnings and stops line-ending
+# churn from mangling multi-byte characters (currency symbols, emoji).
+#
+# Rule of thumb:
+#   - text files: normalize to LF in the repo, allow native on checkout
+#   - binary files: never touch
+#   - explicit text: force LF (used by shell scripts, Docker, etc.)
+
+# ----------------------------------------------------------------
+# Default: text files get normalized to LF in the repo
+# ----------------------------------------------------------------
+* text=auto
+
+# ----------------------------------------------------------------
+# Source code — always LF in the repo, native on checkout
+# ----------------------------------------------------------------
+*.ts    text eol=lf
+*.tsx   text eol=lf
+*.js    text eol=lf
+*.jsx   text eol=lf
+*.json  text eol=lf
+*.css   text eol=lf
+*.scss  text eol=lf
+*.html  text eol=lf
+*.md    text eol=lf
+
+# ----------------------------------------------------------------
+# PHP — Laravel convention is LF
+# ----------------------------------------------------------------
+*.php   text eol=lf
+*.blade.php text eol=lf
+
+# ----------------------------------------------------------------
+# Shell scripts — MUST be LF, they break on CRLF
+# ----------------------------------------------------------------
+*.sh    text eol=lf
+*.bash  text eol=lf
+
+# ----------------------------------------------------------------
+# Windows-specific scripts — CRLF (they're meant for Windows)
+# ----------------------------------------------------------------
+*.ps1   text eol=crlf
+*.bat   text eol=crlf
+*.cmd   text eol=crlf
+
+# ----------------------------------------------------------------
+# Config files
+# ----------------------------------------------------------------
+*.env*  text eol=lf
+*.yml   text eol=lf
+*.yaml  text eol=lf
+*.toml  text eol=lf
+*.ini   text eol=lf
+.gitignore      text eol=lf
+.gitattributes  text eol=lf
+
+# ----------------------------------------------------------------
+# Binary — never touch, never normalize
+# ----------------------------------------------------------------
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.webp  binary
+*.ico   binary
+*.svg   text eol=lf
+*.pdf   binary
+*.zip   binary
+*.tar   binary
+*.gz    binary
+*.woff  binary
+*.woff2 binary
+*.ttf   binary
+*.otf   binary
+*.eot   binary
+
+# ----------------------------------------------------------------
+# Database + lockfiles (never normalize)
+# ----------------------------------------------------------------
+*.sqlite   binary
+*.sqlite3  binary
+composer.lock  text eol=lf
+package-lock.json text eol=lf
+
+# ----------------------------------------------------------------
+# Exclude build artifacts from language detection
+# (avoids GitHub mislabeling the repo language breakdown)
+# ----------------------------------------------------------------
+node_modules/**  linguist-vendored
+vendor/**        linguist-vendored
+.next/**         linguist-vendored
+dist/**          linguist-vendored
+build/**         linguist-vendored
