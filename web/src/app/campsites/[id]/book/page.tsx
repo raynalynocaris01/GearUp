@@ -29,6 +29,7 @@ interface Campsite {
     price_unit: string;
     capacity: number;
   }[];
+  parent_campsite_id?: number | null;
 }
 
 async function getCurrentUser() {
@@ -76,6 +77,12 @@ export default async function BookCampsitePage({
 
   if (!campsite) notFound();
   if (!user) redirect('/login');
+
+  // Rooms aren't bookable standalone — send the user to the parent
+  // campsite's booking flow instead.
+  if (campsite.parent_campsite_id) {
+    redirect(`/campsites/${campsite.parent_campsite_id}/book`);
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">

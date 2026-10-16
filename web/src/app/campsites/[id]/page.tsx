@@ -23,6 +23,10 @@ interface Campsite {
   capacity: number;
   is_featured: boolean;
   parent_campsite_id: number | null;
+  parent?: {
+    id: number;
+    name: string;
+  } | null;
   reviews?: {
     id: number;
     rating: number;
@@ -117,7 +121,11 @@ export default async function CampsiteDetailPage({
   );
 
   const isGuest = !user;
-  const bookHref = isGuest ? '/login' : `/campsites/${campsite.id}/book`;
+  const isRoom = !!campsite.parent_campsite_id && !!campsite.parent;
+  const bookingTargetId = isRoom ? campsite.parent!.id : campsite.id;
+  const bookHref = isGuest
+    ? '/login'
+    : `/campsites/${bookingTargetId}/book`;
 
   return (
     <div className="min-h-screen bg-white">
@@ -276,11 +284,30 @@ export default async function CampsiteDetailPage({
               <hr className="my-6 border-gray-100" />
 
               {/* Book Now / Sign in to Book */}
+              {isRoom && (
+                <div className="bg-gearup-50 border border-gearup-200 rounded-lg p-3 mb-4">
+                  <p className="text-xs text-gearup-700 font-semibold">
+                    This room is part of{' '}
+                    <Link
+                      href={`/campsites/${campsite.parent!.id}`}
+                      className="underline hover:text-gearup-800"
+                    >
+                      {campsite.parent!.name}
+                    </Link>
+                    .
+                  </p>
+                </div>
+              )}
+
               <Link
                 href={bookHref}
                 className="block w-full bg-gearup-600 hover:bg-gearup-700 text-white font-semibold text-center py-3 rounded-lg transition"
               >
-                {isGuest ? 'Sign in to Book' : 'Book Now'}
+                {isGuest
+                  ? 'Sign in to Book'
+                  : isRoom
+                    ? `Book via ${campsite.parent!.name}`
+                    : 'Book Now'}
               </Link>
 
               {isGuest && (

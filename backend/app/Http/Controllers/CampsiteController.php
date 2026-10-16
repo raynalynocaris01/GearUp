@@ -35,6 +35,7 @@ class CampsiteController extends Controller
         $campsite->load([
             'tourGuides',
             'children',
+            'parent:id,name',
             'reviews' => function ($q) {
                 $q->with('user:id,name')->orderByDesc('created_at');
             },
