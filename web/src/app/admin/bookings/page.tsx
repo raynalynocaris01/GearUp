@@ -19,6 +19,10 @@ interface Booking {
     image_url: string;
     owner?: { id: number; name: string; email: string } | null;
   };
+  room_campsite?: {
+    id: number;
+    name: string;
+  } | null;
 }
 
 async function getBookings(token: string, status?: string): Promise<Booking[]> {
@@ -148,13 +152,18 @@ export default async function AdminBookingsPage({
                         {b.user?.email}
                       </p>
                     </td>
-                    <td className="px-5 py-4">
+                                        <td className="px-5 py-4">
                       <Link
                         href={`/campsites/${b.campsite?.id}`}
                         className="font-semibold text-gray-900 text-sm hover:text-gearup-600"
                       >
-          {b.campsite?.name ?? '-'}
+                        {b.campsite?.name ?? '-'}
                       </Link>
+                      {b.room_campsite && (
+                        <p className="text-xs font-semibold text-gearup-600">
+                          Room: {b.room_campsite.name}
+                        </p>
+                      )}
                       <p className="text-xs text-gray-500">
                         {b.campsite?.owner
                           ? `Owner: ${b.campsite.owner.name}`

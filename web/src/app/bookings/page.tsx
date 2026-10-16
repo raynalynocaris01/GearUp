@@ -35,6 +35,12 @@ interface Booking {
     location: string;
     image_url: string;
   } | null;
+  room_campsite?: {
+    id: number;
+    name: string;
+    location: string;
+    image_url: string;
+  } | null;
   tour_guide?: {
     id: number;
     name: string;
@@ -236,6 +242,11 @@ export default async function BookingsPage() {
                         <h3 className="text-lg font-bold text-gray-900 mt-2">
                           {title}
                         </h3>
+                        {b.room_campsite && (
+                          <p className="text-xs font-semibold text-gearup-600 mt-0.5">
+                            Room: {b.room_campsite.name}
+                          </p>
+                        )}
                         {location && (
                           <p className="text-xs text-gray-500">
                             📍 {location}

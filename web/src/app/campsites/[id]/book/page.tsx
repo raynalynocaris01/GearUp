@@ -21,6 +21,14 @@ interface Campsite {
   rating: string;
   reviews_count: number;
   capacity: number;
+  children?: {
+    id: number;
+    name: string;
+    description: string | null;
+    price_per_night: string;
+    price_unit: string;
+    capacity: number;
+  }[];
 }
 
 async function getCurrentUser() {

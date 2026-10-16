@@ -11,6 +11,14 @@ interface Campsite {
   price_per_night: string;
   price_unit: string;
   capacity: number;
+  children?: {
+    id: number;
+    name: string;
+    description: string | null;
+    price_per_night: string;
+    price_unit: string;
+    capacity: number;
+  }[];
 }
 
 interface GearItem {
@@ -114,6 +122,10 @@ export function BookingForm({
     { gear_item_id: number; quantity: number }[]
   >([]);
 
+  // Accommodation variant — null = book the campsite itself.
+  // When set, it's the id of a child campsite (a room).
+  const [selectedRoomId, setSelectedRoomId] = useState<number | null>(null);
+
   // Fetch tour guides for this campsite
   useEffect(() => {
     if (!campsite) return;
@@ -163,6 +175,15 @@ export function BookingForm({
     [availableGear, campsite?.owner_id],
   );
 
+  // When a room is selected, clear any guide or gear selection —
+  // rooms don't offer guides and we hide gear for room bookings.
+  useEffect(() => {
+    if (selectedRoomId !== null) {
+      setSelectedGuideId(null);
+      setSelectedGear([]);
+    }
+  }, [selectedRoomId]);
+
   // The gear item to use for pricing (either preset or picked from list)
   const activeGear: GearItem | null = useMemo(() => {
     if (presetGearItem) return presetGearItem;
@@ -184,11 +205,22 @@ export function BookingForm({
     // Campsite price (0 if none)
     let cPrice = 0;
     if (campsite) {
-      const unit = parseFloat(campsite.price_per_night);
-      cPrice =
-        campsite.price_unit === 'entrance'
-          ? unit * guests
-          : unit * n * guests;
+      if (selectedRoomId !== null) {
+        // Room variant: priced per-room per-night. Guests is a limit,
+        // not a multiplier.
+        const room = campsite.children?.find((c) => c.id === selectedRoomId);
+        if (room) {
+          const unit = parseFloat(room.price_per_night);
+          cPrice = unit * Math.max(n, 1);
+        }
+      } else {
+        // Standard campsite pricing
+        const unit = parseFloat(campsite.price_per_night);
+        cPrice =
+          campsite.price_unit === 'entrance'
+            ? unit * guests
+            : unit * n * guests;
+      }
     }
 
     // Guide price
@@ -238,7 +270,12 @@ export function BookingForm({
     }
 
     return {
-      nights: campsite?.price_unit === 'entrance' ? 0 : n,
+      nights:
+        selectedRoomId !== null
+          ? Math.max(n, 1)
+          : campsite?.price_unit === 'entrance'
+            ? 0
+            : n,
       campsitePrice: cPrice,
       guidePrice: gPrice,
       gearPrice: gearTotal,
@@ -257,6 +294,7 @@ export function BookingForm({
     selectedGear,
     gearQuantity,
     presetGearItem,
+    selectedRoomId,
   ]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -268,7 +306,11 @@ export function BookingForm({
       setGeneralError('Return date must be after start date.');
       return;
     }
-    if (campsite && guests > campsite.capacity) {
+    if (campsite && selectedRoom && guests > selectedRoom.capacity) {
+      setGeneralError(`This room allows up to ${selectedRoom.capacity} guests.`);
+      return;
+    }
+    if (campsite && !selectedRoom && guests > campsite.capacity) {
       setGeneralError(`This campsite allows up to ${campsite.capacity} guests.`);
       return;
     }
@@ -299,6 +341,7 @@ export function BookingForm({
 
     if (campsite) {
       payload.campsite_id = campsite.id;
+      payload.room_campsite_id = selectedRoomId;
       payload.tour_guide_id = selectedGuideId;
     }
 
@@ -338,7 +381,12 @@ export function BookingForm({
     router.push(`/bookings/${data.id}/confirmed`);
   };
 
-  const maxGuests = campsite?.capacity ?? 1;
+  const selectedRoom =
+    selectedRoomId !== null
+      ? campsite?.children?.find((c) => c.id === selectedRoomId) ?? null
+      : null;
+
+  const maxGuests = selectedRoom?.capacity ?? campsite?.capacity ?? 1;
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -383,6 +431,92 @@ export function BookingForm({
         </div>
       </div>
 
+      {/* Accommodation picker — only if the campsite has room variants */}
+      {campsite && campsite.children && campsite.children.length > 0 && (
+        <div>
+          <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
+            Accommodation
+          </h3>
+          <div className="space-y-2">
+            <label
+              className={`block border rounded-lg p-4 cursor-pointer transition ${
+                selectedRoomId === null
+                  ? 'border-gearup-600 bg-gearup-50'
+                  : 'border-gray-200 hover:border-gray-300'
+              }`}
+            >
+              <div className="flex items-start gap-3">
+                <input
+                  type="radio"
+                  name="accommodation"
+                  checked={selectedRoomId === null}
+                  onChange={() => setSelectedRoomId(null)}
+                  className="mt-1 h-4 w-4 accent-gearup-600"
+                />
+                <div className="flex-1">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="font-semibold text-gray-900 text-sm">
+                      Camping spot
+                    </p>
+                    <p className="text-sm font-bold text-gearup-600 shrink-0">
+                      {campsite.price_unit === 'entrance'
+                        ? `PHP ${campsite.price_per_night} / entrance`
+                        : `PHP ${campsite.price_per_night} / night`}
+                    </p>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Up to {campsite.capacity} guests.
+                  </p>
+                </div>
+              </div>
+            </label>
+
+            {campsite.children.map((room) => {
+              const active = selectedRoomId === room.id;
+              return (
+                <label
+                  key={room.id}
+                  className={`block border rounded-lg p-4 cursor-pointer transition ${
+                    active
+                      ? 'border-gearup-600 bg-gearup-50'
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  <div className="flex items-start gap-3">
+                    <input
+                      type="radio"
+                      name="accommodation"
+                      checked={active}
+                      onChange={() => setSelectedRoomId(room.id)}
+                      className="mt-1 h-4 w-4 accent-gearup-600"
+                    />
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between gap-3">
+                        <p className="font-semibold text-gray-900 text-sm">
+                          {room.name}
+                        </p>
+                        <p className="text-sm font-bold text-gearup-600 shrink-0">
+                          PHP {room.price_per_night} / night
+                        </p>
+                      </div>
+                      {room.description && (
+                        <p className="text-xs text-gray-500 mt-1 line-clamp-2">
+                          {room.description}
+                        </p>
+                      )}
+                      <p className="text-xs text-gray-500 mt-1">
+                        Up to {room.capacity}{' '}
+                        {room.capacity === 1 ? 'guest' : 'guests'}.
+                      </p>
+                    </div>
+                  </div>
+                </label>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Guests — only if campsite */}
       {campsite && (
         <div>
@@ -395,7 +529,9 @@ export function BookingForm({
                 Number of guests
               </p>
               <p className="text-xs text-gray-500">
-                Max {campsite.capacity} for this campsite
+                {selectedRoom
+                  ? `Max ${selectedRoom.capacity} for this room`
+                  : `Max ${campsite.capacity} for this campsite`}
               </p>
             </div>
             <div className="flex items-center gap-4">
@@ -443,8 +579,8 @@ export function BookingForm({
         />
       </div>
 
-      {/* Tour guide picker — only if campsite AND has guides */}
-      {campsite && guides.length > 0 && (
+      {/* Tour guide picker — only if campsite AND has guides AND no room */}
+      {campsite && selectedRoomId === null && guides.length > 0 && (
         <div>
           <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
             Add a tour guide? (optional)
@@ -519,8 +655,8 @@ export function BookingForm({
         </div>
       )}
 
-            {/* Gear picker — multi-select, only if campsite (add-on mode) */}
-      {campsite && !presetGearItem && (ownerGear.length > 0 || individualGear.length > 0) && (
+            {/* Gear picker — multi-select, only if campsite AND no room selected */}
+      {campsite && selectedRoomId === null && !presetGearItem && (ownerGear.length > 0 || individualGear.length > 0) && (
         <div>
           <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
             Add gear to your trip? (optional)
@@ -766,7 +902,19 @@ export function BookingForm({
       {/* Price summary */}
       <div className="bg-green-50 border border-green-200 rounded-xl p-5">
         <div className="space-y-2 text-sm text-green-900">
-          {campsite && (
+          {campsite && selectedRoom && (
+            <div className="flex justify-between items-center">
+              <span>
+                {selectedRoom.name}: ₱{selectedRoom.price_per_night} ×{' '}
+                {nights} {nights === 1 ? 'night' : 'nights'}
+              </span>
+              <span className="font-semibold">
+                ₱{campsitePrice.toFixed(2)}
+              </span>
+            </div>
+          )}
+
+          {campsite && !selectedRoom && (
             <div className="flex justify-between items-center">
               <span>
                 {campsite.price_unit === 'entrance'

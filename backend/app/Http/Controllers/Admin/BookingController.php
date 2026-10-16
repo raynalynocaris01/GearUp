@@ -17,6 +17,7 @@ class BookingController extends Controller
         $query = Booking::with([
             'campsite:id,name,location,image_url,owner_id',
             'campsite.owner:id,name,email',
+            'roomCampsite:id,name,location,image_url,price_per_night,price_unit,capacity',
             'user:id,name,email',
         ]);
 
@@ -43,6 +44,7 @@ class BookingController extends Controller
         $booking->load([
             'campsite:id,name,location,image_url,owner_id,price_per_night,price_unit',
             'campsite.owner:id,name,email',
+            'roomCampsite:id,name,location,image_url,price_per_night,price_unit,capacity',
             'tourGuide',
             'gearItem',
             'gearItems',

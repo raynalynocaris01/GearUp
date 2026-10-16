@@ -22,6 +22,12 @@ interface Booking {
     image_url: string;
     location: string;
   } | null;
+  room_campsite?: {
+    id: number;
+    name: string;
+    image_url: string;
+    location: string;
+  } | null;
   tour_guide?: {
   id: number;
   name: string;
@@ -135,6 +141,11 @@ export default async function OwnerBookingsPage() {
                       <h3 className="text-lg font-bold text-gray-900 mt-2">
                         {b.campsite?.name ?? (b.tour_guide ? 'Tour Guide Booking' : 'Booking')}
                       </h3>
+                      {b.room_campsite && (
+                        <p className="text-xs font-semibold text-gearup-600 mt-0.5">
+                          Room: {b.room_campsite.name}
+                        </p>
+                      )}
                       <p className="text-xs text-gray-500">
                         📍 {b.campsite?.location}
                       </p>

@@ -20,6 +20,8 @@ class GearBookingController extends Controller
 
         $query = Booking::with([
             'user:id,name,email',
+            'campsite:id,name,location,image_url',
+            'roomCampsite:id,name,location,image_url,price_per_night,price_unit,capacity',
             'gearItem:id,name,image_url,category,price_per_day,owner_id',
             'gearItems' => function ($q) use ($userId) {
                 // Only eager-load this host's lines from the pivot
@@ -60,6 +62,7 @@ class GearBookingController extends Controller
         $booking->load([
             'user:id,name,email',
             'campsite:id,name,location',
+            'roomCampsite:id,name,location,image_url,price_per_night,price_unit,capacity',
             'gearItem:id,name,image_url,category,price_per_day,owner_id',
             'gearItems' => function ($q) use ($userId) {
                 $q->where('gear_items.owner_id', $userId);

@@ -14,6 +14,7 @@ class Booking extends Model
     protected $fillable = [
         'user_id',
         'campsite_id',
+        'room_campsite_id',
         'tour_guide_id',
         'gear_item_id',
         'check_in',
@@ -51,6 +52,16 @@ class Booking extends Model
     public function campsite(): BelongsTo
     {
         return $this->belongsTo(Campsite::class);
+    }
+
+    /**
+     * When a customer books a room variant on a campsite (e.g. Sheintan
+     * Native Room at Sheintan Ridge View), campsite_id points at the
+     * parent and room_campsite_id points at the room.
+     */
+    public function roomCampsite(): BelongsTo
+    {
+        return $this->belongsTo(Campsite::class, 'room_campsite_id');
     }
 
     public function tourGuide(): BelongsTo

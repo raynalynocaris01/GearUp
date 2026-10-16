@@ -45,6 +45,15 @@ interface Booking {
     owner_id: number | null;
     owner?: { id: number; name: string; email: string } | null;
   } | null;
+  room_campsite?: {
+    id: number;
+    name: string;
+    location: string;
+    image_url: string;
+    price_per_night: string;
+    price_unit: string;
+    capacity: number;
+  } | null;
   tour_guide?: {
     id: number;
     name: string;
@@ -135,18 +144,24 @@ export default async function AdminBookingDetailPage({
     booking.gear_items !== undefined && booking.gear_items.length > 0;
 
   // Full price breakdown
+  const roomUnit = parseFloat(
+    booking.room_campsite?.price_per_night ?? '0',
+  );
+  const isRoom = !!booking.room_campsite;
+
   const campsiteUnit = parseFloat(
-    // campsite may not include price_per_night in the current endpoint,
-    // so we guard with 0
     (booking.campsite as any)?.price_per_night ?? '0',
   );
   const isEntrance =
     (booking.campsite as any)?.price_unit === 'entrance';
-  const campsiteSubtotal = booking.campsite
-    ? isEntrance
-      ? campsiteUnit * booking.guests
-      : campsiteUnit * nights * booking.guests
-    : 0;
+
+  const campsiteSubtotal = isRoom
+    ? roomUnit * nights
+    : booking.campsite
+      ? isEntrance
+        ? campsiteUnit * booking.guests
+        : campsiteUnit * nights * booking.guests
+      : 0;
 
   const guideSubtotal = booking.tour_guide
     ? parseFloat(booking.tour_guide.price_per_trip)
@@ -199,6 +214,11 @@ export default async function AdminBookingDetailPage({
             </span>
           </div>
           <h1 className="text-3xl font-black text-gray-900">{title}</h1>
+          {booking.room_campsite && (
+            <p className="text-sm font-semibold text-gearup-600 mt-1">
+              Room: {booking.room_campsite.name}
+            </p>
+          )}
           {booking.campsite?.location && (
             <p className="text-sm text-gray-500 mt-1">
               {booking.campsite.location}
@@ -357,7 +377,19 @@ export default async function AdminBookingDetailPage({
             </p>
 
             <div className="space-y-2 text-sm text-green-900">
-              {booking.campsite && campsiteSubtotal > 0 && (
+              {isRoom && booking.room_campsite && campsiteSubtotal > 0 && (
+                <div className="flex justify-between items-center gap-2">
+                  <span className="text-xs">
+                    {booking.room_campsite.name} x {nights}{' '}
+                    {nights === 1 ? 'night' : 'nights'}
+                  </span>
+                  <span className="font-semibold whitespace-nowrap">
+                    PHP {campsiteSubtotal.toFixed(2)}
+                  </span>
+                </div>
+              )}
+
+              {!isRoom && booking.campsite && campsiteSubtotal > 0 && (
                 <div className="flex justify-between items-center gap-2">
                   <span className="text-xs">
                     Campsite x {nights}{' '}

@@ -18,6 +18,7 @@ class BookingController extends Controller
         return response()->json(
             Booking::with([
                 'campsite',
+                'roomCampsite',
                 'tourGuide',
                 'gearItem',
                 'gearItems',
@@ -33,6 +34,7 @@ class BookingController extends Controller
     {
         $data = $request->validate([
             'campsite_id' => ['nullable', 'integer', 'exists:campsites,id'],
+            'room_campsite_id' => ['nullable', 'integer', 'exists:campsites,id'],
             'tour_guide_id' => ['nullable', 'integer', 'exists:tour_guides,id'],
             'gear_item_id' => ['nullable', 'integer', 'exists:gear_items,id'],
             'check_in' => ['nullable', 'date', 'after_or_equal:today'],
@@ -63,6 +65,7 @@ class BookingController extends Controller
         }
 
         $campsite = null;
+        $roomCampsite = null;
         $tourGuide = null;
         $gearItem = null;
         $campsitePrice = 0;
@@ -76,7 +79,7 @@ class BookingController extends Controller
          */
         $gearLines = [];
 
-        // ── Campsite pricing ────────────────────────────
+                // ─── Campsite or Room pricing ──────────────────────
         if (!empty($data['campsite_id'])) {
             $campsite = Campsite::findOrFail($data['campsite_id']);
 
@@ -88,43 +91,95 @@ class BookingController extends Controller
                 ]);
             }
 
-            if ($data['guests'] > $campsite->capacity) {
-                throw ValidationException::withMessages([
-                    'guests' => [
-                        "This campsite allows a maximum of {$campsite->capacity} guests.",
-                    ],
-                ]);
-            }
-
-            $existingGuests = (int) Booking::where('campsite_id', $campsite->id)
-                ->whereNotIn('status', ['cancelled'])
-                ->where(function ($q) use ($data) {
-                    $q->where('check_in', '<', $data['check_out'])
-                      ->where('check_out', '>', $data['check_in']);
-                })
-                ->sum('guests');
-
-            $remaining = $campsite->capacity - $existingGuests;
-
-            if ($data['guests'] > $remaining) {
-                $msg = $remaining > 0
-                    ? "This campsite only has {$remaining} spot"
-                        . ($remaining === 1 ? '' : 's')
-                        . " left for those dates."
-                    : 'This campsite is fully booked for those dates.';
-
-                throw ValidationException::withMessages([
-                    'guests' => [$msg],
-                ]);
-            }
-
             $start = new \DateTime($data['check_in']);
             $end = new \DateTime($data['check_out']);
             $nights = max(1, $start->diff($end)->days);
 
-            $campsitePrice = $campsite->price_unit === 'entrance'
-                ? (float) $campsite->price_per_night * $data['guests']
-                : (float) $campsite->price_per_night * $nights * $data['guests'];
+            if (!empty($data['room_campsite_id'])) {
+                // ── Room variant booking ───────────────────
+                // The room is a sub-listing of the parent campsite.
+                // Overlap + capacity checks run against the ROOM, not
+                // the parent. Pricing uses the room's own rate.
+                $roomCampsite = Campsite::findOrFail($data['room_campsite_id']);
+
+                if ((int) $roomCampsite->parent_campsite_id !== (int) $campsite->id) {
+                    throw ValidationException::withMessages([
+                        'room_campsite_id' => [
+                            'That room is not part of the selected campsite.',
+                        ],
+                    ]);
+                }
+
+                if ($data['guests'] > $roomCampsite->capacity) {
+                    throw ValidationException::withMessages([
+                        'guests' => [
+                            "This room allows a maximum of {$roomCampsite->capacity} guests.",
+                        ],
+                    ]);
+                }
+
+                $existingGuests = (int) Booking::where('room_campsite_id', $roomCampsite->id)
+                    ->whereNotIn('status', ['cancelled'])
+                    ->where(function ($q) use ($data) {
+                        $q->where('check_in', '<', $data['check_out'])
+                          ->where('check_out', '>', $data['check_in']);
+                    })
+                    ->sum('guests');
+
+                $remaining = $roomCampsite->capacity - $existingGuests;
+
+                if ($data['guests'] > $remaining) {
+                    $msg = $remaining > 0
+                        ? "This room only has {$remaining} spot"
+                            . ($remaining === 1 ? '' : 's')
+                            . " left for those dates."
+                        : 'This room is fully booked for those dates.';
+
+                    throw ValidationException::withMessages([
+                        'guests' => [$msg],
+                    ]);
+                }
+
+                // Room pricing: per-room per-night. Guests is a limit,
+                // not a multiplier.
+                $campsitePrice = (float) $roomCampsite->price_per_night * $nights;
+            } else {
+                // ── Standard campsite booking ──────────────
+                if ($data['guests'] > $campsite->capacity) {
+                    throw ValidationException::withMessages([
+                        'guests' => [
+                            "This campsite allows a maximum of {$campsite->capacity} guests.",
+                        ],
+                    ]);
+                }
+
+                $existingGuests = (int) Booking::where('campsite_id', $campsite->id)
+                    ->whereNull('room_campsite_id')
+                    ->whereNotIn('status', ['cancelled'])
+                    ->where(function ($q) use ($data) {
+                        $q->where('check_in', '<', $data['check_out'])
+                          ->where('check_out', '>', $data['check_in']);
+                    })
+                    ->sum('guests');
+
+                $remaining = $campsite->capacity - $existingGuests;
+
+                if ($data['guests'] > $remaining) {
+                    $msg = $remaining > 0
+                        ? "This campsite only has {$remaining} spot"
+                            . ($remaining === 1 ? '' : 's')
+                            . " left for those dates."
+                        : 'This campsite is fully booked for those dates.';
+
+                    throw ValidationException::withMessages([
+                        'guests' => [$msg],
+                    ]);
+                }
+
+                $campsitePrice = $campsite->price_unit === 'entrance'
+                    ? (float) $campsite->price_per_night * $data['guests']
+                    : (float) $campsite->price_per_night * $nights * $data['guests'];
+            }
         }
 
         // ── Tour guide pricing ──────────────────────────
@@ -242,10 +297,11 @@ class BookingController extends Controller
 
         $total = $campsitePrice + $guidePrice + $gearPrice;
 
-        $booking = DB::transaction(function () use ($data, $request, $campsite, $tourGuide, $gearItem, $gearLines, $total) {
+        $booking = DB::transaction(function () use ($data, $request, $campsite, $roomCampsite, $tourGuide, $gearItem, $gearLines, $total) {
             $booking = Booking::create([
                 'user_id' => $request->user()->id,
                 'campsite_id' => $campsite?->id,
+                'room_campsite_id' => $roomCampsite?->id,
                 'tour_guide_id' => $tourGuide?->id,
                 'gear_item_id' => $gearItem?->id,
                 'check_in' => $data['check_in'] ?? null,
@@ -273,7 +329,7 @@ class BookingController extends Controller
         $this->notifyBookingCreated($booking);
 
         return response()->json(
-            $booking->load(['campsite', 'tourGuide', 'gearItem', 'gearItems']),
+            $booking->load(['campsite', 'roomCampsite', 'tourGuide', 'gearItem', 'gearItems']),
             201
         );
     }
@@ -287,6 +343,7 @@ class BookingController extends Controller
         return response()->json(
             $booking->load([
                 'campsite',
+                'roomCampsite',
                 'tourGuide',
                 'gearItem',
                 'gearItems',
@@ -307,7 +364,7 @@ class BookingController extends Controller
         ]);
 
         return response()->json(
-            $booking->load(['campsite', 'tourGuide', 'gearItem', 'gearItems'])
+            $booking->load(['campsite', 'roomCampsite', 'tourGuide', 'gearItem', 'gearItems'])
         );
     }
 

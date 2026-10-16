@@ -22,6 +22,7 @@ class BookingController extends Controller
 
         $bookings = Booking::with([
             'campsite',
+            'roomCampsite',
             'tourGuide',
             'gearItem',
             'user:id,name,email',
@@ -53,6 +54,7 @@ class BookingController extends Controller
 
         $booking->load([
             'campsite',
+            'roomCampsite',
             'tourGuide',
             'gearItem',
             'user:id,name,email',
@@ -85,7 +87,7 @@ class BookingController extends Controller
             '/bookings',
         );
 
-        return response()->json($booking->load('campsite'));
+        return response()->json($booking->load(['campsite', 'roomCampsite']));
     }
     /**
      * POST /api/owner/bookings/{booking}/complete
@@ -112,7 +114,7 @@ class BookingController extends Controller
             '/bookings',
         );
 
-        return response()->json($booking->load('campsite'));
+        return response()->json($booking->load(['campsite', 'roomCampsite']));
     }
     /**
      * POST /api/owner/bookings/{booking}/cancel
@@ -134,7 +136,7 @@ class BookingController extends Controller
             '/bookings',
         );
 
-        return response()->json($booking->load('campsite'));
+        return response()->json($booking->load(['campsite', 'roomCampsite']));
     }
 
     private function authorizeOwner(Request $request, Booking $booking): void

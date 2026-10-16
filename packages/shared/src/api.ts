@@ -151,6 +151,7 @@ export interface Booking {
   id: number;
   user_id: number;
   campsite_id: number | null;
+  room_campsite_id: number | null;
   tour_guide_id: number | null;
   gear_item_id: number | null;
   gear_start_date: string | null;
@@ -168,6 +169,7 @@ export interface Booking {
   completed_at: string | null;
   cancelled_at: string | null;
   campsite?: Campsite | null;
+  room_campsite?: Campsite | null;
   tour_guide?: TourGuide | null;
   gear_item?: GearItem | null;
   gear_items?: BookingGearLine[];
@@ -186,6 +188,7 @@ export interface CreateBookingGearLine {
 
 export interface CreateBookingPayload {
   campsite_id?: number | null;
+  room_campsite_id?: number | null;
   tour_guide_id?: number | null;
   gear_item_id?: number | null;
   check_in?: string | null;

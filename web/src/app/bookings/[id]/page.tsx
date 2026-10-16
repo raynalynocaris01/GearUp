@@ -46,6 +46,14 @@ interface Booking {
     price_per_night?: string;
     price_unit?: string;
   } | null;
+  room_campsite?: {
+    id: number;
+    name: string;
+    price_per_night: string;
+    price_unit: string;
+    capacity: number;
+    image_url: string;
+  } | null;
   tour_guide?: {
     id: number;
     name: string;
@@ -157,13 +165,21 @@ export default async function BookingDetailPage({
     booking.gear_items !== undefined && booking.gear_items.length > 0;
 
   // Price breakdown math
+  const roomUnit = parseFloat(
+    booking.room_campsite?.price_per_night ?? '0',
+  );
+  const isRoom = !!booking.room_campsite;
+
   const campsiteUnit = parseFloat(booking.campsite?.price_per_night ?? '0');
   const isEntrance = booking.campsite?.price_unit === 'entrance';
-  const campsiteSubtotal = booking.campsite
-    ? isEntrance
-      ? campsiteUnit * booking.guests
-      : campsiteUnit * nights * booking.guests
-    : 0;
+
+  const campsiteSubtotal = isRoom
+    ? roomUnit * nights
+    : booking.campsite
+      ? isEntrance
+        ? campsiteUnit * booking.guests
+        : campsiteUnit * nights * booking.guests
+      : 0;
 
   const guideSubtotal = booking.tour_guide
     ? parseFloat(booking.tour_guide.price_per_trip)
@@ -235,6 +251,11 @@ export default async function BookingDetailPage({
             <h1 className="text-3xl font-black text-gray-900 mb-1">
               {title}
             </h1>
+            {booking.room_campsite && (
+              <p className="text-sm font-semibold text-gearup-600 mb-1">
+                Room: {booking.room_campsite.name}
+              </p>
+            )}
             {booking.campsite?.location && (
               <p className="text-sm text-gray-500">
                 {booking.campsite.location}
@@ -302,7 +323,19 @@ export default async function BookingDetailPage({
                 Price breakdown
               </h2>
               <div className="space-y-2 text-sm text-green-900">
-                {booking.campsite && (
+                {isRoom && booking.room_campsite && (
+                  <div className="flex justify-between items-center">
+                    <span>
+                      {booking.room_campsite.name}: ₱{roomUnit.toFixed(2)} ×{' '}
+                      {nights} {nights === 1 ? 'night' : 'nights'}
+                    </span>
+                    <span className="font-semibold">
+                      ₱{campsiteSubtotal.toFixed(2)}
+                    </span>
+                  </div>
+                )}
+
+                {!isRoom && booking.campsite && (
                   <div className="flex justify-between items-center">
                     <span>
                       Campsite: ₱{campsiteUnit.toFixed(2)} ×{' '}
