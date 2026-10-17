@@ -61,6 +61,7 @@ export default function NewBookingScreen() {
   { id: number; name: string; description: string | null; price_per_trip: string }[]
   >([]);
   const [selectedGuideId, setSelectedGuideId] = useState<number | null>(null);
+  const [selectedRoomId, setSelectedRoomId] = useState<number | null>(null);
 
   // Gear picker — multi-select on campsite bookings
   const [availableGear, setAvailableGear] = useState<GearItem[]>([]);
@@ -83,6 +84,15 @@ export default function NewBookingScreen() {
       ),
     );
   };
+
+  // When a room is selected, clear any guide or gear selection —
+  // rooms don't offer guides and we hide gear for room bookings.
+  useEffect(() => {
+    if (selectedRoomId !== null) {
+      setSelectedGuideId(null);
+      setSelectedGear([]);
+    }
+  }, [selectedRoomId]);
 
   useEffect(() => {
     if (!campsite) return;
@@ -169,8 +179,19 @@ export default function NewBookingScreen() {
     const n = Math.max(1, Math.round(diffMs / (1000 * 60 * 60 * 24)));
     const unit = parseFloat(campsite.price_per_night);
 
-    const cPrice =
-      campsite.price_unit === 'entrance' ? unit * guests : unit * n * guests;
+    let cPrice = 0;
+    if (selectedRoomId !== null) {
+      // Room variant: priced per-room per-night.
+      const room = campsite.children?.find((c) => c.id === selectedRoomId);
+      if (room) {
+        cPrice = parseFloat(room.price_per_night) * Math.max(n, 1);
+      }
+    } else {
+      cPrice =
+        campsite.price_unit === 'entrance'
+          ? unit * guests
+          : unit * n * guests;
+    }
 
     const selectedGuide = availableGuides.find((g) => g.id === selectedGuideId);
     const gPrice = selectedGuide
@@ -203,7 +224,12 @@ export default function NewBookingScreen() {
     }
 
     return {
-      nights: campsite.price_unit === 'entrance' ? 0 : n,
+      nights:
+        selectedRoomId !== null
+          ? Math.max(n, 1)
+          : campsite.price_unit === 'entrance'
+            ? 0
+            : n,
       campsitePrice: cPrice,
       guidePrice: gPrice,
       gearPrice: grPrice,
@@ -219,6 +245,7 @@ export default function NewBookingScreen() {
     selectedGuideId,
     availableGear,
     selectedGear,
+    selectedRoomId,
   ]);
 
   const handleSubmit = async () => {
@@ -229,7 +256,14 @@ export default function NewBookingScreen() {
       Alert.alert('Invalid dates', 'Check-out must be after check-in.');
       return;
     }
-    if (guests > campsite.capacity) {
+    if (selectedRoom && guests > selectedRoom.capacity) {
+      Alert.alert(
+        'Too many guests',
+        `This room allows up to ${selectedRoom.capacity} guests.`,
+      );
+      return;
+    }
+    if (!selectedRoom && guests > campsite.capacity) {
       Alert.alert(
         'Too many guests',
         `This campsite allows up to ${campsite.capacity} guests.`,
@@ -241,6 +275,7 @@ export default function NewBookingScreen() {
     try {
             const payload: Parameters<typeof bookings.create>[0] = {
         campsite_id: campsite.id,
+        room_campsite_id: selectedRoomId ?? undefined,
         tour_guide_id: selectedGuideId ?? undefined,
         check_in: checkIn,
         check_out: checkOut,
@@ -285,6 +320,13 @@ export default function NewBookingScreen() {
   }
 
   if (!campsite) return null;
+
+  const selectedRoom =
+    selectedRoomId !== null
+      ? campsite.children?.find((c) => c.id === selectedRoomId) ?? null
+      : null;
+
+  const maxGuests = selectedRoom?.capacity ?? campsite.capacity;
 
   const renderGearRow = (g: GearItem) => {
     const price = parseFloat(g.price_per_day);
@@ -421,6 +463,84 @@ export default function NewBookingScreen() {
           Use YYYY-MM-DD format. Example: {toDateString(tomorrow)}
         </Text>
 
+        {/* Accommodation picker */}
+        {campsite.children && campsite.children.length > 0 && (
+          <View>
+            <Text style={styles.sectionTitle}>Accommodation</Text>
+            <View style={{ gap: 8 }}>
+              <TouchableOpacity
+                style={[
+                  styles.guideOption,
+                  selectedRoomId === null && styles.guideOptionActive,
+                ]}
+                onPress={() => setSelectedRoomId(null)}
+                activeOpacity={0.8}
+              >
+                <Ionicons
+                  name={
+                    selectedRoomId === null
+                      ? 'radio-button-on'
+                      : 'radio-button-off'
+                  }
+                  size={20}
+                  color={
+                    selectedRoomId === null
+                      ? colors.gearupGreen
+                      : '#9ca3af'
+                  }
+                />
+                <View style={{ flex: 1 }}>
+                  <View style={styles.guideRow}>
+                    <Text style={styles.guideName}>Camping spot</Text>
+                    <Text style={styles.guidePrice}>
+                      {campsite.price_unit === 'entrance'
+                        ? `PHP ${campsite.price_per_night} / entrance`
+                        : `PHP ${campsite.price_per_night} / night`}
+                    </Text>
+                  </View>
+                  <Text style={styles.guideDesc}>
+                    Up to {campsite.capacity} guests.
+                  </Text>
+                </View>
+              </TouchableOpacity>
+
+              {campsite.children.map((room) => {
+                const active = selectedRoomId === room.id;
+                return (
+                  <TouchableOpacity
+                    key={room.id}
+                    style={[
+                      styles.guideOption,
+                      active && styles.guideOptionActive,
+                    ]}
+                    onPress={() => setSelectedRoomId(room.id)}
+                    activeOpacity={0.8}
+                  >
+                    <Ionicons
+                      name={active ? 'radio-button-on' : 'radio-button-off'}
+                      size={20}
+                      color={active ? colors.gearupGreen : '#9ca3af'}
+                    />
+                    <View style={{ flex: 1 }}>
+                      <View style={styles.guideRow}>
+                        <Text style={styles.guideName}>{room.name}</Text>
+                        <Text style={styles.guidePrice}>
+                          PHP {room.price_per_night} / night
+                        </Text>
+                      </View>
+                      <Text style={styles.guideDesc} numberOfLines={2}>
+                        {room.description ? `${room.description} - ` : ''}
+                        Up to {room.capacity}{' '}
+                        {room.capacity === 1 ? 'guest' : 'guests'}.
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
+        )}
+
         {/* Guests */}
         <Text style={styles.sectionTitle}>Guests</Text>
         <View style={styles.fieldCard}>
@@ -428,7 +548,9 @@ export default function NewBookingScreen() {
             <View>
               <Text style={styles.fieldLabel}>Number of guests</Text>
               <Text style={styles.hint}>
-                Max {campsite.capacity} for this campsite
+                {selectedRoom
+                  ? `Max ${selectedRoom.capacity} for this room`
+                  : `Max ${campsite.capacity} for this campsite`}
               </Text>
             </View>
             <View style={styles.stepper}>
@@ -441,9 +563,7 @@ export default function NewBookingScreen() {
               <Text style={styles.stepperValue}>{guests}</Text>
               <TouchableOpacity
                 style={styles.stepperButton}
-                onPress={() =>
-                  setGuests((g) => Math.min(campsite.capacity, g + 1))
-                }
+                onPress={() => setGuests((g) => Math.min(maxGuests, g + 1))}
               >
                 <Ionicons name="add" size={20} color={colors.gearupGreen} />
               </TouchableOpacity>
@@ -465,8 +585,8 @@ export default function NewBookingScreen() {
             maxLength={500}
           />
         </View>
-        {/* Tour guide picker */}
-{availableGuides.length > 0 && (
+        {/* Tour guide picker — hidden when a room is selected */}
+        {selectedRoomId === null && availableGuides.length > 0 && (
   <View>
     <Text style={styles.sectionTitle}>
       Add a tour guide? (optional)
@@ -529,8 +649,8 @@ export default function NewBookingScreen() {
   </View>
 )}
 
-               {/* Gear picker — multi-select */}
-        {(ownerGear.length > 0 || individualGear.length > 0) && (
+                       {/* Gear picker — hidden when a room is selected */}
+        {selectedRoomId === null && (ownerGear.length > 0 || individualGear.length > 0) && (
           <View>
             <Text style={styles.sectionTitle}>
               Add gear to your trip? (optional)
@@ -561,17 +681,29 @@ export default function NewBookingScreen() {
         )}
 
         {/* Price summary */}
-        <View style={styles.summary}>
-          <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>
-              {campsite.price_unit === 'entrance'
-                ? `Campsite: ₱${campsite.price_per_night} × ${guests} ${guests === 1 ? 'guest' : 'guests'}`
-                : `Campsite: ₱${campsite.price_per_night} × ${nights} ${nights === 1 ? 'night' : 'nights'} × ${guests} ${guests === 1 ? 'guest' : 'guests'}`}
-            </Text>
-            <Text style={styles.summaryValue}>
-              ₱{campsitePrice.toFixed(2)}
-            </Text>
-          </View>
+                <View style={styles.summary}>
+          {selectedRoom ? (
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>
+                {selectedRoom.name}: PHP {selectedRoom.price_per_night} x{' '}
+                {nights} {nights === 1 ? 'night' : 'nights'}
+              </Text>
+              <Text style={styles.summaryValue}>
+                PHP {campsitePrice.toFixed(2)}
+              </Text>
+            </View>
+          ) : (
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>
+                {campsite.price_unit === 'entrance'
+                  ? `Campsite: PHP ${campsite.price_per_night} x ${guests} ${guests === 1 ? 'guest' : 'guests'}`
+                  : `Campsite: PHP ${campsite.price_per_night} x ${nights} ${nights === 1 ? 'night' : 'nights'} x ${guests} ${guests === 1 ? 'guest' : 'guests'}`}
+              </Text>
+              <Text style={styles.summaryValue}>
+                PHP {campsitePrice.toFixed(2)}
+              </Text>
+            </View>
+          )}
 
                     {selectedGuideId !== null && (
             <View style={styles.summaryRow}>
