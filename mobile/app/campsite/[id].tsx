@@ -147,6 +147,11 @@ export default function CampsiteDetailScreen() {
 
         {/* Content */}
         <View style={styles.body}>
+          {!campsite.is_available && (
+            <View style={styles.closedBadge}>
+              <Text style={styles.closedBadgeText}>TEMPORARILY CLOSED</Text>
+            </View>
+          )}
           <Text style={styles.name}>{campsite.name}</Text>
 
           <View style={styles.metaRow}>
@@ -192,7 +197,9 @@ export default function CampsiteDetailScreen() {
           <Text style={styles.description}>{campsite.description}</Text>
 
           {/* Sibling listings (rooms, sub-campsites) */}
-          {campsite.children && campsite.children.length > 0 && (
+          {campsite.is_available &&
+            campsite.children &&
+            campsite.children.length > 0 && (
             <>
               <View style={styles.divider} />
               <Text style={styles.sectionTitle}>
@@ -279,15 +286,21 @@ export default function CampsiteDetailScreen() {
           <Text style={styles.priceUnit}>per {campsite.price_unit}</Text>
         </View>
 
-        <TouchableOpacity
-          style={styles.bookButton}
-          onPress={handleBook}
-          activeOpacity={0.85}
-        >
-          <Text style={styles.bookButtonText}>
-            {isGuest ? 'Sign in to Book' : 'Book Now'}
-          </Text>
-        </TouchableOpacity>
+        {!campsite.is_available ? (
+          <View style={styles.unavailableButton}>
+            <Text style={styles.unavailableButtonText}>Unavailable</Text>
+          </View>
+        ) : (
+          <TouchableOpacity
+            style={styles.bookButton}
+            onPress={handleBook}
+            activeOpacity={0.85}
+          >
+            <Text style={styles.bookButtonText}>
+              {isGuest ? 'Sign in to Book' : 'Book Now'}
+            </Text>
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );
@@ -357,6 +370,20 @@ const styles = StyleSheet.create({
     color: '#111827',
     marginBottom: 6,
     letterSpacing: -0.4,
+  },
+  closedBadge: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#fef3c7',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 6,
+    marginBottom: 8,
+  },
+  closedBadgeText: {
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+    color: '#92400e',
   },
   metaRow: {
     flexDirection: 'row',
@@ -471,6 +498,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 28,
     paddingVertical: 14,
     borderRadius: 12,
+  },
+  unavailableButton: {
+    backgroundColor: '#e5e7eb',
+    paddingHorizontal: 28,
+    paddingVertical: 14,
+    borderRadius: 12,
+  },
+  unavailableButtonText: {
+    color: '#6b7280',
+    fontSize: 14,
+    fontWeight: '800',
   },
   bookButtonText: {
     color: '#fff',

@@ -33,6 +33,7 @@ const EMPTY = {
   price_unit: 'night' as 'night' | 'entrance',
   image_url: 'https://picsum.photos/seed/newcampsite/600/400',
   capacity: 4,
+  is_available: true,
 };
 
 export function CampsiteForm({ mode, initial }: Props) {
@@ -48,6 +49,7 @@ export function CampsiteForm({ mode, initial }: Props) {
       (initial?.price_unit as 'night' | 'entrance') ?? EMPTY.price_unit,
     image_url: initial?.image_url ?? EMPTY.image_url,
     capacity: initial?.capacity ?? EMPTY.capacity,
+    is_available: initial?.is_available ?? EMPTY.is_available,
   });
 
   const [submitting, setSubmitting] = useState(false);
@@ -105,6 +107,7 @@ export function CampsiteForm({ mode, initial }: Props) {
         price_per_night: Number(form.price_per_night),
         price_unit: form.price_unit,
         capacity: Number(form.capacity),
+        is_available: form.is_available,
         ...(willUploadNewImage ? {} : { image_url: form.image_url }),
       };
 
@@ -298,6 +301,59 @@ export function CampsiteForm({ mode, initial }: Props) {
           </Text>
         </Field>
 
+        {/* Availability toggle */}
+        <View style={styles.availabilityCard}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.availabilityTitle}>
+              Accepting bookings
+            </Text>
+            <Text style={styles.availabilityHint}>
+              When off, customers can still see this campsite but cannot place
+              new bookings. Existing bookings are not affected.
+            </Text>
+            <View
+              style={[
+                styles.availabilityBadge,
+                form.is_available
+                  ? styles.availabilityBadgeOpen
+                  : styles.availabilityBadgeClosed,
+              ]}
+            >
+              <Text
+                style={[
+                  styles.availabilityBadgeText,
+                  form.is_available
+                    ? styles.availabilityBadgeTextOpen
+                    : styles.availabilityBadgeTextClosed,
+                ]}
+              >
+                {form.is_available ? 'BOOKINGS OPEN' : 'TEMPORARILY CLOSED'}
+              </Text>
+            </View>
+          </View>
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={() =>
+              setForm((f) => ({ ...f, is_available: !f.is_available }))
+            }
+            style={[
+              styles.toggleTrack,
+              form.is_available
+                ? styles.toggleTrackOn
+                : styles.toggleTrackOff,
+            ]}
+          >
+            <View
+              style={[
+                styles.toggleThumb,
+                form.is_available
+                  ? styles.toggleThumbOn
+                  : styles.toggleThumbOff,
+              ]}
+            />
+          </TouchableOpacity>
+        </View>
+
         <TouchableOpacity
           style={[styles.submit, submitting && styles.submitDisabled]}
           onPress={handleSubmit}
@@ -406,6 +462,77 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 6,
   },
+
+  availabilityCard: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#f1f5f9',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 8,
+  },
+  availabilityTitle: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#111827',
+    marginBottom: 4,
+  },
+  availabilityHint: {
+    fontSize: 11,
+    color: colors.textMuted,
+    lineHeight: 16,
+    marginBottom: 8,
+  },
+  availabilityBadge: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  availabilityBadgeOpen: {
+    backgroundColor: '#dcfce7',
+  },
+  availabilityBadgeClosed: {
+    backgroundColor: '#fef3c7',
+  },
+  availabilityBadgeText: {
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.4,
+  },
+  availabilityBadgeTextOpen: {
+    color: '#15803d',
+  },
+  availabilityBadgeTextClosed: {
+    color: '#92400e',
+  },
+  toggleTrack: {
+    width: 48,
+    height: 28,
+    borderRadius: 14,
+    padding: 2,
+    justifyContent: 'center',
+    marginTop: 2,
+  },
+  toggleTrackOn: {
+    backgroundColor: colors.gearupGreen,
+    alignItems: 'flex-end',
+  },
+  toggleTrackOff: {
+    backgroundColor: '#d1d5db',
+    alignItems: 'flex-start',
+  },
+  toggleThumb: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#fff',
+  },
+  toggleThumbOn: {},
+  toggleThumbOff: {},
 
   submit: {
     backgroundColor: colors.gearupGreen,

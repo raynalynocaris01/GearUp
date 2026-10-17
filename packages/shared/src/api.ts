@@ -110,6 +110,7 @@ export interface Campsite {
   reviews_count: number;
   capacity: number;
   is_featured: boolean;
+  is_available: boolean;
   created_at: string;
   updated_at: string;
   tour_guides?: TourGuide[];
