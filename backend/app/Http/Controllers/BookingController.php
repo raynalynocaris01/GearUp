@@ -46,6 +46,13 @@ class BookingController extends Controller
             'gear_items.*.gear_item_id' => ['required', 'integer', 'exists:gear_items,id'],
             'gear_items.*.quantity' => ['required', 'integer', 'min:1'],
             'guests' => ['required', 'integer', 'min:1'],
+            'adults' => ['nullable', 'integer', 'min:0'],
+            'children' => ['nullable', 'integer', 'min:0'],
+            'seniors' => ['nullable', 'integer', 'min:0'],
+            'pwd' => ['nullable', 'integer', 'min:0'],
+            'pricing_lines' => ['nullable', 'array'],
+            'pricing_lines.*.pricing_line_id' => ['required', 'integer', 'exists:pricing_lines,id'],
+            'pricing_lines.*.quantity' => ['required', 'integer', 'min:1'],
             'notes' => ['nullable', 'string', 'max:500'],
         ]);
 
@@ -78,6 +85,12 @@ class BookingController extends Controller
          * Legacy single-gear (gear_item_id + gear_quantity) is preserved below.
          */
         $gearLines = [];
+
+        /**
+         * Snapshot of pricing lines applied to this booking (detailed mode only).
+         * Each entry: ['pricing_line_id' => int, 'quantity' => int, 'amount' => float, 'subtotal' => float]
+         */
+        $pricingLineSnapshots = [];
 
                 // ─── Campsite or Room pricing ──────────────────────
         if (!empty($data['campsite_id'])) {
@@ -152,7 +165,7 @@ class BookingController extends Controller
                 // not a multiplier.
                 $campsitePrice = (float) $roomCampsite->price_per_night * $nights;
             } else {
-                // ── Standard campsite booking ──────────────
+                // ── Standard campsite booking (no room) ──────────────
                 if ($data['guests'] > $campsite->capacity) {
                     throw ValidationException::withMessages([
                         'guests' => [
@@ -184,9 +197,22 @@ class BookingController extends Controller
                     ]);
                 }
 
-                $campsitePrice = $campsite->price_unit === 'entrance'
-                    ? (float) $campsite->price_per_night * $data['guests']
-                    : (float) $campsite->price_per_night * $nights * $data['guests'];
+                if ($campsite->pricing_mode === 'detailed') {
+                    // ── Detailed mode: itemized pricing lines ─────────
+                    $pricingLineSnapshots = $this->computeDetailedPricing(
+                        $campsite,
+                        $data,
+                        $nights,
+                    );
+                    $campsitePrice = array_sum(
+                        array_column($pricingLineSnapshots, 'subtotal')
+                    );
+                } else {
+                    // ── Simple mode: existing behavior ────────────────
+                    $campsitePrice = $campsite->price_unit === 'entrance'
+                        ? (float) $campsite->price_per_night * $data['guests']
+                        : (float) $campsite->price_per_night * $nights * $data['guests'];
+                }
             }
         }
 
@@ -305,7 +331,19 @@ class BookingController extends Controller
 
         $total = $campsitePrice + $guidePrice + $gearPrice;
 
-        $booking = DB::transaction(function () use ($data, $request, $campsite, $roomCampsite, $tourGuide, $gearItem, $gearLines, $total) {
+        $booking = DB::transaction(function () use ($data, $request, $campsite, $roomCampsite, $tourGuide, $gearItem, $gearLines, $pricingLineSnapshots, $total) {
+            $adults = (int) ($data['adults'] ?? $data['guests']);
+            $children = (int) ($data['children'] ?? 0);
+            $seniors = (int) ($data['seniors'] ?? 0);
+            $pwd = (int) ($data['pwd'] ?? 0);
+
+            // If guest categories were provided, derive 'guests' from them
+            // so simple-mode bookings with categories stay consistent.
+            $guestsTotal = $adults + $children + $seniors + $pwd;
+            if ($guestsTotal > 0 && $guestsTotal !== (int) $data['guests']) {
+                $data['guests'] = $guestsTotal;
+            }
+
             $booking = Booking::create([
                 'user_id' => $request->user()->id,
                 'campsite_id' => $campsite?->id,
@@ -318,6 +356,10 @@ class BookingController extends Controller
                 'gear_end_date' => $data['gear_end_date'] ?? $data['check_out'] ?? null,
                 'gear_quantity' => $gearItem ? ($data['gear_quantity'] ?? 1) : null,
                 'guests' => $data['guests'],
+                'adults' => $adults,
+                'children' => $children,
+                'seniors' => $seniors,
+                'pwd' => $pwd,
                 'total_price' => $total,
                 'status' => 'pending',
                 'notes' => $data['notes'] ?? null,
@@ -329,6 +371,10 @@ class BookingController extends Controller
                     'price_per_day' => $line['price_per_day'],
                     'subtotal' => $line['subtotal'],
                 ]);
+            }
+
+            foreach ($pricingLineSnapshots as $snap) {
+                $booking->bookingPricingLines()->create($snap);
             }
 
             return $booking;
@@ -374,6 +420,104 @@ class BookingController extends Controller
         return response()->json(
             $booking->load(['campsite', 'roomCampsite', 'tourGuide', 'gearItem', 'gearItems'])
         );
+    }
+
+        /**
+     * Compute pricing line subtotals for a detailed-mode campsite booking.
+     * Returns array of snapshots ready to persist via bookingPricingLines().
+     */
+    private function computeDetailedPricing(Campsite $campsite, array $data, int $nights): array
+    {
+        $pricingLines = $campsite->pricingLines()->get();
+
+        if ($pricingLines->isEmpty()) {
+            throw ValidationException::withMessages([
+                'pricing_lines' => [
+                    'This campsite has no pricing lines configured.',
+                ],
+            ]);
+        }
+
+        $adults = (int) ($data['adults'] ?? $data['guests']);
+        $children = (int) ($data['children'] ?? 0);
+        $seniors = (int) ($data['seniors'] ?? 0);
+        $pwd = (int) ($data['pwd'] ?? 0);
+        $allGuests = $adults + $children + $seniors + $pwd;
+
+        // Map the request's selected optional lines by pricing_line_id
+        $selectedOptional = [];
+        foreach ($data['pricing_lines'] ?? [] as $row) {
+            $selectedOptional[(int) $row['pricing_line_id']] = (int) $row['quantity'];
+        }
+
+        $snapshots = [];
+
+        foreach ($pricingLines as $line) {
+            // Determine quantity (for per_tent lines) and whether to include
+            $qty = 1;
+            $include = true;
+
+            if ($line->is_optional) {
+                if (!isset($selectedOptional[$line->id])) {
+                    $include = false;
+                } else {
+                    $qty = $selectedOptional[$line->id];
+                }
+            } elseif ($line->unit === 'per_tent') {
+                // Non-optional per_tent line — assume 1 tent by default
+                $qty = 1;
+            }
+
+            if (!$include) {
+                continue;
+            }
+
+            $amount = (float) $line->amount;
+            $subtotal = 0;
+
+            switch ($line->unit) {
+                case 'per_person':
+                    $multiplier = match ($line->applies_to) {
+                        'adult' => $adults,
+                        'child' => $children,
+                        'senior' => $seniors,
+                        'pwd' => $pwd,
+                        default => $allGuests,
+                    };
+                    $subtotal = $amount * $multiplier;
+                    break;
+
+                case 'per_tent':
+                    $subtotal = $amount * $qty;
+                    break;
+
+                case 'per_night':
+                    $subtotal = $amount * $nights;
+                    break;
+
+                case 'flat':
+                default:
+                    $subtotal = $amount;
+                    break;
+            }
+
+            $snapshots[] = [
+                'pricing_line_id' => $line->id,
+                'quantity' => $qty,
+                'amount' => $amount,
+                'subtotal' => $subtotal,
+            ];
+        }
+
+        if (empty($snapshots)) {
+            throw ValidationException::withMessages([
+                'pricing_lines' => [
+                    'At least one pricing line must apply to this booking.',
+                ],
+            ]);
+        }
+
+        return $snapshots;
     }
 
 

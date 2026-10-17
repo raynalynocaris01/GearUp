@@ -5,6 +5,7 @@ use App\Http\Controllers\BookingController;
 use App\Http\Controllers\CampsiteController;
 use App\Http\Controllers\Owner\BookingController as OwnerBookingController;
 use App\Http\Controllers\Owner\CampsiteController as OwnerCampsiteController;
+use App\Http\Controllers\Owner\PricingLineController as OwnerPricingLineController;
 use App\Http\Controllers\Owner\DashboardController as OwnerDashboardController;
 use App\Http\Controllers\Owner\TourGuideController as OwnerTourGuideController;
 use App\Http\Controllers\Admin\BookingController as AdminBookingController;
@@ -90,13 +91,19 @@ Route::middleware(['auth:sanctum', 'role:owner'])->prefix('owner')->group(functi
     Route::get('/dashboard', [OwnerDashboardController::class, 'index']);
     Route::get('/dashboard/chart', [OwnerDashboardController::class, 'chart']);
 
-    // Campsites
-    Route::get('/campsites',              [OwnerCampsiteController::class, 'index']);
-    Route::post('/campsites',             [OwnerCampsiteController::class, 'store']);
-    Route::get('/campsites/{campsite}',   [OwnerCampsiteController::class, 'show']);
-    Route::put('/campsites/{campsite}',   [OwnerCampsiteController::class, 'update']);
-    Route::delete('/campsites/{campsite}',[OwnerCampsiteController::class, 'destroy']);
-    Route::post('/campsites/{campsite}/image', [OwnerCampsiteController::class, 'uploadImage']);
+        // Campsites
+    Route::get('/campsites',                          [OwnerCampsiteController::class, 'index']);
+    Route::post('/campsites',                         [OwnerCampsiteController::class, 'store']);
+    Route::get('/campsites/{campsite}',               [OwnerCampsiteController::class, 'show']);
+    Route::put('/campsites/{campsite}',               [OwnerCampsiteController::class, 'update']);
+    Route::delete('/campsites/{campsite}',            [OwnerCampsiteController::class, 'destroy']);
+    Route::post('/campsites/{campsite}/image',        [OwnerCampsiteController::class, 'uploadImage']);
+
+    // Pricing lines (detailed mode)
+    Route::get('/campsites/{campsite}/pricing-lines',    [OwnerPricingLineController::class, 'index']);
+    Route::post('/campsites/{campsite}/pricing-lines',   [OwnerPricingLineController::class, 'store']);
+    Route::put('/pricing-lines/{pricingLine}',           [OwnerPricingLineController::class, 'update']);
+    Route::delete('/pricing-lines/{pricingLine}',        [OwnerPricingLineController::class, 'destroy']);
 
     // Tour guides
     Route::get('/campsites/{campsite}/tour-guides',    [OwnerTourGuideController::class, 'index']);

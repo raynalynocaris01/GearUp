@@ -88,7 +88,19 @@ export const authApi = (client: ApiClient) => ({
   logout: () => client.post<{ message: string }>('/logout'),
 });
 
-
+export interface PricingLine {
+  id: number;
+  campsite_id: number;
+  label: string;
+  amount: string;
+  unit: 'per_person' | 'per_tent' | 'per_night' | 'flat';
+  applies_to: 'any' | 'adult' | 'child' | 'senior' | 'pwd';
+  is_optional: boolean;
+  description: string | null;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
 // ──────────────────────────────────────────────────────────
 // CAMPSITES
 // ──────────────────────────────────────────────────────────
@@ -105,6 +117,7 @@ export interface Campsite {
   longitude: number | null;   
   price_per_night: string;
   price_unit: string;
+  pricing_mode?: 'simple' | 'detailed';
   image_url: string;
   rating: string;
   reviews_count: number;
@@ -115,6 +128,7 @@ export interface Campsite {
   updated_at: string;
   tour_guides?: TourGuide[];
   children?: Campsite[];
+  pricing_lines?: PricingLine[];
   reviews?: Review[];
   revenue?: number;
   bookings_count?: number;
@@ -148,6 +162,18 @@ export interface BookingGearLine extends GearItem {
   };
 }
 
+export interface BookingPricingLine {
+  id: number;
+  booking_id: number;
+  pricing_line_id: number;
+  quantity: number;
+  amount: string;
+  subtotal: string;
+  created_at: string;
+  updated_at: string;
+  pricing_line?: PricingLine;
+}
+
 export interface Booking {
   id: number;
   user_id: number;
@@ -161,6 +187,10 @@ export interface Booking {
   check_in: string | null;
   check_out: string | null;
   guests: number;
+  adults?: number;
+  children?: number;
+  seniors?: number;
+  pwd?: number;
   total_price: string;
   status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
   notes: string | null;
@@ -174,6 +204,7 @@ export interface Booking {
   tour_guide?: TourGuide | null;
   gear_item?: GearItem | null;
   gear_items?: BookingGearLine[];
+  pricing_lines?: BookingPricingLine[];
   review?: Review | null;
   user?: {
     id: number;
@@ -184,6 +215,11 @@ export interface Booking {
 
 export interface CreateBookingGearLine {
   gear_item_id: number;
+  quantity: number;
+}
+
+export interface CreateBookingPricingLine {
+  pricing_line_id: number;
   quantity: number;
 }
 
@@ -198,7 +234,12 @@ export interface CreateBookingPayload {
   gear_end_date?: string | null;
   gear_quantity?: number | null;
   gear_items?: CreateBookingGearLine[];
+  pricing_lines?: CreateBookingPricingLine[];
   guests: number;
+  adults?: number;
+  children?: number;
+  seniors?: number;
+  pwd?: number;
   notes?: string;
 }
 
@@ -586,18 +627,6 @@ export interface GearItem {
     name: string;
     email: string;
     role: 'admin' | 'owner' | 'customer';
-  };
-}
-
-export interface BookingGearLine extends GearItem {
-  pivot: {
-    booking_id: number;
-    gear_item_id: number;
-    quantity: number;
-    price_per_day: string;
-    subtotal: string;
-    created_at: string;
-    updated_at: string;
   };
 }
 

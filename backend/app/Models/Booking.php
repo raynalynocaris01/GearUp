@@ -23,6 +23,10 @@ class Booking extends Model
         'gear_end_date',
         'gear_quantity',
         'guests',
+        'adults',
+        'children',
+        'seniors',
+        'pwd',
         'total_price',
         'status',
         'confirmed_at',
@@ -37,6 +41,10 @@ class Booking extends Model
         'gear_start_date' => 'date',
         'gear_end_date' => 'date',
         'guests' => 'integer',
+        'adults' => 'integer',
+        'children' => 'integer',
+        'seniors' => 'integer',
+        'pwd' => 'integer',
         'gear_quantity' => 'integer',
         'total_price' => 'decimal:2',
         'confirmed_at' => 'datetime',
@@ -62,6 +70,15 @@ class Booking extends Model
     public function roomCampsite(): BelongsTo
     {
         return $this->belongsTo(Campsite::class, 'room_campsite_id');
+    }
+
+    /**
+     * Itemized pricing line snapshots attached to this booking.
+     * Only populated for 'detailed' mode campsite bookings.
+     */
+    public function bookingPricingLines()
+    {
+        return $this->hasMany(BookingPricingLine::class);
     }
 
     public function tourGuide(): BelongsTo

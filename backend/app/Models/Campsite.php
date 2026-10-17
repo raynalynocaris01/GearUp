@@ -20,6 +20,7 @@ class Campsite extends Model
         'longitude', 
         'price_per_night',
         'price_unit',
+        'pricing_mode',
         'image_url',
         'rating',
         'reviews_count',
@@ -30,6 +31,7 @@ class Campsite extends Model
 
     protected $casts = [
     'price_per_night' => 'decimal:2',
+    // 'pricing_mode' is a string, no cast needed
     'rating' => 'decimal:2',
     'reviews_count' => 'integer',
     'capacity' => 'integer',
@@ -59,6 +61,16 @@ class Campsite extends Model
     public function children()
     {
         return $this->hasMany(Campsite::class, 'parent_campsite_id');
+    }
+
+    /**
+     * Itemized pricing lines for 'detailed' mode campsites.
+     */
+    public function pricingLines()
+    {
+        return $this->hasMany(PricingLine::class)
+            ->orderBy('sort_order')
+            ->orderBy('id');
     }
 
     public function tourGuides()
