@@ -40,6 +40,7 @@ class CampsiteController extends Controller
             'price_unit' => ['required', 'in:night,entrance'],
             'image_url' => ['required', 'string', 'max:2048'],
             'capacity' => ['required', 'integer', 'min:1'],
+            'is_available' => ['sometimes', 'boolean'],
         ]);
 
         $campsite = Campsite::create([
@@ -80,6 +81,7 @@ class CampsiteController extends Controller
             'price_unit' => ['sometimes', 'in:night,entrance'],
             'image_url' => ['sometimes', 'string', 'max:2048'],
             'capacity' => ['sometimes', 'integer', 'min:1'],
+            'is_available' => ['sometimes', 'boolean'],
         ]);
 
         $campsite->update($data);

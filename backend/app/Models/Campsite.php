@@ -25,6 +25,7 @@ class Campsite extends Model
         'reviews_count',
         'capacity',
         'is_featured',
+        'is_available',
     ];
 
     protected $casts = [
@@ -33,6 +34,7 @@ class Campsite extends Model
     'reviews_count' => 'integer',
     'capacity' => 'integer',
     'is_featured' => 'boolean',
+    'is_available' => 'boolean',
     'latitude' => 'float',    
     'longitude' => 'float',   
     ];

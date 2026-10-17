@@ -83,6 +83,14 @@ class BookingController extends Controller
         if (!empty($data['campsite_id'])) {
             $campsite = Campsite::findOrFail($data['campsite_id']);
 
+            if (!$campsite->is_available) {
+                throw ValidationException::withMessages([
+                    'campsite_id' => [
+                        'This campsite is currently unavailable for booking.',
+                    ],
+                ]);
+            }
+
             if (empty($data['check_in']) || empty($data['check_out'])) {
                 throw ValidationException::withMessages([
                     'check_in' => [

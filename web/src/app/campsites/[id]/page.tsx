@@ -22,6 +22,7 @@ interface Campsite {
   reviews_count: number;
   capacity: number;
   is_featured: boolean;
+  is_available: boolean;
   parent_campsite_id: number | null;
   parent?: {
     id: number;
@@ -167,6 +168,11 @@ export default async function CampsiteDetailPage({
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
           {/* Left: details */}
           <div className="lg:col-span-2">
+            {!campsite.is_available && (
+              <div className="inline-block bg-yellow-100 text-yellow-800 text-xs font-bold px-3 py-1.5 rounded-full mb-3">
+                TEMPORARILY CLOSED
+              </div>
+            )}
             <h1 className="text-4xl font-black text-gray-900">
               {campsite.name}
             </h1>
@@ -199,7 +205,9 @@ export default async function CampsiteDetailPage({
             </div>
 
             {/* Also available at this location (sibling listings) */}
-            {campsite.children && campsite.children.length > 0 && (
+            {campsite.is_available &&
+              campsite.children &&
+              campsite.children.length > 0 && (
               <div className="mt-8">
                 <h2 className="text-xl font-bold text-gray-900 mb-3">
                   Also available at this location
@@ -299,21 +307,34 @@ export default async function CampsiteDetailPage({
                 </div>
               )}
 
-              <Link
-                href={bookHref}
-                className="block w-full bg-gearup-600 hover:bg-gearup-700 text-white font-semibold text-center py-3 rounded-lg transition"
-              >
-                {isGuest
-                  ? 'Sign in to Book'
-                  : isRoom
-                    ? `Book via ${campsite.parent!.name}`
-                    : 'Book Now'}
-              </Link>
+              {!campsite.is_available ? (
+                <div className="text-center">
+                  <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 text-sm font-semibold px-4 py-3 rounded-lg">
+                    This campsite is currently unavailable for booking.
+                  </div>
+                  <p className="text-xs text-gray-500 mt-3">
+                    Check back soon, or browse other campsites.
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <Link
+                    href={bookHref}
+                    className="block w-full bg-gearup-600 hover:bg-gearup-700 text-white font-semibold text-center py-3 rounded-lg transition"
+                  >
+                    {isGuest
+                      ? 'Sign in to Book'
+                      : isRoom
+                        ? `Book via ${campsite.parent!.name}`
+                        : 'Book Now'}
+                  </Link>
 
-              {isGuest && (
-                <p className="text-xs text-gray-500 text-center mt-3">
-                  You need an account to make a reservation.
-                </p>
+                  {isGuest && (
+                    <p className="text-xs text-gray-500 text-center mt-3">
+                      You need an account to make a reservation.
+                    </p>
+                  )}
+                </>
               )}
 
               <p className="text-xs text-gray-500 text-center mt-3">

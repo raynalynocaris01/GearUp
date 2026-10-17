@@ -26,6 +26,7 @@ class CampsiteFactory extends Factory
             'reviews_count' => 0,
             'capacity' => 4,
             'is_featured' => false,
+            'is_available' => true,
         ];
     }
 

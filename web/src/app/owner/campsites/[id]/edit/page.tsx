@@ -15,6 +15,7 @@ interface Campsite {
   price_unit: string;
   image_url: string;
   capacity: number;
+  is_available: boolean;
 }
 
 async function getCampsite(id: string, token: string): Promise<Campsite | null> {

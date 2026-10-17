@@ -13,6 +13,7 @@ interface Campsite {
   price_unit: string;
   image_url: string;
   capacity: number;
+  is_available: boolean;
 }
 
 interface Props {
@@ -29,6 +30,7 @@ const EMPTY: Campsite = {
   price_unit: 'night',
   image_url: 'https://picsum.photos/seed/newcampsite/600/400',
   capacity: 4,
+  is_available: true,
 };
 
 export function CampsiteForm({ mode, initial }: Props) {
@@ -65,6 +67,7 @@ export function CampsiteForm({ mode, initial }: Props) {
       price_per_night: Number(form.price_per_night),
       price_unit: form.price_unit,
       capacity: Number(form.capacity),
+      is_available: form.is_available,
     };
     // Only send image_url if we're NOT uploading a new file
     if (!imageFile) {
@@ -263,6 +266,47 @@ export function CampsiteForm({ mode, initial }: Props) {
       </p>
     </div>
   </Field>
+      </div>
+
+      {/* Availability toggle */}
+      <div className="border-t border-gray-100 pt-6">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex-1">
+            <p className="text-sm font-bold text-gray-900">
+              Accepting bookings
+            </p>
+            <p className="text-xs text-gray-500 mt-1">
+              When off, customers can still see this campsite but cannot
+              place new bookings. Existing bookings are not affected.
+            </p>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={form.is_available}
+            onClick={() => update('is_available', !form.is_available)}
+            className={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition ${
+              form.is_available ? 'bg-gearup-600' : 'bg-gray-300'
+            }`}
+          >
+            <span
+              className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition ${
+                form.is_available ? 'translate-x-6' : 'translate-x-1'
+              }`}
+            />
+          </button>
+        </div>
+        <div className="mt-2">
+          <span
+            className={`inline-block text-xs font-semibold px-2 py-0.5 rounded ${
+              form.is_available
+                ? 'bg-green-100 text-green-700'
+                : 'bg-yellow-100 text-yellow-800'
+            }`}
+          >
+            {form.is_available ? 'BOOKINGS OPEN' : 'TEMPORARILY CLOSED'}
+          </span>
+        </div>
       </div>
 
       {generalError && (

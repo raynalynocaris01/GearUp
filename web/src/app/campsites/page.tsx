@@ -15,6 +15,7 @@ interface Campsite {
   rating: string;
   reviews_count: number;
   is_featured: boolean;
+  is_available: boolean;
   created_at: string;
 }
 

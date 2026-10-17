@@ -21,6 +21,7 @@ export interface Campsite {
   rating: string;
   reviews_count: number;
   is_featured: boolean;
+  is_available: boolean;
   created_at: string;
 }
 
@@ -167,9 +168,17 @@ export function CampsitesGrid({
                   className="object-cover group-hover:scale-105 transition duration-500"
                   unoptimized
                 />
-                {c.is_featured && (
-                  <div className="absolute top-3 left-3 bg-gearup-600 text-white text-[10px] font-bold px-2 py-1 rounded-full">
-                    ★ Featured
+                                {c.is_featured && (
+                    <div className="absolute top-3 left-3 bg-gearup-600 text-white text-[10px] font-bold px-2 py-1 rounded-full">
+                      ★ Featured
+                    </div>
+                  )}
+
+                {!c.is_available && (
+                  <div className="absolute top-3 left-3 bg-yellow-500 text-white text-[10px] font-bold px-2 py-1 rounded-full"
+                    style={{ marginTop: c.is_featured ? 28 : 0 }}
+                  >
+                    CLOSED
                   </div>
                 )}
                 <button className="absolute top-3 right-3 w-9 h-9 rounded-full bg-white/90 backdrop-blur flex items-center justify-center text-gray-700 hover:text-red-500 transition">
