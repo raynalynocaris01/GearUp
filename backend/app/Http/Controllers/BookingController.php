@@ -22,6 +22,7 @@ class BookingController extends Controller
                 'tourGuide',
                 'gearItem',
                 'gearItems',
+                'bookingPricingLines.pricingLine',
                 'review',
             ])
                 ->where('user_id', $request->user()->id)
@@ -401,6 +402,7 @@ class BookingController extends Controller
                 'tourGuide',
                 'gearItem',
                 'gearItems',
+                'bookingPricingLines.pricingLine',
                 'review',
             ])
         );

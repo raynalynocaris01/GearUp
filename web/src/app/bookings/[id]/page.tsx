@@ -23,6 +23,22 @@ interface BookingGearLine {
   };
 }
 
+interface BookingPricingLineLocal {
+  id: number;
+  booking_id: number;
+  pricing_line_id: number;
+  quantity: number;
+  amount: string;
+  subtotal: string;
+  pricing_line?: {
+    id: number;
+    label: string;
+    unit: 'per_person' | 'per_tent' | 'per_night' | 'flat';
+    applies_to: 'any' | 'adult' | 'child' | 'senior' | 'pwd';
+    is_optional: boolean;
+  };
+}
+
 interface Booking {
   id: number;
   check_in: string | null;
@@ -30,6 +46,12 @@ interface Booking {
   gear_start_date: string | null;
   gear_end_date: string | null;
   guests: number;
+  adults?: number;
+  children?: number;
+  seniors?: number;
+  pwd?: number;
+  pricing_mode?: 'simple' | 'detailed';
+  pricing_lines?: BookingPricingLineLocal[];
   total_price: string;
   status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
   notes: string | null;
@@ -295,8 +317,24 @@ export default async function BookingDetailPage({
               )}
               {!isGearOnly && (
                 <div>
-                  {booking.guests}{' '}
-                  {booking.guests === 1 ? 'guest' : 'guests'}
+                  {booking.pricing_lines && booking.pricing_lines.length > 0
+                    ? [
+                        booking.adults && booking.adults > 0
+                          ? `${booking.adults} ${booking.adults === 1 ? 'adult' : 'adults'}`
+                          : null,
+                        booking.children && booking.children > 0
+                          ? `${booking.children} ${booking.children === 1 ? 'child' : 'children'}`
+                          : null,
+                        booking.seniors && booking.seniors > 0
+                          ? `${booking.seniors} ${booking.seniors === 1 ? 'senior' : 'seniors'}`
+                          : null,
+                        booking.pwd && booking.pwd > 0
+                          ? `${booking.pwd} PWD`
+                          : null,
+                      ]
+                        .filter(Boolean)
+                        .join(', ')
+                    : `${booking.guests} ${booking.guests === 1 ? 'guest' : 'guests'}`}
                 </div>
               )}
               {booking.tour_guide && (
@@ -335,13 +373,33 @@ export default async function BookingDetailPage({
                   </div>
                 )}
 
-                {!isRoom && booking.campsite && (
+                                {!isRoom && booking.campsite && booking.pricing_lines && booking.pricing_lines.length > 0 && (
+                  <>
+                    {booking.pricing_lines.map((line) => (
+                      <div
+                        key={line.id}
+                        className="flex justify-between items-center"
+                      >
+                        <span>
+                          {line.pricing_line?.label ?? `Line #${line.pricing_line_id}`}
+                          {line.quantity !== 1 ? ` × ${line.quantity}` : ''}
+                          {` × PHP ${parseFloat(line.amount).toFixed(2)}`}
+                        </span>
+                        <span className="font-semibold">
+                          PHP {parseFloat(line.subtotal).toFixed(2)}
+                        </span>
+                      </div>
+                    ))}
+                  </>
+                )}
+
+                {!isRoom && booking.campsite && (!booking.pricing_lines || booking.pricing_lines.length === 0) && (
                   <div className="flex justify-between items-center">
                     <span>
                       Campsite: ₱{campsiteUnit.toFixed(2)} ×{' '}
                       {isEntrance
                         ? `${booking.guests} ${booking.guests === 1 ? 'guest' : 'guests'}`
-                        : `${nights} ${nights === 1 ? 'night' : 'nights'} × ${booking.guests} ${booking.guests === 1 ? 'guest' : 'guests'}`}
+                        : `${nights} ${nights === 1 ? 'night' : 'nights'} × ${booking.guests} ${booking.guests === 1 ? 'guest' :'guests'}`}
                     </span>
                     <span className="font-semibold">
                       ₱{campsiteSubtotal.toFixed(2)}

@@ -3,6 +3,18 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
+interface PricingLine {
+  id: number;
+  campsite_id: number;
+  label: string;
+  amount: string;
+  unit: 'per_person' | 'per_tent' | 'per_night' | 'flat';
+  applies_to: 'any' | 'adult' | 'child' | 'senior' | 'pwd';
+  is_optional: boolean;
+  description: string | null;
+  sort_order: number;
+}
+
 interface Campsite {
   id: number;
   owner_id: number | null;
@@ -11,6 +23,8 @@ interface Campsite {
   price_per_night: string;
   price_unit: string;
   capacity: number;
+  pricing_mode?: 'simple' | 'detailed';
+  pricing_lines?: PricingLine[];
   children?: {
     id: number;
     name: string;
@@ -83,10 +97,23 @@ export function BookingForm({
   const [checkOut, setCheckOut] = useState(dayAfter);
 
   const [guests, setGuests] = useState(1);
+  const [adults, setAdults] = useState(1);
+  const [children, setChildren] = useState(0);
+  const [seniors, setSeniors] = useState(0);
+  const [pwd, setPwd] = useState(0);
   const [notes, setNotes] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string[]>>({});
   const [generalError, setGeneralError] = useState('');
+
+  // Optional pricing-line selections: line_id -> quantity
+  // (per_person/per_night/flat lines ignore quantity; per_tent uses it)
+  const [selectedPricingLines, setSelectedPricingLines] = useState<
+    Record<number, number>
+  >({});
+
+  const isDetailed = campsite?.pricing_mode === 'detailed';
+  const effectiveGuests = isDetailed ? adults + children + seniors + pwd : guests;
 
   // Tour guides (only relevant when campsite is present)
   const [guides, setGuides] = useState<TourGuide[]>([]);
@@ -198,12 +225,22 @@ export function BookingForm({
     guidePrice,
     gearPrice,
     gearLines,
+    pricingLineRows,
     totalPrice,
   } = useMemo(() => {
     const n = nightsBetween(checkIn, checkOut);
 
     // Campsite price (0 if none)
     let cPrice = 0;
+    const pricingLineRows: {
+      id: number;
+      label: string;
+      amount: number;
+      unit: 'per_person' | 'per_tent' | 'per_night' | 'flat';
+      qty: number;
+      subtotal: number;
+    }[] = [];
+
     if (campsite) {
       if (selectedRoomId !== null) {
         // Room variant: priced per-room per-night. Guests is a limit,
@@ -213,8 +250,40 @@ export function BookingForm({
           const unit = parseFloat(room.price_per_night);
           cPrice = unit * Math.max(n, 1);
         }
+      } else if (isDetailed && campsite.pricing_lines) {
+        // Detailed mode: sum pricing lines (mandatory + selected optional)
+        const nightsForLines = Math.max(n, 1);
+        const bodiesByCategory = {
+          adult: adults,
+          child: children,
+          senior: seniors,
+          pwd: pwd,
+          any: adults + children + seniors + pwd,
+        };
+        for (const line of campsite.pricing_lines) {
+          if (line.is_optional && !selectedPricingLines[line.id]) continue;
+          const amount = parseFloat(line.amount);
+          let qty = 1;
+          if (line.unit === 'per_person') {
+            qty = bodiesByCategory[line.applies_to] ?? 0;
+          } else if (line.unit === 'per_tent') {
+            qty = selectedPricingLines[line.id] ?? 1;
+          } else if (line.unit === 'per_night') {
+            qty = nightsForLines;
+          }
+          const subtotal = amount * qty;
+          cPrice += subtotal;
+          pricingLineRows.push({
+            id: line.id,
+            label: line.label,
+            amount,
+            unit: line.unit,
+            qty,
+            subtotal,
+          });
+        }
       } else {
-        // Standard campsite pricing
+        // Simple campsite pricing
         const unit = parseFloat(campsite.price_per_night);
         cPrice =
           campsite.price_unit === 'entrance'
@@ -280,6 +349,7 @@ export function BookingForm({
       guidePrice: gPrice,
       gearPrice: gearTotal,
       gearLines,
+      pricingLineRows,
       totalPrice: cPrice + gPrice + gearTotal,
     };
   }, [
@@ -287,6 +357,12 @@ export function BookingForm({
     checkIn,
     checkOut,
     guests,
+    adults,
+    children,
+    seniors,
+    pwd,
+    isDetailed,
+    selectedPricingLines,
     guides,
     selectedGuideId,
     activeGear,
@@ -306,11 +382,11 @@ export function BookingForm({
       setGeneralError('Return date must be after start date.');
       return;
     }
-    if (campsite && selectedRoom && guests > selectedRoom.capacity) {
+    if (campsite && selectedRoom && effectiveGuests > selectedRoom.capacity) {
       setGeneralError(`This room allows up to ${selectedRoom.capacity} guests.`);
       return;
     }
-    if (campsite && !selectedRoom && guests > campsite.capacity) {
+    if (campsite && !selectedRoom && effectiveGuests > campsite.capacity) {
       setGeneralError(`This campsite allows up to ${campsite.capacity} guests.`);
       return;
     }
@@ -333,11 +409,31 @@ export function BookingForm({
     setSubmitting(true);
 
     const payload: Record<string, unknown> = {
-      guests: campsite ? guests : 1,
+      guests: campsite ? effectiveGuests : 1,
       check_in: checkIn,
       check_out: checkOut,
       notes: notes.trim() || null,
     };
+
+    if (campsite && isDetailed) {
+      payload.adults = adults;
+      payload.children = children;
+      payload.seniors = seniors;
+      payload.pwd = pwd;
+
+      // Send only selected optional lines. Mandatory lines are auto-included
+      // server-side. quantity is required by backend validation for every
+      // row; only per_tent uses it as a multiplier.
+      const selectedRows = campsite.pricing_lines
+        ?.filter((line) => line.is_optional && selectedPricingLines[line.id])
+        .map((line) => ({
+          pricing_line_id: line.id,
+          quantity: selectedPricingLines[line.id] ?? 1,
+        }));
+      if (selectedRows && selectedRows.length > 0) {
+        payload.pricing_lines = selectedRows;
+      }
+    }
 
     if (campsite) {
       payload.campsite_id = campsite.id;
@@ -523,41 +619,96 @@ export function BookingForm({
           <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
             Guests
           </h3>
-          <div className="flex items-center justify-between border border-gray-300 rounded-lg px-4 py-3">
-            <div>
-              <p className="text-sm font-medium text-gray-900">
-                Number of guests
-              </p>
-              <p className="text-xs text-gray-500">
-                {selectedRoom
-                  ? `Max ${selectedRoom.capacity} for this room`
-                  : `Max ${campsite.capacity} for this campsite`}
+
+          {isDetailed && selectedRoomId === null ? (
+            // Detailed mode: four category steppers
+            <div className="space-y-2">
+              {[
+                { key: 'adults', label: 'Adults', value: adults, setter: setAdults, min: 1 },
+                { key: 'children', label: 'Children', value: children, setter: setChildren, min: 0 },
+                { key: 'seniors', label: 'Seniors', value: seniors, setter: setSeniors, min: 0 },
+                { key: 'pwd', label: 'PWD', value: pwd, setter: setPwd, min: 0 },
+              ].map((row) => {
+                const atMax = effectiveGuests >= maxGuests;
+                const canDecrement = row.value > row.min;
+                const canIncrement = !atMax;
+                return (
+                  <div
+                    key={row.key}
+                    className="flex items-center justify-between border border-gray-300 rounded-lg px-4 py-3"
+                  >
+                    <p className="text-sm font-medium text-gray-900">
+                      {row.label}
+                    </p>
+                    <div className="flex items-center gap-4">
+                      <button
+                        type="button"
+                        onClick={() => row.setter(Math.max(row.min, row.value - 1))}
+                        disabled={!canDecrement}
+                        className="w-9 h-9 rounded-full border-2 border-gearup-600 text-gearup-600 text-xl font-bold hover:bg-gearup-50 transition flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed"
+                        aria-label={`Decrease ${row.label.toLowerCase()}`}
+                      >
+                        −
+                      </button>
+                      <span className="text-lg font-bold text-gray-900 min-w-[2ch] text-center">
+                        {row.value}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => row.setter(row.value + 1)}
+                        disabled={!canIncrement}
+                        className="w-9 h-9 rounded-full border-2 border-gearup-600 text-gearup-600 text-xl font-bold hover:bg-gearup-50 transition flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed"
+                        aria-label={`Increase ${row.label.toLowerCase()}`}
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+              <p className="text-xs text-gray-500 pt-1">
+                Total: {effectiveGuests} of {maxGuests} max
               </p>
             </div>
-            <div className="flex items-center gap-4">
-              <button
-                type="button"
-                onClick={() => setGuests((g) => Math.max(1, g - 1))}
-                className="w-9 h-9 rounded-full border-2 border-gearup-600 text-gearup-600 text-xl font-bold hover:bg-gearup-50 transition flex items-center justify-center"
-                aria-label="Decrease guests"
-              >
-                −
-              </button>
-              <span className="text-lg font-bold text-gray-900 min-w-[2ch] text-center">
-                {guests}
-              </span>
-              <button
-                type="button"
-                onClick={() =>
-                  setGuests((g) => Math.min(maxGuests, g + 1))
-                }
-                className="w-9 h-9 rounded-full border-2 border-gearup-600 text-gearup-600 text-xl font-bold hover:bg-gearup-50 transition flex items-center justify-center"
-                aria-label="Increase guests"
-              >
-                +
-              </button>
+          ) : (
+            // Simple mode + room mode: single stepper (unchanged)
+            <div className="flex items-center justify-between border border-gray-300 rounded-lg px-4 py-3">
+              <div>
+                <p className="text-sm font-medium text-gray-900">
+                  Number of guests
+                </p>
+                <p className="text-xs text-gray-500">
+                  {selectedRoom
+                    ? `Max ${selectedRoom.capacity} for this room`
+                    : `Max ${campsite.capacity} for this campsite`}
+                </p>
+              </div>
+              <div className="flex items-center gap-4">
+                <button
+                  type="button"
+                  onClick={() => setGuests((g) => Math.max(1, g - 1))}
+                  className="w-9 h-9 rounded-full border-2 border-gearup-600 text-gearup-600 text-xl font-bold hover:bg-gearup-50 transition flex items-center justify-center"
+                  aria-label="Decrease guests"
+                >
+                  −
+                </button>
+                <span className="text-lg font-bold text-gray-900 min-w-[2ch] text-center">
+                  {guests}
+                </span>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setGuests((g) => Math.min(maxGuests, g + 1))
+                  }
+                  className="w-9 h-9 rounded-full border-2 border-gearup-600 text-gearup-600 text-xl font-bold hover:bg-gearup-50 transition flex items-center justify-center"
+                  aria-label="Increase guests"
+                >
+                  +
+                </button>
+              </div>
             </div>
-          </div>
+          )}
+
           {errors.guests && (
             <p className="text-red-600 text-xs mt-1">{errors.guests[0]}</p>
           )}
@@ -578,6 +729,123 @@ export function BookingForm({
           className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gearup-600 focus:border-transparent resize-none"
         />
       </div>
+
+      {/* Optional pricing lines — detailed mode, no room selected */}
+      {isDetailed &&
+        selectedRoomId === null &&
+        campsite?.pricing_lines &&
+        campsite.pricing_lines.some((l) => l.is_optional) && (
+          <div>
+            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
+              Optional add-ons
+            </h3>
+            <div className="space-y-2">
+              {campsite.pricing_lines
+                .filter((l) => l.is_optional)
+                .sort((a, b) => a.sort_order - b.sort_order)
+                .map((line) => {
+                  const selected = !!selectedPricingLines[line.id];
+                  const amount = parseFloat(line.amount);
+                  const qty = selectedPricingLines[line.id] ?? 1;
+                  const unitLabel =
+                    line.unit === 'per_person'
+                      ? line.applies_to === 'any'
+                        ? '/ person'
+                        : `/ ${line.applies_to}`
+                      : line.unit === 'per_tent'
+                        ? '/ tent'
+                        : line.unit === 'per_night'
+                          ? '/ night'
+                          : '';
+                  const isPerTent = line.unit === 'per_tent';
+
+                  const toggle = () => {
+                    setSelectedPricingLines((prev) => {
+                      const next = { ...prev };
+                      if (next[line.id]) {
+                        delete next[line.id];
+                      } else {
+                        next[line.id] = 1;
+                      }
+                      return next;
+                    });
+                  };
+
+                  const setQty = (newQty: number) => {
+                    setSelectedPricingLines((prev) => ({
+                      ...prev,
+                      [line.id]: Math.max(1, newQty),
+                    }));
+                  };
+
+                  return (
+                    <div
+                      key={line.id}
+                      className={`border rounded-lg p-4 transition ${
+                        selected
+                          ? 'border-gearup-600 bg-gearup-50'
+                          : 'border-gray-200'
+                      }`}
+                    >
+                      <label className="flex items-start gap-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={selected}
+                          onChange={toggle}
+                          className="mt-1 h-4 w-4 accent-gearup-600"
+                        />
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between gap-3">
+                            <p className="font-semibold text-gray-900 text-sm">
+                              {line.label}
+                            </p>
+                            <p className="text-sm font-bold text-gearup-600 shrink-0">
+                              +PHP {amount.toFixed(0)} {unitLabel}
+                            </p>
+                          </div>
+                          {line.description && (
+                            <p className="text-xs text-gray-500 mt-1 line-clamp-2">
+                              {line.description}
+                            </p>
+                          )}
+                        </div>
+                      </label>
+
+                      {selected && isPerTent && (
+                        <div className="mt-3 flex items-center justify-between border-t border-green-200 pt-3">
+                          <p className="text-xs text-gray-600">
+                            Quantity
+                          </p>
+                          <div className="flex items-center gap-3">
+                            <button
+                              type="button"
+                              onClick={() => setQty(qty - 1)}
+                              disabled={qty <= 1}
+                              className="w-8 h-8 rounded-full border-2 border-gearup-600 text-gearup-600 text-lg font-bold hover:bg-gearup-50 transition flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed"
+                              aria-label="Decrease quantity"
+                            >
+                              −
+                            </button>
+                            <span className="text-base font-bold text-gray-900 min-w-[2ch] text-center">
+                              {qty}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => setQty(qty + 1)}
+                              className="w-8 h-8 rounded-full border-2 border-gearup-600 text-gearup-600 text-lg font-bold hover:bg-gearup-50 transition flex items-center justify-center"
+                              aria-label="Increase quantity"
+                            >
+                              +
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+            </div>
+          </div>
+        )}
 
       {/* Tour guide picker — only if campsite AND has guides AND no room */}
       {campsite && selectedRoomId === null && guides.length > 0 && (
@@ -915,16 +1183,42 @@ export function BookingForm({
           )}
 
           {campsite && !selectedRoom && (
-            <div className="flex justify-between items-center">
-              <span>
-                {campsite.price_unit === 'entrance'
-                  ? `Campsite: ₱${campsite.price_per_night} × ${guests} ${guests === 1 ? 'guest' : 'guests'}`
-                  : `Campsite: ₱${campsite.price_per_night} × ${nights} ${nights === 1 ? 'night' : 'nights'} × ${guests} ${guests === 1 ? 'guest' : 'guests'}`}
-              </span>
-              <span className="font-semibold">
-                ₱{campsitePrice.toFixed(2)}
-              </span>
-            </div>
+            isDetailed ? (
+              pricingLineRows.length > 0 ? (
+                <>
+                  {pricingLineRows.map((row) => (
+                    <div
+                      key={row.id}
+                      className="flex justify-between items-center"
+                    >
+                      <span>
+                        {row.label}
+                        {row.qty !== 1 ? ` × ${row.qty}` : ''}
+                        {` × PHP ${row.amount.toFixed(0)}`}
+                      </span>
+                      <span className="font-semibold">
+                        PHP {row.subtotal.toFixed(2)}
+                      </span>
+                    </div>
+                  ))}
+                </>
+              ) : (
+                <p className="text-xs text-red-700">
+                  Select at least one add-on to continue.
+                </p>
+              )
+            ) : (
+              <div className="flex justify-between items-center">
+                <span>
+                  {campsite.price_unit === 'entrance'
+                    ? `Campsite: ₱${campsite.price_per_night} × ${guests} ${guests === 1 ? 'guest' : 'guests'}`
+                    : `Campsite: ₱${campsite.price_per_night} × ${nights} ${nights === 1 ? 'night' : 'nights'} × ${guests} ${guests === 1 ? 'guest' : 'guests'}`}
+                </span>
+                <span className="font-semibold">
+                  ₱{campsitePrice.toFixed(2)}
+                </span>
+              </div>
+            )
           )}
 
           {selectedGuideId !== null && (
