@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { PricingLinesEditor } from './PricingLinesEditor';
 
 interface Campsite {
   id?: number;
@@ -14,6 +15,7 @@ interface Campsite {
   image_url: string;
   capacity: number;
   is_available: boolean;
+  pricing_mode?: 'simple' | 'detailed';
 }
 
 interface Props {
@@ -31,6 +33,7 @@ const EMPTY: Campsite = {
   image_url: 'https://picsum.photos/seed/newcampsite/600/400',
   capacity: 4,
   is_available: true,
+  pricing_mode: 'simple',
 };
 
 export function CampsiteForm({ mode, initial }: Props) {
@@ -64,11 +67,16 @@ export function CampsiteForm({ mode, initial }: Props) {
       description: form.description,
       location: form.location,
       region: form.region,
-      price_per_night: Number(form.price_per_night),
       price_unit: form.price_unit,
       capacity: Number(form.capacity),
       is_available: form.is_available,
+      pricing_mode: form.pricing_mode ?? 'simple',
     };
+    // Only send price_per_night in simple mode. In detailed mode it is
+    // unused and sending 0 would overwrite the preserved simple-mode value.
+    if ((form.pricing_mode ?? 'simple') === 'simple') {
+      payload.price_per_night = Number(form.price_per_night);
+    }
     // Only send image_url if we're NOT uploading a new file
     if (!imageFile) {
       payload.image_url = form.image_url;
@@ -187,31 +195,105 @@ export function CampsiteForm({ mode, initial }: Props) {
         </Field>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Field label="Price (₱)" error={errors.price_per_night?.[0]}>
-          <input
-            type="number"
-            min={0}
-            step="0.01"
-            value={form.price_per_night}
-            onChange={(e) => update('price_per_night', e.target.value)}
-            placeholder="120"
-            required
-            className={inputClass}
-          />
-        </Field>
-
-        <Field label="Price unit" error={errors.price_unit?.[0]}>
-          <select
-            value={form.price_unit}
-            onChange={(e) => update('price_unit', e.target.value)}
-            className={inputClass}
+      {/* Pricing mode toggle */}
+      <Field label="Pricing mode">
+        <div className="space-y-2">
+          <label
+            className={`block border rounded-lg p-4 cursor-pointer transition ${
+              (form.pricing_mode ?? 'simple') === 'simple'
+                ? 'border-gearup-600 bg-gearup-50'
+                : 'border-gray-200 hover:border-gray-300'
+            }`}
           >
-            <option value="night">per night</option>
-            <option value="entrance">per entrance</option>
-          </select>
-        </Field>
-      </div>
+            <div className="flex items-start gap-3">
+              <input
+                type="radio"
+                name="pricing_mode"
+                checked={(form.pricing_mode ?? 'simple') === 'simple'}
+                onChange={() => update('pricing_mode', 'simple')}
+                className="mt-1 h-4 w-4 accent-gearup-600"
+              />
+              <div className="flex-1">
+                <p className="font-semibold text-gray-900 text-sm">
+                  Simple
+                </p>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  One price per night or per entrance. Best for campsites
+                  with a single rate.
+                </p>
+              </div>
+            </div>
+          </label>
+
+          <label
+            className={`block border rounded-lg p-4 cursor-pointer transition ${
+              form.pricing_mode === 'detailed'
+                ? 'border-gearup-600 bg-gearup-50'
+                : 'border-gray-200 hover:border-gray-300'
+            } ${
+              mode === 'create' ? 'opacity-50 cursor-not-allowed' : ''
+            }`}
+          >
+            <div className="flex items-start gap-3">
+              <input
+                type="radio"
+                name="pricing_mode"
+                checked={form.pricing_mode === 'detailed'}
+                onChange={() => update('pricing_mode', 'detailed')}
+                disabled={mode === 'create'}
+                className="mt-1 h-4 w-4 accent-gearup-600 disabled:opacity-50"
+              />
+              <div className="flex-1">
+                <p className="font-semibold text-gray-900 text-sm">
+                  Detailed
+                </p>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  Itemize pricing — visitor fees, camping fees, per-tent
+                  charges, etc. Add pricing lines below.
+                  {mode === 'create' &&
+                    ' Save the campsite first, then switch to Detailed to add lines.'}
+                </p>
+              </div>
+            </div>
+          </label>
+        </div>
+      </Field>
+
+      {/* Simple mode: price fields */}
+      {(form.pricing_mode ?? 'simple') === 'simple' && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Field label="Price (₱)" error={errors.price_per_night?.[0]}>
+            <input
+              type="number"
+              min={0}
+              step="0.01"
+              value={form.price_per_night}
+              onChange={(e) => update('price_per_night', e.target.value)}
+              placeholder="120"
+              required
+              className={inputClass}
+            />
+          </Field>
+
+          <Field label="Price unit" error={errors.price_unit?.[0]}>
+            <select
+              value={form.price_unit}
+              onChange={(e) => update('price_unit', e.target.value)}
+              className={inputClass}
+            >
+              <option value="night">per night</option>
+              <option value="entrance">per entrance</option>
+            </select>
+          </Field>
+        </div>
+      )}
+
+      {/* Detailed mode: pricing lines editor */}
+      {form.pricing_mode === 'detailed' && mode === 'edit' && initial?.id && (
+        <div className="border-t border-gray-100 pt-6">
+          <PricingLinesEditor campsiteId={initial.id} />
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Field label="Max guests" error={errors.capacity?.[0]}>

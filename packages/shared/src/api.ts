@@ -101,6 +101,18 @@ export interface PricingLine {
   created_at: string;
   updated_at: string;
 }
+
+export interface CreatePricingLinePayload {
+  label: string;
+  amount: number;
+  unit: 'per_person' | 'per_tent' | 'per_night' | 'flat';
+  applies_to?: 'any' | 'adult' | 'child' | 'senior' | 'pwd';
+  is_optional?: boolean;
+  description?: string;
+  sort_order?: number;
+}
+
+export type UpdatePricingLinePayload = Partial<CreatePricingLinePayload>;
 // ──────────────────────────────────────────────────────────
 // CAMPSITES
 // ──────────────────────────────────────────────────────────
@@ -367,6 +379,30 @@ export const ownerApi = (client: ApiClient) => ({
         headers: { 'Content-Type': 'multipart/form-data' },
       },
     ),
+
+  // Pricing lines (detailed mode)
+  listPricingLines: (campsiteId: number | string) =>
+    client.get<PricingLine[]>(
+      `/owner/campsites/${campsiteId}/pricing-lines`,
+    ),
+
+  createPricingLine: (
+    campsiteId: number | string,
+    payload: CreatePricingLinePayload,
+  ) =>
+    client.post<PricingLine>(
+      `/owner/campsites/${campsiteId}/pricing-lines`,
+      payload,
+    ),
+
+  updatePricingLine: (
+    lineId: number | string,
+    payload: UpdatePricingLinePayload,
+  ) =>
+    client.put<PricingLine>(`/owner/pricing-lines/${lineId}`, payload),
+
+  deletePricingLine: (lineId: number | string) =>
+    client.delete<{ message: string }>(`/owner/pricing-lines/${lineId}`),
 
   // Tour guides
   listTourGuides: (campsiteId: number | string) =>
