@@ -276,6 +276,12 @@ export default function BookingsScreen() {
                     {title}
                   </Text>
 
+                  {item.room_campsite && (
+                    <Text style={styles.roomLabel} numberOfLines={1}>
+                      Room: {item.room_campsite.name}
+                    </Text>
+                  )}
+
                   {isGearOnly && (
                     <Text style={styles.rentalOnlyLabel}>
                       {item.gear_item?.category} · Rental only
@@ -484,6 +490,11 @@ const styles = StyleSheet.create({
     backgroundColor: colors.gearup50,
   },
   rentalOnlyLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: colors.gearupGreen,
+  },
+  roomLabel: {
     fontSize: 11,
     fontWeight: '700',
     color: colors.gearupGreen,

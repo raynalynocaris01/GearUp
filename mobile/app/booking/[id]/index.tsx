@@ -212,6 +212,11 @@ export default function BookingDetailScreen() {
 
           {/* Title + location */}
           <Text style={styles.title}>{title}</Text>
+          {booking.room_campsite && (
+            <Text style={styles.roomLabel}>
+              Room: {booking.room_campsite.name}
+            </Text>
+          )}
           {booking.campsite?.location && (
             <Text style={styles.location}>
               {booking.campsite.location}
@@ -283,7 +288,23 @@ export default function BookingDetailScreen() {
           <View style={styles.summaryCard}>
             <Text style={styles.summaryTitle}>Price breakdown</Text>
 
-            {booking.campsite && (
+            {booking.room_campsite ? (
+              <View style={styles.summaryRow}>
+                <Text style={styles.summaryLabel}>
+                  {booking.room_campsite.name}: PHP{' '}
+                  {parseFloat(
+                    booking.room_campsite.price_per_night ?? '0',
+                  ).toFixed(2)}{' '}
+                  x {nights} {nights === 1 ? 'night' : 'nights'}
+                </Text>
+                <Text style={styles.summaryValue}>
+                  PHP{' '}
+                  {(parseFloat(
+                    booking.room_campsite.price_per_night ?? '0',
+                  ) * nights).toFixed(2)}
+                </Text>
+              </View>
+            ) : booking.campsite ? (
               <View style={styles.summaryRow}>
                 <Text style={styles.summaryLabel}>
                   Campsite: PHP{' '}
@@ -303,7 +324,7 @@ export default function BookingDetailScreen() {
                   ).toFixed(2)}
                 </Text>
               </View>
-            )}
+            ) : null}
 
             {booking.tour_guide && (
               <View style={styles.summaryRow}>
@@ -465,6 +486,12 @@ const styles = StyleSheet.create({
     letterSpacing: -0.4,
   },
   location: { fontSize: 13, color: colors.textMuted, marginTop: 2 },
+  roomLabel: {
+    fontSize: 13,
+    color: colors.gearupGreen,
+    fontWeight: '700',
+    marginTop: 4,
+  },
   rentalLabel: {
     fontSize: 12,
     fontWeight: '700',

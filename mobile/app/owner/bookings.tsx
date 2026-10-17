@@ -94,11 +94,16 @@ export default function OwnerBookingsScreen() {
             </View>
           }
           renderItem={({ item }) => (
-            <View style={styles.card}>
-              <Text style={styles.cardTitle}>
-                {item.campsite?.name ?? item.gear_item?.name ?? 'Booking'}
-              </Text>
-              <Text style={styles.cardMeta}>
+                          <View style={styles.card}>
+                <Text style={styles.cardTitle}>
+                  {item.campsite?.name ?? item.gear_item?.name ?? 'Booking'}
+                </Text>
+                {item.room_campsite && (
+                  <Text style={styles.roomLabel} numberOfLines={1}>
+                    Room: {item.room_campsite.name}
+                  </Text>
+                )}
+                <Text style={styles.cardMeta}>
                 {item.check_in ? formatDate(item.check_in) : ''}
                 {item.check_out
                   ? ` → ${formatDate(item.check_out)}`
@@ -140,6 +145,12 @@ const styles = StyleSheet.create({
   },
   cardTitle: { fontSize: 15, fontWeight: '800', color: '#111827' },
   cardMeta: { fontSize: 12, color: colors.textMuted },
+  roomLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.gearupGreen,
+    marginTop: 2,
+  },
   cardTotal: {
     fontSize: 15,
     fontWeight: '900',
