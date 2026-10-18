@@ -12,7 +12,7 @@ import {
   Platform,
   ScrollView,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, Link } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { auth, saveToken } from '../lib/api';
 import { colors } from '../theme';
@@ -173,8 +173,20 @@ export default function SignupScreen() {
             </View>
             <Text style={styles.termsText}>
               I agree to the{' '}
-              <Text style={styles.termsLink}>Terms of Services</Text> and{' '}
-              <Text style={styles.termsLink}>Privacy Policy</Text>.
+              <Text 
+                style={styles.termsLink} 
+                onPress={() => router.push('/terms')}
+              >
+                Terms of Services
+              </Text>{' '}
+              and{' '}
+              <Text 
+                style={styles.termsLink} 
+                onPress={() => router.push('/privacy')}
+              >
+                Privacy Policy
+              </Text>
+              .
             </Text>
           </TouchableOpacity>
 
