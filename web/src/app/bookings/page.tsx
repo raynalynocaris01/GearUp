@@ -21,11 +21,31 @@ interface BookingGearLine {
   };
 }
 
+interface BookingPricingLineLocal {
+  id: number;
+  pricing_line_id: number;
+  quantity: number;
+  amount: string;
+  subtotal: string;
+  pricing_line?: {
+    id: number;
+    label: string;
+    unit: 'per_person' | 'per_tent' | 'per_night' | 'flat';
+    applies_to: 'any' | 'adult' | 'child' | 'senior' | 'pwd';
+    is_optional: boolean;
+  };
+}
+
 interface Booking {
   id: number;
   check_in: string | null;
   check_out: string | null;
   guests: number;
+  adults?: number;
+  children?: number;
+  seniors?: number;
+  pwd?: number;
+  pricing_lines?: BookingPricingLineLocal[];
   total_price: string;
   status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
   notes: string | null;
@@ -274,7 +294,25 @@ export default async function BookingsPage() {
                       )}
                       {!isGearOnly && (
                         <span>
-                          👥 {b.guests} {b.guests === 1 ? 'guest' : 'guests'}
+                          👥{' '}
+                          {b.pricing_lines && b.pricing_lines.length > 0
+                            ? [
+                                b.adults && b.adults > 0
+                                  ? `${b.adults} ${b.adults === 1 ? 'adult' : 'adults'}`
+                                  : null,
+                                b.children && b.children > 0
+                                  ? `${b.children} ${b.children === 1 ? 'child' : 'children'}`
+                                  : null,
+                                b.seniors && b.seniors > 0
+                                  ? `${b.seniors} ${b.seniors === 1 ? 'senior' : 'seniors'}`
+                                  : null,
+                                b.pwd && b.pwd > 0
+                                  ? `${b.pwd} PWD`
+                                  : null,
+                              ]
+                                .filter(Boolean)
+                                .join(', ')
+                            : `${b.guests} ${b.guests === 1 ? 'guest' : 'guests'}`}
                         </span>
                       )}
                       {b.tour_guide && (

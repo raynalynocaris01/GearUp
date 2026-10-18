@@ -3,11 +3,31 @@ import { cookies } from 'next/headers';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL!;
 
+interface BookingPricingLineLocal {
+  id: number;
+  pricing_line_id: number;
+  quantity: number;
+  amount: string;
+  subtotal: string;
+  pricing_line?: {
+    id: number;
+    label: string;
+    unit: 'per_person' | 'per_tent' | 'per_night' | 'flat';
+    applies_to: 'any' | 'adult' | 'child' | 'senior' | 'pwd';
+    is_optional: boolean;
+  };
+}
+
 interface Booking {
   id: number;
   check_in: string;
   check_out: string;
   guests: number;
+  adults?: number;
+  children?: number;
+  seniors?: number;
+  pwd?: number;
+  pricing_lines?: BookingPricingLineLocal[];
   total_price: string;
   status: 'pending' | 'confirmed' | 'cancelled';
   created_at: string;
@@ -175,7 +195,24 @@ export default async function AdminBookingsPage({
                              {formatDate(b.check_in)} &rarr; {formatDate(b.check_out)}
                       </p>
                       <p className="text-xs text-gray-500">
-                        {b.guests} {b.guests === 1 ? 'guest' : 'guests'}
+                        {b.pricing_lines && b.pricing_lines.length > 0
+                          ? [
+                              b.adults && b.adults > 0
+                                ? `${b.adults} ${b.adults === 1 ? 'adult' : 'adults'}`
+                                : null,
+                              b.children && b.children > 0
+                                ? `${b.children} ${b.children === 1 ? 'child' : 'children'}`
+                                : null,
+                              b.seniors && b.seniors > 0
+                                ? `${b.seniors} ${b.seniors === 1 ? 'senior' : 'seniors'}`
+                                : null,
+                              b.pwd && b.pwd > 0
+                                ? `${b.pwd} PWD`
+                                : null,
+                            ]
+                              .filter(Boolean)
+                              .join(', ')
+                          : `${b.guests} ${b.guests === 1 ? 'guest' : 'guests'}`}
                       </p>
                     </td>
                     <td className="px-5 py-4">

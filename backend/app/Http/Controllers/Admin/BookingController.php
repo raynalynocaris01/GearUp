@@ -18,6 +18,7 @@ class BookingController extends Controller
             'campsite:id,name,location,image_url,owner_id',
             'campsite.owner:id,name,email',
             'roomCampsite:id,name,location,image_url,price_per_night,price_unit,capacity',
+            'bookingPricingLines.pricingLine',
             'user:id,name,email',
         ]);
 
