@@ -56,12 +56,27 @@ export default function NewBookingScreen() {
   const [checkIn, setCheckIn] = useState(toDateString(tomorrow));
   const [checkOut, setCheckOut] = useState(toDateString(dayAfter));
   const [guests, setGuests] = useState(1);
+  const [adults, setAdults] = useState(1);
+  const [children, setChildren] = useState(0);
+  const [seniors, setSeniors] = useState(0);
+  const [pwd, setPwd] = useState(0);
   const [notes, setNotes] = useState('');
   const [availableGuides, setAvailableGuides] = useState<
   { id: number; name: string; description: string | null; price_per_trip: string }[]
   >([]);
   const [selectedGuideId, setSelectedGuideId] = useState<number | null>(null);
   const [selectedRoomId, setSelectedRoomId] = useState<number | null>(null);
+
+  // Optional pricing-line selections: line_id -> quantity.
+  // Only relevant when the campsite is in detailed pricing mode.
+  const [selectedPricingLines, setSelectedPricingLines] = useState<
+    Record<number, number>
+  >({});
+
+  const isDetailed = campsite?.pricing_mode === 'detailed';
+  const effectiveGuests = isDetailed
+    ? adults + children + seniors + pwd
+    : guests;
 
   // Gear picker — multi-select on campsite bookings
   const [availableGear, setAvailableGear] = useState<GearItem[]>([]);
@@ -155,6 +170,7 @@ export default function NewBookingScreen() {
     guidePrice,
     gearPrice,
     gearLines,
+    pricingLineRows,
     totalPrice,
   } = useMemo(() => {
     if (!campsite) {
@@ -170,6 +186,14 @@ export default function NewBookingScreen() {
           qty: number;
           subtotal: number;
         }[],
+        pricingLineRows: [] as {
+          id: number;
+          label: string;
+          amount: number;
+          unit: 'per_person' | 'per_tent' | 'per_night' | 'flat';
+          qty: number;
+          subtotal: number;
+        }[],
         totalPrice: 0,
       };
     }
@@ -180,11 +204,52 @@ export default function NewBookingScreen() {
     const unit = parseFloat(campsite.price_per_night);
 
     let cPrice = 0;
+    const pricingLineRows: {
+      id: number;
+      label: string;
+      amount: number;
+      unit: 'per_person' | 'per_tent' | 'per_night' | 'flat';
+      qty: number;
+      subtotal: number;
+    }[] = [];
+
     if (selectedRoomId !== null) {
       // Room variant: priced per-room per-night.
       const room = campsite.children?.find((c) => c.id === selectedRoomId);
       if (room) {
         cPrice = parseFloat(room.price_per_night) * Math.max(n, 1);
+      }
+    } else if (isDetailed && campsite.pricing_lines) {
+      // Detailed mode: sum pricing lines (mandatory + selected optional)
+      const nightsForLines = Math.max(n, 1);
+      const bodiesByCategory = {
+        adult: adults,
+        child: children,
+        senior: seniors,
+        pwd: pwd,
+        any: adults + children + seniors + pwd,
+      };
+      for (const line of campsite.pricing_lines) {
+        if (line.is_optional && !selectedPricingLines[line.id]) continue;
+        const amount = parseFloat(line.amount);
+        let qty = 1;
+        if (line.unit === 'per_person') {
+          qty = bodiesByCategory[line.applies_to] ?? 0;
+        } else if (line.unit === 'per_tent') {
+          qty = selectedPricingLines[line.id] ?? 1;
+        } else if (line.unit === 'per_night') {
+          qty = nightsForLines;
+        }
+        const subtotal = amount * qty;
+        cPrice += subtotal;
+        pricingLineRows.push({
+          id: line.id,
+          label: line.label,
+          amount,
+          unit: line.unit,
+          qty,
+          subtotal,
+        });
       }
     } else {
       cPrice =
@@ -234,6 +299,7 @@ export default function NewBookingScreen() {
       guidePrice: gPrice,
       gearPrice: grPrice,
       gearLines: lines,
+      pricingLineRows,
       totalPrice: cPrice + gPrice + grPrice,
     };
   }, [
@@ -241,6 +307,12 @@ export default function NewBookingScreen() {
     checkIn,
     checkOut,
     guests,
+    adults,
+    children,
+    seniors,
+    pwd,
+    isDetailed,
+    selectedPricingLines,
     availableGuides,
     selectedGuideId,
     availableGear,
@@ -256,14 +328,14 @@ export default function NewBookingScreen() {
       Alert.alert('Invalid dates', 'Check-out must be after check-in.');
       return;
     }
-    if (selectedRoom && guests > selectedRoom.capacity) {
+    if (selectedRoom && effectiveGuests > selectedRoom.capacity) {
       Alert.alert(
         'Too many guests',
         `This room allows up to ${selectedRoom.capacity} guests.`,
       );
       return;
     }
-    if (!selectedRoom && guests > campsite.capacity) {
+    if (!selectedRoom && effectiveGuests > campsite.capacity) {
       Alert.alert(
         'Too many guests',
         `This campsite allows up to ${campsite.capacity} guests.`,
@@ -273,15 +345,37 @@ export default function NewBookingScreen() {
 
     setSubmitting(true);
     try {
-            const payload: Parameters<typeof bookings.create>[0] = {
+      const payload: Parameters<typeof bookings.create>[0] = {
         campsite_id: campsite.id,
         room_campsite_id: selectedRoomId ?? undefined,
         tour_guide_id: selectedGuideId ?? undefined,
         check_in: checkIn,
         check_out: checkOut,
-        guests,
+        guests: effectiveGuests,
         notes: notes.trim() || undefined,
       };
+
+      if (isDetailed) {
+        payload.adults = adults;
+        payload.children = children;
+        payload.seniors = seniors;
+        payload.pwd = pwd;
+
+        // Only send selected optional lines. Mandatory lines are
+        // auto-included server-side. quantity is required by backend
+        // validation for every row; only per_tent uses it as a multiplier.
+        const selectedRows = campsite.pricing_lines
+          ?.filter(
+            (line) => line.is_optional && selectedPricingLines[line.id],
+          )
+          .map((line) => ({
+            pricing_line_id: line.id,
+            quantity: selectedPricingLines[line.id] ?? 1,
+          }));
+        if (selectedRows && selectedRows.length > 0) {
+          payload.pricing_lines = selectedRows;
+        }
+      }
 
       if (selectedGear.length > 0) {
         payload.gear_items = selectedGear.map((row) => ({
@@ -543,33 +637,246 @@ export default function NewBookingScreen() {
 
         {/* Guests */}
         <Text style={styles.sectionTitle}>Guests</Text>
-        <View style={styles.fieldCard}>
-          <View style={styles.stepperRow}>
-            <View>
-              <Text style={styles.fieldLabel}>Number of guests</Text>
-              <Text style={styles.hint}>
-                {selectedRoom
-                  ? `Max ${selectedRoom.capacity} for this room`
-                  : `Max ${campsite.capacity} for this campsite`}
-              </Text>
-            </View>
-            <View style={styles.stepper}>
-              <TouchableOpacity
-                style={styles.stepperButton}
-                onPress={() => setGuests((g) => Math.max(1, g - 1))}
-              >
-                <Ionicons name="remove" size={20} color={colors.gearupGreen} />
-              </TouchableOpacity>
-              <Text style={styles.stepperValue}>{guests}</Text>
-              <TouchableOpacity
-                style={styles.stepperButton}
-                onPress={() => setGuests((g) => Math.min(maxGuests, g + 1))}
-              >
-                <Ionicons name="add" size={20} color={colors.gearupGreen} />
-              </TouchableOpacity>
+        {isDetailed && selectedRoomId === null ? (
+          <View style={styles.fieldCard}>
+            {[
+              {
+                key: 'adults' as const,
+                label: 'Adults',
+                value: adults,
+                setter: setAdults,
+                min: 1,
+              },
+              {
+                key: 'children' as const,
+                label: 'Children',
+                value: children,
+                setter: setChildren,
+                min: 0,
+              },
+              {
+                key: 'seniors' as const,
+                label: 'Seniors',
+                value: seniors,
+                setter: setSeniors,
+                min: 0,
+              },
+              {
+                key: 'pwd' as const,
+                label: 'PWD',
+                value: pwd,
+                setter: setPwd,
+                min: 0,
+              },
+            ].map((row) => {
+              const atMax = effectiveGuests >= maxGuests;
+              const canDec = row.value > row.min;
+              const canInc = !atMax;
+              return (
+                <View key={row.key} style={styles.stepperRow}>
+                  <Text style={styles.fieldLabel}>{row.label}</Text>
+                  <View style={styles.stepper}>
+                    <TouchableOpacity
+                      style={[
+                        styles.stepperButton,
+                        !canDec && { opacity: 0.4 },
+                      ]}
+                      onPress={() =>
+                        row.setter(Math.max(row.min, row.value - 1))
+                      }
+                      disabled={!canDec}
+                    >
+                      <Ionicons
+                        name="remove"
+                        size={20}
+                        color={colors.gearupGreen}
+                      />
+                    </TouchableOpacity>
+                    <Text style={styles.stepperValue}>{row.value}</Text>
+                    <TouchableOpacity
+                      style={[
+                        styles.stepperButton,
+                        !canInc && { opacity: 0.4 },
+                      ]}
+                      onPress={() => row.setter(row.value + 1)}
+                      disabled={!canInc}
+                    >
+                      <Ionicons
+                        name="add"
+                        size={20}
+                        color={colors.gearupGreen}
+                      />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              );
+            })}
+            <Text style={styles.hint}>
+              Total: {effectiveGuests} of {maxGuests} max
+            </Text>
+          </View>
+        ) : (
+          <View style={styles.fieldCard}>
+            <View style={styles.stepperRow}>
+              <View>
+                <Text style={styles.fieldLabel}>Number of guests</Text>
+                <Text style={styles.hint}>
+                  {selectedRoom
+                    ? `Max ${selectedRoom.capacity} for this room`
+                    : `Max ${campsite.capacity} for this campsite`}
+                </Text>
+              </View>
+              <View style={styles.stepper}>
+                <TouchableOpacity
+                  style={styles.stepperButton}
+                  onPress={() => setGuests((g) => Math.max(1, g - 1))}
+                >
+                  <Ionicons
+                    name="remove"
+                    size={20}
+                    color={colors.gearupGreen}
+                  />
+                </TouchableOpacity>
+                <Text style={styles.stepperValue}>{guests}</Text>
+                <TouchableOpacity
+                  style={styles.stepperButton}
+                  onPress={() => setGuests((g) => Math.min(maxGuests, g + 1))}
+                >
+                  <Ionicons
+                    name="add"
+                    size={20}
+                    color={colors.gearupGreen}
+                  />
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
-        </View>
+        )}
+
+        {/* Optional pricing add-ons (detailed mode) */}
+        {isDetailed &&
+          selectedRoomId === null &&
+          campsite.pricing_lines &&
+          campsite.pricing_lines.some((l) => l.is_optional) && (
+            <>
+              <Text style={styles.sectionTitle}>Optional add-ons</Text>
+              <View style={styles.fieldCard}>
+                {campsite.pricing_lines
+                  .filter((l) => l.is_optional)
+                  .sort((a, b) => a.sort_order - b.sort_order)
+                  .map((line) => {
+                    const selected = !!selectedPricingLines[line.id];
+                    const amount = parseFloat(line.amount);
+                    const qty = selectedPricingLines[line.id] ?? 1;
+                    const isPerTent = line.unit === 'per_tent';
+                    const unitLabel =
+                      line.unit === 'per_person'
+                        ? line.applies_to === 'any'
+                          ? '/ person'
+                          : `/ ${line.applies_to}`
+                        : line.unit === 'per_tent'
+                          ? '/ tent'
+                          : line.unit === 'per_night'
+                            ? '/ night'
+                            : '';
+
+                    const toggle = () => {
+                      setSelectedPricingLines((prev) => {
+                        const next = { ...prev };
+                        if (next[line.id]) {
+                          delete next[line.id];
+                        } else {
+                          next[line.id] = 1;
+                        }
+                        return next;
+                      });
+                    };
+
+                    const setQty = (newQty: number) => {
+                      setSelectedPricingLines((prev) => ({
+                        ...prev,
+                        [line.id]: Math.max(1, newQty),
+                      }));
+                    };
+
+                    return (
+                      <View
+                        key={line.id}
+                        style={[
+                          styles.addOnRow,
+                          selected && styles.addOnRowActive,
+                        ]}
+                      >
+                        <TouchableOpacity
+                          onPress={toggle}
+                          style={styles.addOnHeader}
+                          activeOpacity={0.7}
+                        >
+                          <Ionicons
+                            name={
+                              selected
+                                ? 'checkbox'
+                                : 'square-outline'
+                            }
+                            size={22}
+                            color={
+                              selected
+                                ? colors.gearupGreen
+                                : colors.textMuted
+                            }
+                          />
+                          <View style={styles.addOnTextWrap}>
+                            <Text style={styles.addOnLabel}>
+                              {line.label}
+                            </Text>
+                            {line.description ? (
+                              <Text style={styles.addOnDesc}>
+                                {line.description}
+                              </Text>
+                            ) : null}
+                            <Text style={styles.addOnPrice}>
+                              +PHP {amount.toFixed(0)} {unitLabel}
+                            </Text>
+                          </View>
+                        </TouchableOpacity>
+                        {selected && isPerTent && (
+                          <View style={styles.addOnQtyRow}>
+                            <Text style={styles.hint}>Quantity</Text>
+                            <View style={styles.stepper}>
+                              <TouchableOpacity
+                                style={[
+                                  styles.stepperButton,
+                                  qty <= 1 && { opacity: 0.4 },
+                                ]}
+                                onPress={() => setQty(qty - 1)}
+                                disabled={qty <= 1}
+                              >
+                                <Ionicons
+                                  name="remove"
+                                  size={16}
+                                  color={colors.gearupGreen}
+                                />
+                              </TouchableOpacity>
+                              <Text style={styles.stepperValue}>{qty}</Text>
+                              <TouchableOpacity
+                                style={styles.stepperButton}
+                                onPress={() => setQty(qty + 1)}
+                              >
+                                <Ionicons
+                                  name="add"
+                                  size={16}
+                                  color={colors.gearupGreen}
+                                />
+                              </TouchableOpacity>
+                            </View>
+                          </View>
+                        )}
+                      </View>
+                    );
+                  })}
+              </View>
+            </>
+          )}
 
         {/* Notes */}
         <Text style={styles.sectionTitle}>Notes (optional)</Text>
@@ -692,6 +999,29 @@ export default function NewBookingScreen() {
                 PHP {campsitePrice.toFixed(2)}
               </Text>
             </View>
+          ) : isDetailed ? (
+            pricingLineRows.length > 0 ? (
+              <>
+                {pricingLineRows.map((row) => (
+                  <View key={row.id} style={styles.summaryRow}>
+                    <Text style={styles.summaryLabel}>
+                      {row.label}
+                      {row.qty !== 1 ? ` x ${row.qty}` : ''}
+                      {` x PHP ${row.amount.toFixed(2)}`}
+                    </Text>
+                    <Text style={styles.summaryValue}>
+                      PHP {row.subtotal.toFixed(2)}
+                    </Text>
+                  </View>
+                ))}
+              </>
+            ) : (
+              <View style={styles.summaryRow}>
+                <Text style={[styles.summaryLabel, { color: '#b91c1c' }]}>
+                  Select at least one add-on to continue.
+                </Text>
+              </View>
+            )
           ) : (
             <View style={styles.summaryRow}>
               <Text style={styles.summaryLabel}>
@@ -872,6 +1202,52 @@ const styles = StyleSheet.create({
     color: '#111827',
     minWidth: 24,
     textAlign: 'center',
+  },
+
+  // Optional pricing-line add-ons
+  addOnRow: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 8,
+  },
+  addOnRowActive: {
+    borderColor: colors.gearupGreen,
+    backgroundColor: colors.gearup50,
+  },
+  addOnHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 10,
+  },
+  addOnTextWrap: {
+    flex: 1,
+  },
+  addOnLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#111827',
+  },
+  addOnDesc: {
+    fontSize: 11,
+    color: colors.textMuted,
+    marginTop: 2,
+  },
+  addOnPrice: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.gearupGreen,
+    marginTop: 4,
+  },
+  addOnQtyRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 10,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: '#dcfce7',
   },
 
   notesInput: {

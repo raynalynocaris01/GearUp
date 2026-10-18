@@ -16,8 +16,9 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { owner } from '../../lib/api';
-import type { Campsite } from '@gearup/shared';
+import type { Campsite, CreateCampsitePayload } from '@gearup/shared';
 import { colors } from '../../theme';
+import { PricingLinesEditor } from './PricingLinesEditor';
 
 interface Props {
   mode: 'create' | 'edit';
@@ -34,6 +35,7 @@ const EMPTY = {
   image_url: 'https://picsum.photos/seed/newcampsite/600/400',
   capacity: 4,
   is_available: true,
+  pricing_mode: 'simple' as 'simple' | 'detailed',
 };
 
 export function CampsiteForm({ mode, initial }: Props) {
@@ -50,6 +52,8 @@ export function CampsiteForm({ mode, initial }: Props) {
     image_url: initial?.image_url ?? EMPTY.image_url,
     capacity: initial?.capacity ?? EMPTY.capacity,
     is_available: initial?.is_available ?? EMPTY.is_available,
+    pricing_mode:
+      (initial?.pricing_mode as 'simple' | 'detailed') ?? EMPTY.pricing_mode,
   });
 
   const [submitting, setSubmitting] = useState(false);
@@ -99,23 +103,43 @@ export function CampsiteForm({ mode, initial }: Props) {
       const willUploadNewImage =
         !!imageUri && imageUri !== initial?.image_url;
 
-      const payload = {
+      const payload: {
+        name: string;
+        description: string;
+        location: string;
+        region: string;
+        price_per_night?: number;
+        price_unit: 'night' | 'entrance';
+        capacity: number;
+        is_available: boolean;
+        pricing_mode: 'simple' | 'detailed';
+        image_url?: string;
+      } = {
         name: form.name.trim(),
         description: form.description.trim(),
         location: form.location.trim(),
         region: form.region.trim(),
-        price_per_night: Number(form.price_per_night),
         price_unit: form.price_unit,
         capacity: Number(form.capacity),
         is_available: form.is_available,
+        pricing_mode: form.pricing_mode,
         ...(willUploadNewImage ? {} : { image_url: form.image_url }),
       };
+      // Only send price_per_night in simple mode. In detailed mode it is
+      // unused and sending 0 would overwrite the preserved simple-mode value.
+      if (form.pricing_mode === 'simple') {
+        payload.price_per_night = Number(form.price_per_night);
+      }
 
       let campsiteId = initial?.id;
 
       // 1. Save campsite
       if (mode === 'create') {
-        const res = await owner.createCampsite(payload);
+        // Create mode is always simple (the Detailed radio is disabled in
+        // this mode), so price_per_night is guaranteed to be set.
+        const res = await owner.createCampsite(
+          payload as CreateCampsitePayload,
+        );
         campsiteId = res.data.id;
       } else if (initial) {
         await owner.updateCampsite(initial.id, payload);
@@ -209,55 +233,118 @@ export function CampsiteForm({ mode, initial }: Props) {
           />
         </Field>
 
-        <Field label="Price (₱) *">
-          <TextInput
-            style={styles.input}
-            value={form.price_per_night}
-            onChangeText={(v) =>
-              setForm((f) => ({ ...f, price_per_night: v }))
-            }
-            placeholder="120"
-            placeholderTextColor={colors.textMuted}
-            keyboardType="numeric"
-          />
-        </Field>
-
-        <Field label="Price unit">
+        <Field label="Pricing mode">
           <View style={styles.segmentRow}>
             <TouchableOpacity
               style={[
                 styles.segment,
-                form.price_unit === 'night' && styles.segmentActive,
+                (form.pricing_mode ?? 'simple') === 'simple' &&
+                  styles.segmentActive,
               ]}
-              onPress={() => setForm((f) => ({ ...f, price_unit: 'night' }))}
+              onPress={() =>
+                setForm((f) => ({ ...f, pricing_mode: 'simple' }))
+              }
             >
               <Text
                 style={[
                   styles.segmentText,
-                  form.price_unit === 'night' && styles.segmentTextActive,
+                  (form.pricing_mode ?? 'simple') === 'simple' &&
+                    styles.segmentTextActive,
                 ]}
               >
-                Per night
+                Simple
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[
                 styles.segment,
-                form.price_unit === 'entrance' && styles.segmentActive,
+                form.pricing_mode === 'detailed' && styles.segmentActive,
+                mode === 'create' && styles.segmentDisabled,
               ]}
-              onPress={() => setForm((f) => ({ ...f, price_unit: 'entrance' }))}
+              onPress={() =>
+                setForm((f) => ({ ...f, pricing_mode: 'detailed' }))
+              }
+              disabled={mode === 'create'}
             >
               <Text
                 style={[
                   styles.segmentText,
-                  form.price_unit === 'entrance' && styles.segmentTextActive,
+                  form.pricing_mode === 'detailed' &&
+                    styles.segmentTextActive,
+                  mode === 'create' && styles.segmentTextDisabled,
                 ]}
               >
-                Per entrance
+                Detailed
               </Text>
             </TouchableOpacity>
           </View>
+          {mode === 'create' && (
+            <Text style={styles.hint}>
+              Save the campsite first, then switch to Detailed to add
+              pricing lines.
+            </Text>
+          )}
         </Field>
+
+        {form.pricing_mode === 'simple' && (
+          <>
+            <Field label="Price (₱) *">
+              <TextInput
+                style={styles.input}
+                value={form.price_per_night}
+                onChangeText={(v) =>
+                  setForm((f) => ({ ...f, price_per_night: v }))
+                }
+                placeholder="120"
+                placeholderTextColor={colors.textMuted}
+                keyboardType="numeric"
+              />
+            </Field>
+
+            <Field label="Price unit">
+              <View style={styles.segmentRow}>
+                <TouchableOpacity
+                  style={[
+                    styles.segment,
+                    form.price_unit === 'night' && styles.segmentActive,
+                  ]}
+                  onPress={() =>
+                    setForm((f) => ({ ...f, price_unit: 'night' }))
+                  }
+                >
+                  <Text
+                    style={[
+                      styles.segmentText,
+                      form.price_unit === 'night' &&
+                        styles.segmentTextActive,
+                    ]}
+                  >
+                    Per night
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    styles.segment,
+                    form.price_unit === 'entrance' && styles.segmentActive,
+                  ]}
+                  onPress={() =>
+                    setForm((f) => ({ ...f, price_unit: 'entrance' }))
+                  }
+                >
+                  <Text
+                    style={[
+                      styles.segmentText,
+                      form.price_unit === 'entrance' &&
+                        styles.segmentTextActive,
+                    ]}
+                  >
+                    Per entrance
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </Field>
+          </>
+        )}
 
         <Field label="Max guests *">
           <TextInput
@@ -354,6 +441,14 @@ export function CampsiteForm({ mode, initial }: Props) {
           </TouchableOpacity>
         </View>
 
+        {form.pricing_mode === 'detailed' &&
+          mode === 'edit' &&
+          initial?.id && (
+            <View style={styles.pricingEditorWrap}>
+              <PricingLinesEditor campsiteId={initial.id} />
+            </View>
+          )}
+
         <TouchableOpacity
           style={[styles.submit, submitting && styles.submitDisabled]}
           onPress={handleSubmit}
@@ -431,6 +526,14 @@ const styles = StyleSheet.create({
   },
   segmentText: { fontSize: 14, color: '#374151', fontWeight: '600' },
   segmentTextActive: { color: colors.gearupGreen },
+  segmentDisabled: { opacity: 0.5 },
+  segmentTextDisabled: { color: colors.textMuted },
+  hint: {
+    fontSize: 11,
+    color: colors.textMuted,
+    marginTop: 6,
+    lineHeight: 16,
+  },
 
   imagePreview: {
     width: '100%',
@@ -540,6 +643,13 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     marginTop: 8,
+  },
+  pricingEditorWrap: {
+    marginTop: 16,
+    marginBottom: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
   },
   submitDisabled: { opacity: 0.6 },
   submitText: { color: '#fff', fontSize: 16, fontWeight: '800' },

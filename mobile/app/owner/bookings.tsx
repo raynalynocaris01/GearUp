@@ -116,6 +116,26 @@ export default function OwnerBookingsScreen() {
                     }`
                   : ''}
               </Text>
+              {item.pricing_lines && item.pricing_lines.length > 0 && (
+                <Text style={styles.cardMeta}>
+                  {[
+                    item.adults && item.adults > 0
+                      ? `${item.adults} ${item.adults === 1 ? 'adult' : 'adults'}`
+                      : null,
+                    item.children && item.children > 0
+                      ? `${item.children} ${item.children === 1 ? 'child' : 'children'}`
+                      : null,
+                    item.seniors && item.seniors > 0
+                      ? `${item.seniors} ${item.seniors === 1 ? 'senior' : 'seniors'}`
+                      : null,
+                    item.pwd && item.pwd > 0
+                      ? `${item.pwd} PWD`
+                      : null,
+                  ]
+                    .filter(Boolean)
+                    .join(', ')}
+                </Text>
+              )}
               <Text style={styles.cardTotal}>₱{item.total_price}</Text>
               <BookingActions
                 bookingId={item.id}

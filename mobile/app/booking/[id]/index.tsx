@@ -262,8 +262,24 @@ export default function BookingDetailScreen() {
                   color={colors.textMuted}
                 />
                 <Text style={styles.infoText}>
-                  {booking.guests}{' '}
-                  {booking.guests === 1 ? 'guest' : 'guests'}
+                  {booking.pricing_lines && booking.pricing_lines.length > 0
+                    ? [
+                        booking.adults && booking.adults > 0
+                          ? `${booking.adults} ${booking.adults === 1 ? 'adult' : 'adults'}`
+                          : null,
+                        booking.children && booking.children > 0
+                          ? `${booking.children} ${booking.children === 1 ? 'child' : 'children'}`
+                          : null,
+                        booking.seniors && booking.seniors > 0
+                          ? `${booking.seniors} ${booking.seniors === 1 ? 'senior' : 'seniors'}`
+                          : null,
+                        booking.pwd && booking.pwd > 0
+                          ? `${booking.pwd} PWD`
+                          : null,
+                      ]
+                        .filter(Boolean)
+                        .join(', ')
+                    : `${booking.guests} ${booking.guests === 1 ? 'guest' : 'guests'}`}
                 </Text>
               </View>
             )}
@@ -304,6 +320,22 @@ export default function BookingDetailScreen() {
                   ) * nights).toFixed(2)}
                 </Text>
               </View>
+            ) : booking.campsite && booking.pricing_lines && booking.pricing_lines.length > 0 ? (
+              <>
+                {booking.pricing_lines.map((line) => (
+                  <View key={line.id} style={styles.summaryRow}>
+                    <Text style={styles.summaryLabel}>
+                      {line.pricing_line?.label ??
+                        `Line #${line.pricing_line_id}`}
+                      {line.quantity !== 1 ? ` x ${line.quantity}` : ''}
+                      {` x PHP ${parseFloat(line.amount).toFixed(2)}`}
+                    </Text>
+                    <Text style={styles.summaryValue}>
+                      PHP {parseFloat(line.subtotal).toFixed(2)}
+                    </Text>
+                  </View>
+                ))}
+              </>
             ) : booking.campsite ? (
               <View style={styles.summaryRow}>
                 <Text style={styles.summaryLabel}>

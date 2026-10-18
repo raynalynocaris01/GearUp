@@ -326,6 +326,8 @@ export interface CreateCampsitePayload {
   price_unit: 'night' | 'entrance';
   image_url?: string;
   capacity: number;
+  is_available?: boolean;
+  pricing_mode?: 'simple' | 'detailed';
 }
 
 export interface CreateTourGuidePayload {

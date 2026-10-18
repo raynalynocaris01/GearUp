@@ -26,6 +26,7 @@ class BookingController extends Controller
             'tourGuide',
             'gearItem',
             'user:id,name,email',
+            'bookingPricingLines',
             'gearItems' => function ($q) use ($userId) {
                 // Only eager-load the campsite owner's own gear lines
                 $q->where('gear_items.owner_id', $userId);
