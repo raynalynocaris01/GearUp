@@ -16,7 +16,6 @@ type NavbarProps = {
 
 const LINKS = [
   { href: '/', label: 'Home', exact: true },
-  { href: '/about', label: 'About Us' },
   { href: '/campsites', label: 'Campsites' },
   { href: '/tour-guides', label: 'Tour Guides' },
   { href: '/gear-rental', label: 'Gear Rental' },
@@ -52,7 +51,7 @@ export function Navbar({ user }: NavbarProps) {
 
         {/* Nav links */}
         <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-gray-700">
-          {LINKS.filter((link) => !user || link.href !== '/about').map(
+          {LINKS.map(
             (link) => (
               <Link
                 key={link.href}

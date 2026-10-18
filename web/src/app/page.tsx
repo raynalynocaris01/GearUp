@@ -4,6 +4,9 @@ import { cookies } from 'next/headers';
 import { Navbar } from '@/components/Navbar';
 import { HomeSearch } from '@/components/HomeSearch';
 import { RecommendedSection } from '@/components/RecommendedSection';
+import { AboutSection } from '@/components/AboutSection';
+import { ScrollToTop } from '@/components/ScrollToTop';
+
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL!;
 
@@ -234,8 +237,14 @@ export default async function HomePage() {
       {/* RECOMMENDED */}
       <RecommendedSection data={recommended} />
 
-            {/* FOOTER SPACER */}
+      {/* ABOUT US (Funnel Section) */}
+      <AboutSection />
+
+      {/* FOOTER SPACER */}
       <div className="h-10" />
+
+      {/* Floating Back to Top Button */}
+      <ScrollToTop />
     </div>
   );
 }
