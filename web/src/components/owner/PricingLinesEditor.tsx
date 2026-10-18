@@ -374,7 +374,7 @@ function PricingLineFields({
             value={form.label}
             onChange={(e) => onChange({ label: e.target.value })}
             placeholder="e.g. Visitor fee (adult)"
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gearup-600"
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-gearup-600"
           />
         </div>
         <div>
@@ -387,7 +387,7 @@ function PricingLineFields({
             step="0.01"
             value={form.amount}
             onChange={(e) => onChange({ amount: e.target.value })}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gearup-600"
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-gearup-600"
           />
         </div>
         <div>
@@ -397,10 +397,10 @@ function PricingLineFields({
           <select
             value={form.unit}
             onChange={(e) => onChange({ unit: e.target.value as Unit })}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gearup-600"
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-gearup-600"
           >
             {(Object.keys(UNIT_LABELS) as Unit[]).map((u) => (
-              <option key={u} value={u}>
+              <option key={u} value={u} className="text-gray-900 bg-white">
                 {UNIT_LABELS[u]}
               </option>
             ))}
@@ -416,10 +416,10 @@ function PricingLineFields({
               onChange({ applies_to: e.target.value as AppliesTo })
             }
             disabled={form.unit !== 'per_person'}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gearup-600 disabled:opacity-50 disabled:bg-gray-50"
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-gearup-600 disabled:opacity-50 disabled:bg-gray-50"
           >
             {(Object.keys(APPLIES_LABELS) as AppliesTo[]).map((a) => (
-              <option key={a} value={a}>
+              <option key={a} value={a} className="text-gray-900 bg-white">
                 {APPLIES_LABELS[a]}
               </option>
             ))}
@@ -436,7 +436,7 @@ function PricingLineFields({
           value={form.description}
           onChange={(e) => onChange({ description: e.target.value })}
           placeholder="Shown to customers under the label"
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gearup-600"
+          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-gearup-600"
         />
       </div>
 

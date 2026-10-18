@@ -40,3 +40,12 @@ body {
     display: none;
   }
 }
+/* Ensure form controls have readable text by default.
+   Prevents OS/browser color-scheme (dark mode) from rendering
+   inputs with light text on light backgrounds. */
+input,
+textarea,
+select {
+  color: #111827;
+  background-color: #fff;
+}

@@ -8,6 +8,18 @@ import { appImageSrc } from '@/components/AppImage';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL!;
 
+interface PricingLineLocal {
+  id: number;
+  campsite_id: number;
+  label: string;
+  amount: string;
+  unit: 'per_person' | 'per_tent' | 'per_night' | 'flat';
+  applies_to: 'any' | 'adult' | 'child' | 'senior' | 'pwd';
+  is_optional: boolean;
+  description: string | null;
+  sort_order: number;
+}
+
 interface Campsite {
   id: number;
   owner_id: number | null;
@@ -21,6 +33,8 @@ interface Campsite {
   rating: string;
   reviews_count: number;
   capacity: number;
+  pricing_mode?: 'simple' | 'detailed';
+  pricing_lines?: PricingLineLocal[];
   children?: {
     id: number;
     name: string;

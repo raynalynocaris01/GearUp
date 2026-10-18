@@ -11,6 +11,24 @@ class Booking extends Model
 {
     use HasFactory;
 
+    /**
+     * Hide the raw booking_pricing_lines relation key in JSON and
+     * expose it under the canonical `pricing_lines` key so web + mobile
+     * consumers can read one consistent shape.
+     */
+    protected $hidden = ['booking_pricing_lines'];
+    protected $appends = ['pricing_lines'];
+
+    public function getPricingLinesAttribute()
+    {
+        // Return null when the relation isn't loaded so list views that
+        // don't need pricing lines avoid an N+1 query. Frontend treats
+        // null and [] the same way (falsy for `pricing_lines.length > 0`).
+        return $this->relationLoaded('bookingPricingLines')
+            ? $this->bookingPricingLines
+            : null;
+    }
+
     protected $fillable = [
         'user_id',
         'campsite_id',
