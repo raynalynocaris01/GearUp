@@ -240,13 +240,13 @@ export default function SignupPage() {
               />
               <span>
                 I agree to the{' '}
-                <Link href="#" className="text-gearup-700 underline">
-                  Terms of Services
-                </Link>{' '}
-                and{' '}
-                <Link href="#" className="text-gearup-700 underline">
-                  Privacy Policy
-                </Link>
+                <Link href="/terms" className="text-gearup-700 underline">
+                    Terms of Services
+                  </Link>{' '}
+                  and{' '}
+                  <Link href="/privacy" className="text-gearup-700 underline">
+                    Privacy Policy
+                  </Link>
                 .
               </span>
             </label>
