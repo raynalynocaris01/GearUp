@@ -58,6 +58,7 @@ class BookingController extends Controller
             'tourGuide',
             'gearItem',
             'user:id,name,email',
+            'bookingPricingLines.pricingLine',
             'gearItems' => function ($q) use ($userId) {
                 $q->where('gear_items.owner_id', $userId);
             },

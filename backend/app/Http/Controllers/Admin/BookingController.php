@@ -48,6 +48,7 @@ class BookingController extends Controller
             'tourGuide',
             'gearItem',
             'gearItems',
+            'bookingPricingLines.pricingLine',
             'user:id,name,email',
             'review',
         ]);

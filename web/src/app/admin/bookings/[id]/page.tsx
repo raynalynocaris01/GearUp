@@ -22,6 +22,22 @@ interface BookingGearLine {
   };
 }
 
+interface BookingPricingLineLocal {
+  id: number;
+  booking_id: number;
+  pricing_line_id: number;
+  quantity: number;
+  amount: string;
+  subtotal: string;
+  pricing_line?: {
+    id: number;
+    label: string;
+    unit: 'per_person' | 'per_tent' | 'per_night' | 'flat';
+    applies_to: 'any' | 'adult' | 'child' | 'senior' | 'pwd';
+    is_optional: boolean;
+  };
+}
+
 interface Booking {
   id: number;
   check_in: string | null;
@@ -29,6 +45,11 @@ interface Booking {
   gear_start_date: string | null;
   gear_end_date: string | null;
   guests: number;
+  adults?: number;
+  children?: number;
+  seniors?: number;
+  pwd?: number;
+  pricing_lines?: BookingPricingLineLocal[];
   total_price: string;
   status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
   notes: string | null;
@@ -44,6 +65,8 @@ interface Booking {
     image_url: string;
     owner_id: number | null;
     owner?: { id: number; name: string; email: string } | null;
+    price_per_night?: string;
+    price_unit?: string;
   } | null;
   room_campsite?: {
     id: number;
@@ -149,11 +172,8 @@ export default async function AdminBookingDetailPage({
   );
   const isRoom = !!booking.room_campsite;
 
-  const campsiteUnit = parseFloat(
-    (booking.campsite as any)?.price_per_night ?? '0',
-  );
-  const isEntrance =
-    (booking.campsite as any)?.price_unit === 'entrance';
+  const campsiteUnit = parseFloat(booking.campsite?.price_per_night ?? '0');
+  const isEntrance = booking.campsite?.price_unit === 'entrance';
 
   const campsiteSubtotal = isRoom
     ? roomUnit * nights
@@ -314,8 +334,24 @@ export default async function AdminBookingDetailPage({
             )}
             {!isGearOnly && (
               <p className="text-sm text-gray-700 mt-1">
-                {booking.guests}{' '}
-                {booking.guests === 1 ? 'guest' : 'guests'}
+                {booking.pricing_lines && booking.pricing_lines.length > 0
+                  ? [
+                      booking.adults && booking.adults > 0
+                        ? `${booking.adults} ${booking.adults === 1 ? 'adult' : 'adults'}`
+                        : null,
+                      booking.children && booking.children > 0
+                        ? `${booking.children} ${booking.children === 1 ? 'child' : 'children'}`
+                        : null,
+                      booking.seniors && booking.seniors > 0
+                        ? `${booking.seniors} ${booking.seniors === 1 ? 'senior' : 'seniors'}`
+                        : null,
+                      booking.pwd && booking.pwd > 0
+                        ? `${booking.pwd} PWD`
+                        : null,
+                    ]
+                      .filter(Boolean)
+                      .join(', ')
+                  : `${booking.guests} ${booking.guests === 1 ? 'guest' : 'guests'}`}
               </p>
             )}
             {booking.tour_guide && (
@@ -389,17 +425,45 @@ export default async function AdminBookingDetailPage({
                 </div>
               )}
 
-              {!isRoom && booking.campsite && campsiteSubtotal > 0 && (
-                <div className="flex justify-between items-center gap-2">
-                  <span className="text-xs">
-                    Campsite x {nights}{' '}
-                    {nights === 1 ? 'night' : 'nights'} x {booking.guests}
-                  </span>
-                  <span className="font-semibold whitespace-nowrap">
-                    PHP {campsiteSubtotal.toFixed(2)}
-                  </span>
-                </div>
-              )}
+              {!isRoom &&
+                booking.campsite &&
+                booking.pricing_lines &&
+                booking.pricing_lines.length > 0 && (
+                  <div className="space-y-2">
+                    {booking.pricing_lines.map((line) => (
+                      <div
+                        key={line.id}
+                        className="flex justify-between items-center gap-2"
+                      >
+                        <span className="text-xs">
+                          {line.pricing_line?.label ??
+                            `Line #${line.pricing_line_id}`}
+                          {line.quantity !== 1 ? ` x ${line.quantity}` : ''}
+                          {` x PHP ${parseFloat(line.amount).toFixed(2)}`}
+                        </span>
+                        <span className="font-semibold whitespace-nowrap">
+                          PHP {parseFloat(line.subtotal).toFixed(2)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+              {!isRoom &&
+                booking.campsite &&
+                campsiteSubtotal > 0 &&
+                (!booking.pricing_lines ||
+                  booking.pricing_lines.length === 0) && (
+                  <div className="flex justify-between items-center gap-2">
+                    <span className="text-xs">
+                      Campsite x {nights}{' '}
+                      {nights === 1 ? 'night' : 'nights'} x {booking.guests}
+                    </span>
+                    <span className="font-semibold whitespace-nowrap">
+                      PHP {campsiteSubtotal.toFixed(2)}
+                    </span>
+                  </div>
+                )}
 
               {booking.tour_guide && guideSubtotal > 0 && (
                 <div className="flex justify-between items-center gap-2">
