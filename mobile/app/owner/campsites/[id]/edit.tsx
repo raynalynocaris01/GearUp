@@ -21,9 +21,16 @@ export default function EditCampsiteScreen() {
   useEffect(() => {
     (async () => {
       try {
+        console.log('[DEBUG] edit screen id param:', id, typeof id);
         const res = await owner.getCampsite(id);
+        console.log('[DEBUG] campsite loaded:', {
+          id: res.data.id,
+          name: res.data.name,
+          parent_campsite_id: res.data.parent_campsite_id,
+        });
         setCampsite(res.data);
-      } catch {
+      } catch (err) {
+        console.log('[DEBUG] fetch error:', err);
         Alert.alert('Error', 'Could not load this campsite.');
         router.back();
       } finally {
@@ -34,7 +41,9 @@ export default function EditCampsiteScreen() {
 
   return (
     <View style={styles.container}>
-      <OwnerHeader title="Edit Campsite" />
+      <OwnerHeader
+        title={campsite?.parent_campsite_id ? 'Edit Room' : 'Edit Campsite'}
+      />
       {loading || !campsite ? (
         <View style={styles.center}>
           <ActivityIndicator size="large" color={colors.gearupGreen} />

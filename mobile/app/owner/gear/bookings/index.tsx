@@ -11,11 +11,11 @@ import {
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { myGear } from '../../../lib/api';
+import { myGear } from '../../../../lib/api';
 import type { Booking } from '@gearup/shared';
-import { OwnerHeader } from '../../../components/owner/OwnerHeader';
-import { MyGearBookingActions } from '../../../components/my/MyGearBookingActions';
-import { colors } from '../../../theme';
+import { OwnerHeader } from '../../../../components/owner/OwnerHeader';
+import { MyGearBookingActions } from '../../../../components/my/MyGearBookingActions';
+import { colors } from '../../../../theme';
 
 type Filter = 'all' | 'pending' | 'confirmed' | 'completed' | 'cancelled';
 

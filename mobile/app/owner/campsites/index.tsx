@@ -10,50 +10,23 @@ import {
   RefreshControl,
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { owner } from '../../lib/api';
-import type { EventItem } from '@gearup/shared';
-import { OwnerHeader } from '../../components/owner/OwnerHeader';
-import { DeleteEventButton } from '../../components/owner/DeleteEventButton';
-import { colors } from '../../theme';
+import { owner } from '../../../lib/api';
+import { OwnerHeader } from '../../../components/owner/OwnerHeader';
+import type { Campsite } from '@gearup/shared';
+import { colors } from '../../../theme';
+import { imgSrc } from '../../../lib/images';
 
-function formatRange(startsAt: string, endsAt: string): string {
-  const start = new Date(startsAt);
-  const end = new Date(endsAt);
-  const sameDay =
-    start.getFullYear() === end.getFullYear() &&
-    start.getMonth() === end.getMonth() &&
-    start.getDate() === end.getDate();
-
-  if (sameDay) {
-    return start.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    });
-  }
-
-  return `${start.toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-   })} - ${end.toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  })}`;
-}
-
-export default function OwnerEventsScreen() {
+export default function OwnerCampsitesScreen() {
   const router = useRouter();
-  const [events, setEvents] = useState<EventItem[]>([]);
+  const [campsites, setCampsites] = useState<Campsite[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
   const load = async (showSpinner = false) => {
     if (showSpinner) setLoading(true);
     try {
-      const res = await owner.listEvents();
-      setEvents(res.data);
+      const res = await owner.listCampsites();
+      setCampsites(res.data);
     } catch {
       // silent
     } finally {
@@ -64,7 +37,7 @@ export default function OwnerEventsScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      load(events.length === 0);
+      load(campsites.length === 0);
     }, []),
   );
 
@@ -76,10 +49,10 @@ export default function OwnerEventsScreen() {
   return (
     <View style={styles.container}>
       <OwnerHeader
-        title="My Events"
+        title="My Campsites"
         rightAction={{
           icon: 'add',
-          onPress: () => router.push('/owner/events/new'),
+          onPress: () => router.push('/owner/campsites/new'),
         }}
       />
 
@@ -89,7 +62,7 @@ export default function OwnerEventsScreen() {
         </View>
       ) : (
         <FlatList
-          data={events}
+          data={campsites}
           keyExtractor={(item) => String(item.id)}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
@@ -102,16 +75,16 @@ export default function OwnerEventsScreen() {
           }
           ListEmptyComponent={
             <View style={styles.emptyBlock}>
-              <Text style={styles.emptyTitle}>No events yet</Text>
+              <Text style={styles.emptyTitle}>No campsites yet</Text>
               <Text style={styles.emptySubtitle}>
-                Create your first event to bring campers together.
+                Post your first campsite to start receiving bookings.
               </Text>
               <TouchableOpacity
                 style={styles.primaryButton}
-                onPress={() => router.push('/owner/events/new')}
+                onPress={() => router.push('/owner/campsites/new')}
               >
                 <Text style={styles.primaryButtonText}>
-                  Create your first event
+                  Post a campsite
                 </Text>
               </TouchableOpacity>
             </View>
@@ -119,50 +92,23 @@ export default function OwnerEventsScreen() {
           renderItem={({ item }) => (
             <View style={styles.card}>
               <View style={styles.cardTop}>
-                {item.image_url ? (
-                  <Image
-                    source={{ uri: item.image_url }}
-                    style={styles.cardImage}
-                  />
-                ) : (
-                  <View
-                    style={[styles.cardImage, styles.cardImageFallback]}
-                  />
-                )}
+                <Image
+                  source={{ uri: imgSrc(item.image_url) }}
+                  style={styles.cardImage}
+                />
                 <View style={styles.cardBody}>
-                  <View style={styles.nameRow}>
-                    <Text
-                      style={styles.cardName}
-                      numberOfLines={1}
-                    >
-                      {item.name}
-                    </Text>
-                    {!item.is_published && (
-                      <View style={styles.draftPill}>
-                        <Text style={styles.draftText}>DRAFT</Text>
-                      </View>
-                    )}
-                  </View>
-                  <Text
-                    style={styles.cardLocation}
-                    numberOfLines={1}
-                  >
+                  <Text style={styles.cardName} numberOfLines={1}>
+                    {item.name}
+                  </Text>
+                  <Text style={styles.cardLocation} numberOfLines={1}>
                     {item.location}
                   </Text>
-                  <Text style={styles.cardDates}>
-                    {formatRange(item.starts_at, item.ends_at)}
-                  </Text>
-                  {item.description && (
-                    <Text
-                      style={styles.cardDescription}
-                      numberOfLines={2}
-                    >
-                      {item.description}
-                    </Text>
-                  )}
-                  <Text style={styles.cardPrice}>
-              PHP {item.price_per_person} / person - Capacity{' '}
+                  <Text style={styles.cardMeta}>
+                    {item.rating} ({item.reviews_count}) - Up to{' '}
                     {item.capacity}
+                  </Text>
+                  <Text style={styles.cardPrice}>
+                    PHP {item.price_per_night} / {item.price_unit}
                   </Text>
                 </View>
               </View>
@@ -170,7 +116,7 @@ export default function OwnerEventsScreen() {
               <View style={styles.cardActions}>
                 <TouchableOpacity
                   style={styles.cardActionSecondary}
-                  onPress={() => router.push(`/events/${item.id}`)}
+                  onPress={() => router.push(`/campsites/${item.id}`)}
                 >
                   <Text style={styles.cardActionSecondaryText}>
                     View public
@@ -179,25 +125,21 @@ export default function OwnerEventsScreen() {
                 <TouchableOpacity
                   style={styles.cardActionPrimary}
                   onPress={() =>
-                    router.push(`/owner/events/${item.id}/edit`)
+                    router.push(`/owner/campsites/${item.id}/edit`)
                   }
                 >
                   <Text style={styles.cardActionPrimaryText}>Edit</Text>
                 </TouchableOpacity>
-                 <TouchableOpacity
-                  style={[styles.cardActionSecondary, { flex: 0.9 }]}
+                <TouchableOpacity
+                  style={styles.cardActionSecondary}
                   onPress={() =>
-                    router.push(`/owner/events/${item.id}/attendees` as any)
+                    router.push(`/owner/campsites/${item.id}/tour-guides`)
                   }
-                  activeOpacity={0.85}
                 >
-                  <Text style={styles.cardActionSecondaryText}>Attendees</Text>
+                  <Text style={styles.cardActionSecondaryText}>
+                    Guides ({item.tour_guides?.length ?? 0})
+                  </Text>
                 </TouchableOpacity>
-                <DeleteEventButton
-                  eventId={item.id}
-                  name={item.name}
-                  onSuccess={() => load()}
-                />
               </View>
             </View>
           )}
@@ -226,46 +168,12 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     backgroundColor: '#e5e7eb',
   },
-  cardImageFallback: { backgroundColor: colors.gearup50 },
   cardBody: { flex: 1, gap: 3 },
-  nameRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  cardName: {
-    fontSize: 15,
-    fontWeight: '800',
-    color: '#111827',
-    flexShrink: 1,
-  },
-  draftPill: {
-    backgroundColor: '#f3f4f6',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  draftText: {
-    fontSize: 8,
-    fontWeight: '800',
-    color: '#6b7280',
-    letterSpacing: 0.3,
-  },
+  cardName: { fontSize: 15, fontWeight: '800', color: '#111827' },
   cardLocation: { fontSize: 11, color: colors.textMuted },
-  cardDates: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#374151',
-    marginTop: 2,
-  },
-  cardDescription: {
-    fontSize: 11,
-    color: colors.textMuted,
-    lineHeight: 15,
-    marginTop: 2,
-  },
+  cardMeta: { fontSize: 11, color: '#111827' },
   cardPrice: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '800',
     color: colors.gearupGreen,
     marginTop: 4,
@@ -316,5 +224,4 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   primaryButtonText: { color: '#fff', fontSize: 14, fontWeight: '700' },
- 
 });

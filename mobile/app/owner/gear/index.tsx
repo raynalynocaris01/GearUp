@@ -11,11 +11,11 @@ import {
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { owner } from '../../lib/api';
-import { OwnerHeader } from '../../components/owner/OwnerHeader';
+import { owner } from '../../../lib/api';
+import { OwnerHeader } from '../../../components/owner/OwnerHeader';
 import type { GearItem } from '@gearup/shared';
-import { DeleteGearButton } from '../../components/owner/DeleteGearButton';
-import { colors } from '../../theme';
+import { DeleteGearButton } from '../../../components/owner/DeleteGearButton';
+import { colors } from '../../../theme';
 
 export default function OwnerGearScreen() {
   const router = useRouter();
