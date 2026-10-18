@@ -41,10 +41,21 @@ class CampsiteController extends Controller
             'image_url' => ['required', 'string', 'max:2048'],
             'capacity' => ['required', 'integer', 'min:1'],
             'is_available' => ['sometimes', 'boolean'],
+            'pricing_mode' => ['sometimes', 'in:simple,detailed'],
+            'parent_campsite_id' => ['nullable', 'integer', 'exists:campsites,id'],
         ]);
+
+        // If creating a room variant, verify the parent belongs to this owner
+        if (!empty($data['parent_campsite_id'])) {
+            $parent = Campsite::findOrFail($data['parent_campsite_id']);
+            if ($parent->owner_id !== $request->user()->id) {
+                abort(403, 'You do not own the parent campsite.');
+            }
+        }
 
         $campsite = Campsite::create([
             'owner_id' => $request->user()->id,
+            'parent_campsite_id' => $data['parent_campsite_id'] ?? null,
             'name' => $data['name'],
             'description' => $data['description'],
             'location' => $data['location'],
@@ -53,6 +64,7 @@ class CampsiteController extends Controller
             'price_unit' => $data['price_unit'],
             'image_url' => $data['image_url'],
             'capacity' => $data['capacity'],
+            'pricing_mode' => $data['pricing_mode'] ?? 'simple',
             'rating' => 0,
             'reviews_count' => 0,
             'is_featured' => false,
@@ -65,7 +77,9 @@ class CampsiteController extends Controller
     {
         $this->authorizeOwner($request, $campsite);
 
-        return response()->json($campsite->load('tourGuides'));
+        return response()->json(
+            $campsite->load(['tourGuides', 'children', 'pricingLines'])
+        );
     }
 
     public function update(Request $request, Campsite $campsite)
@@ -92,6 +106,19 @@ class CampsiteController extends Controller
     public function destroy(Request $request, Campsite $campsite)
     {
         $this->authorizeOwner($request, $campsite);
+
+        // Safety: block deletion if this campsite or any of its rooms
+        // have active/any bookings. FK constraints would also block this,
+        // but a clear message is better than a DB error.
+        $bookingCount = \App\Models\Booking::where('campsite_id', $campsite->id)
+            ->orWhereIn('campsite_id', $campsite->children()->pluck('id'))
+            ->count();
+
+        if ($bookingCount > 0) {
+            return response()->json([
+                'message' => 'This campsite has existing bookings and cannot be deleted.',
+            ], 422);
+        }
 
         $campsite->delete();
 

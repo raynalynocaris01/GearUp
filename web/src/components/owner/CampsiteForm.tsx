@@ -6,6 +6,7 @@ import { PricingLinesEditor } from './PricingLinesEditor';
 
 interface Campsite {
   id?: number;
+  parent_campsite_id?: number | null;
   name: string;
   description: string;
   location: string;
@@ -16,6 +17,15 @@ interface Campsite {
   capacity: number;
   is_available: boolean;
   pricing_mode?: 'simple' | 'detailed';
+  children?: Array<{
+    id: number;
+    name: string;
+    description: string | null;
+    price_per_night: string;
+    price_unit: string;
+    capacity: number;
+    is_available: boolean;
+  }>;
 }
 
 interface Props {
@@ -194,6 +204,16 @@ export function CampsiteForm({ mode, initial }: Props) {
           />
         </Field>
       </div>
+
+      {/* Room Variants (only in edit mode, and only if this is a parent campsite) */}
+      {mode === 'edit' && initial?.id && !initial?.parent_campsite_id && (
+        <RoomVariantsSection
+          campsiteId={initial.id}
+          rooms={initial.children ?? []}
+          parentImageUrl={initial.image_url}
+          parentRegion={initial.region}
+        />
+      )}
 
       {/* Pricing mode toggle */}
       <Field label="Pricing mode">
@@ -439,5 +459,246 @@ function Field({
       {children}
       {error && <p className="text-red-600 text-xs mt-1">{error}</p>}
     </div>
+  );
+}
+
+interface RoomVariantsProps {
+  campsiteId: number;
+  rooms: NonNullable<Campsite['children']>;
+  parentImageUrl: string;
+  parentRegion: string;
+}
+
+function RoomVariantsSection({
+  campsiteId,
+  rooms,
+  parentImageUrl,
+  parentRegion,
+}: RoomVariantsProps) {
+  const router = useRouter();
+  const [adding, setAdding] = useState(false);
+  const [form, setForm] = useState({
+    name: '',
+    description: '',
+    price_per_night: '',
+    capacity: 2,
+  });
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleAdd = async () => {
+    setError('');
+    if (!form.name.trim() || !form.price_per_night) {
+      setError('Name and price are required.');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const res = await fetch('/api/owner/campsites', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          parent_campsite_id: campsiteId,
+          name: form.name.trim(),
+          description: form.description.trim() || 'Room variant',
+          location: 'Same as parent',
+          region: parentRegion,
+          price_per_night: Number(form.price_per_night),
+          price_unit: 'night',
+          image_url: parentImageUrl,
+          capacity: Number(form.capacity),
+          is_available: true,
+          pricing_mode: 'simple',
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data?.message ?? 'Could not create room.');
+      }
+
+      setForm({ name: '', description: '', price_per_night: '', capacity: 2 });
+      setAdding(false);
+      router.refresh();
+    } catch (err: any) {
+      setError(err?.message ?? 'Network error.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleDelete = async (room: RoomVariantsProps['rooms'][number]) => {
+    if (!confirm(`Delete "${room.name}"? This cannot be undone.`)) return;
+
+    try {
+      const res = await fetch(`/api/owner/campsites/${room.id}`, {
+        method: 'DELETE',
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        alert(data?.message ?? 'Could not delete room.');
+        return;
+      }
+      router.refresh();
+    } catch {
+      alert('Network error.');
+    }
+  };
+
+  return (
+    <Field label="Room Variants">
+      <p className="text-xs text-gray-500 mb-3">
+        Add bookable rooms or sub-listings under this campsite (e.g.,
+        Native Room, Aircon Room). Each room has its own price and capacity.
+      </p>
+
+      {rooms.length === 0 ? (
+        <div className="bg-gray-50 border border-dashed border-gray-200 rounded-lg p-4 text-sm text-gray-500 text-center mb-3">
+          No rooms yet.
+        </div>
+      ) : (
+        <div className="bg-white border border-gray-100 rounded-lg divide-y divide-gray-100 mb-3">
+          {rooms.map((room) => (
+            <div
+              key={room.id}
+              className="flex items-start justify-between gap-3 p-3"
+            >
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-sm text-gray-900">
+                  {room.name}
+                </p>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  PHP {parseFloat(room.price_per_night).toFixed(2)} /{' '}
+                  {room.price_unit} - Up to {room.capacity}{' '}
+                  {room.capacity === 1 ? 'guest' : 'guests'}
+                </p>
+              </div>
+              <div className="flex gap-2 shrink-0">
+                <a
+                  href={`/owner/campsites/${room.id}/edit`}
+                  className="text-xs font-semibold text-gearup-600 hover:underline px-2 py-1"
+                >
+                  Edit
+                </a>
+                <button
+                  type="button"
+                  onClick={() => handleDelete(room)}
+                  className="text-xs font-semibold text-red-600 hover:underline px-2 py-1"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {adding ? (
+        <div className="border border-gray-200 rounded-lg p-3 space-y-3 bg-gray-50">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                Room name *
+              </label>
+              <input
+                type="text"
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                placeholder="e.g., Native Room"
+                required
+                className={inputClass}
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                Price per night (PHP) *
+              </label>
+              <input
+                type="number"
+                min={0}
+                step="0.01"
+                value={form.price_per_night}
+                onChange={(e) =>
+                  setForm({ ...form, price_per_night: e.target.value })
+                }
+                placeholder="800"
+                required
+                className={inputClass}
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                Max guests *
+              </label>
+              <input
+                type="number"
+                min={1}
+                value={form.capacity}
+                onChange={(e) =>
+                  setForm({ ...form, capacity: Number(e.target.value) || 1 })
+                }
+                placeholder="2"
+                required
+                className={inputClass}
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                Description (optional)
+              </label>
+              <input
+                type="text"
+                value={form.description}
+                onChange={(e) =>
+                  setForm({ ...form, description: e.target.value })
+                }
+                placeholder="e.g., Simple native room"
+                className={inputClass}
+              />
+            </div>
+          </div>
+
+          {error && <p className="text-red-600 text-xs">{error}</p>}
+
+          <div className="flex gap-2 justify-end">
+            <button
+              type="button"
+              onClick={() => {
+                setAdding(false);
+                setError('');
+                setForm({
+                  name: '',
+                  description: '',
+                  price_per_night: '',
+                  capacity: 2,
+                });
+              }}
+              className="text-xs font-semibold text-gray-600 hover:bg-gray-100 px-3 py-2 rounded-md"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleAdd}
+              disabled={submitting}
+              className="text-xs font-semibold text-white bg-gearup-600 hover:bg-gearup-700 disabled:opacity-60 px-4 py-2 rounded-md"
+            >
+              {submitting ? 'Saving...' : 'Save Room'}
+            </button>
+          </div>
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setAdding(true)}
+          className="w-full border-2 border-dashed border-gray-300 hover:border-gearup-600 hover:bg-gearup-50 rounded-lg py-2 text-sm font-semibold text-gray-600 hover:text-gearup-700 transition"
+        >
+          + Add Room
+        </button>
+      )}
+    </Field>
   );
 }

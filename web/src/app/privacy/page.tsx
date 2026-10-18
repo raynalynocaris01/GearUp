@@ -145,9 +145,9 @@ export default async function PrivacyPage() {
           <p>If you have questions, concerns, or requests regarding this Privacy Policy, you may contact:</p>
           <p>
             GearUp Support<br />
-            Email: [unya rani]<br />
+            Email: gearupsystem@gmail.com<br />
             Phone: <br />
-            Address: 
+            Address: Metro Dumaguete College, E.J. Blanco Drive Extension, Daro, Dumaguete City, Negros Oriental 6200, Philippines.
           </p>
 
           <h2 className="text-2xl font-bold text-gray-900 mt-8 mb-3">15. Consent</h2>

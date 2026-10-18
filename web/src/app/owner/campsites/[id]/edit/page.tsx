@@ -7,6 +7,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL!;
 
 interface Campsite {
   id: number;
+  parent_campsite_id?: number | null;
   name: string;
   description: string;
   location: string;
@@ -17,6 +18,15 @@ interface Campsite {
   capacity: number;
   is_available: boolean;
   pricing_mode?: 'simple' | 'detailed';
+  children?: Array<{
+    id: number;
+    name: string;
+    description: string | null;
+    price_per_night: string;
+    price_unit: string;
+    capacity: number;
+    is_available: boolean;
+  }>;
 }
 
 async function getCampsite(id: string, token: string): Promise<Campsite | null> {
