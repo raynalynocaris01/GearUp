@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
@@ -29,6 +30,10 @@ class AuthController extends Controller
             'is_approved'  => $role === 'customer', // owners and guides need approval
             'is_suspended' => false,
         ]);
+
+        if ($role === 'owner' || $role === 'guide') {
+            $this->notifyAdminsOfPendingUser($user, $role);
+        }
 
         $token = $user->createToken($data['device_name'])->plainTextToken;
 
@@ -99,7 +104,35 @@ class AuthController extends Controller
             'is_approved'  => false,
         ]);
 
+        $this->notifyAdminsOfPendingUser($user->fresh(), 'guide');
+
         return response()->json($user->fresh());
+    }
+
+    /**
+     * Notify all admin users that a new owner or guide needs approval.
+     */
+    private function notifyAdminsOfPendingUser(User $user, string $role): void
+    {
+        $roleLabel = $role === 'owner' ? 'owner' : 'guide';
+        $title =
+            $roleLabel === 'owner'
+                ? 'New owner pending approval'
+                : 'New guide pending approval';
+
+        $body = "{$user->name} ({$user->email}) just signed up as a {$roleLabel}.";
+
+        $admins = User::where('role', 'admin')->get();
+
+        foreach ($admins as $admin) {
+            NotificationService::notify(
+                $admin->id,
+                "admin.pending_{$roleLabel}",
+                $title,
+                $body,
+                '/admin/users?status=pending',
+            );
+        }
     }
 
     public function logout(Request $request)
