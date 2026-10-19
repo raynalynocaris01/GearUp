@@ -363,6 +363,7 @@ class BookingController extends Controller
                 'pwd' => $pwd,
                 'total_price' => $total,
                 'status' => 'pending',
+                'guide_status' => $tourGuide ? 'pending' : null,
                 'notes' => $data['notes'] ?? null,
             ]);
 
@@ -558,6 +559,22 @@ class BookingController extends Controller
                     'New tour guide booking',
                     "Booking #{$booking->id} for {$booking->tourGuide->name}",
                     '/owner/bookings',
+                );
+            }
+        }
+
+        // Independent guide notification — the guide's own user account
+        if ($booking->tour_guide_id) {
+            $booking->loadMissing('tourGuide');
+            $guideUserId = $booking->tourGuide?->user_id;
+            if ($guideUserId) {
+                NotificationService::notifyOthers(
+                    $actorId,
+                    $guideUserId,
+                    'guide.booking.created',
+                    'New tour guide booking',
+                    "Booking #{$booking->id} — you've been hired",
+                    '/guide/bookings',
                 );
             }
         }

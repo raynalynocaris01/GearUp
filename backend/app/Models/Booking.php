@@ -47,6 +47,7 @@ class Booking extends Model
         'pwd',
         'total_price',
         'status',
+        'guide_status',
         'confirmed_at',
         'completed_at',
         'cancelled_at',
