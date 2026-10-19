@@ -6,6 +6,7 @@ import { Navbar } from '@/components/Navbar';
 import { ReviewsSection } from '@/components/ReviewsSection';
 import { ReviewForm } from '@/components/ReviewForm';
 import { appImageSrc } from '@/components/AppImage';
+import { CampsiteGallery } from '@/components/CampsiteGallery';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL!;
 
@@ -157,62 +158,12 @@ export default async function CampsiteDetailPage({
         </div>
 
         {/* Photo gallery */}
-        {photos.length > 0 ? (
-          <div className="relative mb-8">
-            <div className="grid grid-cols-4 grid-rows-2 gap-2 h-[420px] rounded-2xl overflow-hidden">
-              <div className="relative col-span-2 row-span-2">
-                <Image
-                  src={appImageSrc(photos[0].image_url)}
-                  alt={campsite.name}
-                  fill
-                  priority
-                  sizes="(max-width: 1024px) 100vw, 600px"
-                  className="object-cover"
-                  unoptimized
-                />
-              </div>
-              {photos.slice(1, 5).map((p, i) => (
-                <div key={p.id} className="relative">
-                  <Image
-                    src={appImageSrc(p.image_url)}
-                    alt={`${campsite.name} photo ${i + 2}`}
-                    fill
-                    sizes="25vw"
-                    className="object-cover"
-                    unoptimized
-                  />
-                  {i === 3 && photos.length > 5 && (
-                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white text-sm font-semibold">
-                      +{photos.length - 5} more
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-            {campsite.is_featured && (
-              <div className="absolute top-4 left-4 bg-gearup-600 text-white text-xs font-bold px-3 py-1.5 rounded-full">
-                ★ Featured
-              </div>
-            )}
-          </div>
-        ) : (
-          <div className="relative h-[420px] rounded-2xl overflow-hidden mb-8">
-            <Image
-              src={appImageSrc(campsite.image_url)}
-              alt={campsite.name}
-              fill
-              priority
-              sizes="(max-width: 1024px) 100vw, 1200px"
-              className="object-cover"
-              unoptimized
-            />
-            {campsite.is_featured && (
-              <div className="absolute top-4 left-4 bg-gearup-600 text-white text-xs font-bold px-3 py-1.5 rounded-full">
-                ★ Featured
-              </div>
-            )}
-          </div>
-        )}
+        <CampsiteGallery
+          photos={photos}
+          fallbackImage={campsite.image_url}
+          campsiteName={campsite.name}
+          isFeatured={campsite.is_featured}
+        />
 
         {/* Content grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
