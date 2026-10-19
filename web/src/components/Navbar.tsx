@@ -81,30 +81,8 @@ export function Navbar({ user }: NavbarProps) {
             </Link>
           )}
 
-          {user && user.role === 'owner' && user.is_approved && (
-            <Link
-              href="/owner"
-              className={`transition ${
-                isActive('/owner')
-                  ? 'text-gearup-600 font-semibold'
-                  : 'hover:text-gearup-600'
-              }`}
-            >
-              Manage
-            </Link>
-          )}
-          {user && user.role === 'admin' && (
-            <Link
-              href="/admin"
-              className={`transition ${
-                isActive('/admin')
-                  ? 'text-gearup-600 font-semibold'
-                  : 'hover:text-gearup-600'
-              }`}
-            >
-              Admin
-            </Link>
-          )}
+ 
+ 
         </nav>
 
         {/* Auth area */}

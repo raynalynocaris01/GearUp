@@ -110,6 +110,28 @@ export function UserMenu({ user }: UserMenuProps) {
             </Link>
           )}
 
+          {user.role === 'owner' && (
+            <Link
+              href="/owner"
+              onClick={() => setOpen(false)}
+              className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition border-t border-gray-100"
+            >
+              <span className="text-base">🏕️</span>
+              <span>Owner Dashboard</span>
+            </Link>
+          )}
+
+          {user.role === 'admin' && (
+            <Link
+              href="/admin"
+              onClick={() => setOpen(false)}
+              className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition border-t border-gray-100"
+            >
+              <span className="text-base">🛡️</span>
+              <span>Admin Panel</span>
+            </Link>
+          )}
+
           <button
             onClick={handleLogout}
             disabled={loading}
