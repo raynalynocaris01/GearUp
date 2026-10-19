@@ -11,7 +11,7 @@ import {
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { guide as guideApi } from '../../lib/api';
+import { guide as guideApi, notifications as notifApi } from '../../lib/api';
 import { colors } from '../../theme';
 import { GuideBookingsList } from '../../components/guide/GuideBookingsList';
 
@@ -39,6 +39,7 @@ interface Booking {
 export default function GuideDashboardScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const [unreadCount, setUnreadCount] = useState(0);
   const [profile, setProfile] = useState<GuideProfile | null>(null);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
@@ -65,6 +66,17 @@ export default function GuideDashboardScreen() {
     useCallback(() => {
       load(profile === null);
     }, [profile]),
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      (async () => {
+        try {
+          const res = await notifApi.unreadCount();
+          setUnreadCount(res.data.count);
+        } catch {}
+      })();
+    }, []),
   );
 
   const handleRefresh = () => {
@@ -99,18 +111,41 @@ export default function GuideDashboardScreen() {
         />
       }
     >
-      {/* Header with profile button */}
+      {/* Header with notification + profile buttons */}
       <View style={styles.headerRow}>
         <View style={{ flex: 1 }}>
           <Text style={styles.title}>Tour Guide Dashboard</Text>
           <Text style={styles.subtitle}>Manage your bookings and profile.</Text>
         </View>
-        <TouchableOpacity
-          onPress={() => router.push('/guide/profile' as any)}
-          style={styles.profileBtn}
-        >
-          <Ionicons name="person-outline" size={20} color={colors.gearupGreen} />
-        </TouchableOpacity>
+        <View style={styles.headerIcons}>
+          <TouchableOpacity
+            onPress={() => router.push('/guide/notifications' as any)}
+            style={styles.profileBtn}
+          >
+            <Ionicons
+              name="notifications-outline"
+              size={20}
+              color={colors.gearupGreen}
+            />
+            {unreadCount > 0 && (
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </Text>
+              </View>
+            )}
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => router.push('/guide/profile' as any)}
+            style={styles.profileBtn}
+          >
+            <Ionicons
+              name="person-outline"
+              size={20}
+              color={colors.gearupGreen}
+            />
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Stats */}
@@ -190,6 +225,11 @@ const styles = StyleSheet.create({
   },
   title: { fontSize: 24, fontWeight: '900', color: '#111827' },
   subtitle: { fontSize: 13, color: '#6b7280', marginTop: 4 },
+  headerIcons: {
+    flexDirection: 'row',
+    gap: 8,
+    alignItems: 'center',
+  },
   profileBtn: {
     width: 44,
     height: 44,
@@ -197,6 +237,24 @@ const styles = StyleSheet.create({
     backgroundColor: colors.gearup50,
     alignItems: 'center',
     justifyContent: 'center',
+    position: 'relative',
+  },
+  badge: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    minWidth: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: '#dc2626',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 3,
+  },
+  badgeText: {
+    color: '#fff',
+    fontSize: 9,
+    fontWeight: '800',
   },
   statsRow: { flexDirection: 'row', gap: 8, marginBottom: 16 },
   statCard: {
