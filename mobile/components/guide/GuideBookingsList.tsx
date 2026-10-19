@@ -5,6 +5,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   Alert,
+  ScrollView,
 } from 'react-native';
 import { guide as guideApi } from '../../lib/api';
 import { colors } from '../../theme';
@@ -86,7 +87,11 @@ export function GuideBookingsList({
   return (
     <View>
       {/* Filter tabs */}
-      <View style={styles.tabsRow}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.tabsRow}
+      >
         {tabs.map((t) => {
           const active = filter === t.key;
           return (
@@ -104,7 +109,7 @@ export function GuideBookingsList({
             </TouchableOpacity>
           );
         })}
-      </View>
+      </ScrollView>
 
       {filtered.length === 0 ? (
         <View style={styles.emptyBox}>
@@ -200,7 +205,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 6,
     marginBottom: 12,
-    flexWrap: 'wrap',
+    paddingRight: 8,
   },
   tab: {
     paddingHorizontal: 12,

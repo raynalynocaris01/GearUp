@@ -12,6 +12,7 @@ import {
   Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { guide as guideApi } from '../../lib/api';
 import { colors } from '../../theme';
@@ -29,6 +30,7 @@ interface GuideProfile {
 
 export default function GuideProfileScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const [profile, setProfile] = useState<GuideProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -103,7 +105,10 @@ export default function GuideProfileScreen() {
     >
       <ScrollView
         style={styles.container}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingTop: insets.top + 16 },
+        ]}
       >
         {/* Header */}
         <View style={styles.headerRow}>

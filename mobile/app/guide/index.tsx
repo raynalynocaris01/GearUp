@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { guide as guideApi } from '../../lib/api';
 import { colors } from '../../theme';
@@ -37,6 +38,7 @@ interface Booking {
 
 export default function GuideDashboardScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const [profile, setProfile] = useState<GuideProfile | null>(null);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
@@ -85,7 +87,10 @@ export default function GuideDashboardScreen() {
   return (
     <ScrollView
       style={styles.container}
-      contentContainerStyle={styles.scrollContent}
+      contentContainerStyle={[
+        styles.scrollContent,
+        { paddingTop: insets.top + 16 },
+      ]}
       refreshControl={
         <RefreshControl
           refreshing={refreshing}
