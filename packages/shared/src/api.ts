@@ -824,3 +824,65 @@ export const tourGuideApi = (client: ApiClient) => ({
   get: (id: number | string) =>
     client.get<TourGuide>(`/tour-guides/${id}`),
 });
+
+// ──────────────────────────────────────────────────────────
+// GUIDE (authenticated guide dashboard)
+// ──────────────────────────────────────────────────────────
+
+export interface GuideBookingPayload {
+  id: number;
+  check_in: string | null;
+  check_out: string | null;
+  guests: number;
+  total_price: string;
+  status: string;
+  guide_status: 'pending' | 'accepted' | 'declined' | null;
+  campsite?: {
+    id: number;
+    name: string;
+    location: string;
+  } | null;
+  user?: {
+    id: number;
+    name: string;
+    email: string;
+  } | null;
+}
+
+export interface GuideProfilePayload {
+  id: number;
+  name: string;
+  price_per_trip: string;
+  location: string | null;
+  description: string | null;
+  contact_number: string;
+  is_independent: boolean;
+  campsite_id: number | null;
+}
+
+export interface UpdateGuideProfilePayload {
+  name?: string;
+  contact_number?: string;
+  email?: string | null;
+  description?: string | null;
+  price_per_trip?: number;
+  location?: string | null;
+  campsite_id?: number | null;
+}
+
+export const guideApi = (client: ApiClient) => ({
+  profile: {
+    get: () => client.get<GuideProfilePayload>('/guide/profile'),
+    update: (payload: UpdateGuideProfilePayload) =>
+      client.put<GuideProfilePayload>('/guide/profile', payload),
+  },
+  bookings: {
+    list: () => client.get<GuideBookingPayload[]>('/guide/bookings'),
+    show: (id: number | string) =>
+      client.get<GuideBookingPayload>(`/guide/bookings/${id}`),
+    accept: (id: number | string) =>
+      client.put<GuideBookingPayload>(`/guide/bookings/${id}/accept`),
+    decline: (id: number | string) =>
+      client.put<GuideBookingPayload>(`/guide/bookings/${id}/decline`),
+  },
+});

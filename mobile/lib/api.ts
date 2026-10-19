@@ -7,6 +7,7 @@ import {
   bookingApi,
   ownerApi,
   adminApi,
+  guideApi,
   reviewApi,
   tourGuideApi,
   gearApi,
@@ -37,6 +38,7 @@ export const campsites = campsiteApi(api);
 export const bookings = bookingApi(api);
 export const owner = ownerApi(api);
 export const admin = adminApi(api);
+export const guide = guideApi(api);
 export const reviews = reviewApi(api);
 export const tourGuides = tourGuideApi(api);
 export const gear = gearApi(api);
