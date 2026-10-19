@@ -37,6 +37,7 @@ class CampsiteController extends Controller
             'children',
             'parent:id,name',
             'pricingLines',
+            'photos',
             'reviews' => function ($q) {
                 $q->with('user:id,name')->orderByDesc('created_at');
             },

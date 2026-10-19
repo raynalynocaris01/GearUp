@@ -87,4 +87,10 @@ class Campsite extends Model
 {
     return $this->hasMany(Review::class);
 }
+
+    public function photos()
+    {
+        return $this->hasMany(CampsitePhoto::class)
+            ->orderBy('sort_order');
+    }
 }

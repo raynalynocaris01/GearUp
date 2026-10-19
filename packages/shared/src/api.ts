@@ -119,6 +119,15 @@ export type UpdatePricingLinePayload = Partial<CreatePricingLinePayload>;
 // CAMPSITES
 // ──────────────────────────────────────────────────────────
 
+export interface CampsitePhoto {
+  id: number;
+  campsite_id: number;
+  image_url: string;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Campsite {
   id: number;
   owner_id?: number | null;
@@ -144,6 +153,7 @@ export interface Campsite {
   children?: Campsite[];
   pricing_lines?: PricingLine[];
   reviews?: Review[];
+  photos?: CampsitePhoto[];
   revenue?: number;
   bookings_count?: number;
 }

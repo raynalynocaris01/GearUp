@@ -22,22 +22,24 @@ class RealCampsitesSeeder extends Seeder
         $pedro = User::where('email', 'pedro@gearup.test')->firstOrFail();
 
         // ─── Grandi Vista Campsites (owner: Juan) ─────────────────────────
-        $grandiVista = Campsite::create([
-            'owner_id' => $juan->id,
-            'name' => 'Grandi Vista Campsites',
-            'description' => 'A peaceful mountain campsite with panoramic views of the Valencia valley. Entrance fee is PHP 100 per head. Gear available for rent on-site: tents (PHP 350-450), tables (PHP 150-200), and hammocks (PHP 150). Perfect for sunrise watchers and stargazers. Includes basic amenities, fire pits, and clean restrooms.',
-            'location' => 'Apolong, Valencia',
-            'region' => 'Negros Oriental',
-            'price_per_night' => 100.00,
-            'price_unit' => 'entrance',
-            'image_url' => 'https://picsum.photos/seed/grandivista/600/400',
-            'rating' => 0,
-            'reviews_count' => 0,
-            'capacity' => 20,
-            'is_featured' => true,
-            'latitude' => 9.28344105,
-            'longitude' => 123.21428879,
-        ]);
+                $grandiVista = Campsite::updateOrCreate(
+            ['name' => 'Grandi Vista Campsites'],
+            [
+                'owner_id' => $juan->id,
+                'description' => 'A peaceful mountain campsite with panoramic views of the Valencia valley. Entrance fee is PHP 100per head. Gear available for rent on-site: tents (PHP 350-450), tables (PHP 150-200), and hammocks (PHP 150). Perfect for sunrise watchers and stargazers. Includes basic amenities, fire pits, and clean restrooms.',
+                'location' => 'Apolong, Valencia',
+                'region' => 'Negros Oriental',
+                'price_per_night' => 100.00,
+                'price_unit' => 'entrance',
+                'image_url' => '/storage/campsites/grandi-vista-1.jpg',
+                'rating' => 0,
+                'reviews_count' => 0,
+                'capacity' => 20,
+                'is_featured' => true,
+                'latitude' => 9.28344105,
+                'longitude' => 123.21428879,
+            ]
+        );
 
         GearItem::create([
             'owner_id' => $juan->id,
@@ -73,41 +75,45 @@ class RealCampsitesSeeder extends Seeder
         ]);
 
         // ─── Kanto Kuridas Camping Ground Café (owner: Maria) ─────────────
-        Campsite::create([
-            'owner_id' => $maria->id,
-            'name' => 'Kanto Kuridas Camping Ground',
-            'description' => 'Cozy camping ground with an on-site cafe. Entrance fee is PHP 35 for a daytime visit or PHP 55 for overnight. The whole campsite can be rented for PHP 1,000 per night - perfect for barkada trips and family gatherings. Come for the food, stay for the cooler mountain air.',
-            'location' => 'Valencia, Negros Oriental',
-            'region' => 'Negros Oriental',
-            'price_per_night' => 55.00,
-            'price_unit' => 'entrance',
-            'image_url' => 'https://picsum.photos/seed/kanto/600/400',
-            'rating' => 0,
-            'reviews_count' => 0,
-            'capacity' => 15,
-            'is_featured' => true,
-            'latitude' => 9.28123456,
-            'longitude' => 123.24567890,
-        ]);
+                Campsite::updateOrCreate(
+            ['name' => 'Kanto Kuridas Camping Ground'],
+            [
+                'owner_id' => $maria->id,
+                'description' => 'Cozy camping ground with an on-site cafe. Entrance fee is PHP 35 for a daytime visit or PHP 55 for overnight. The whole campsite can be rented for PHP 1,000 per night - perfect for barkada trips and family gatherings. Come forthe food, stay for the cooler mountain air.',
+                'location' => 'Valencia, Negros Oriental',
+                'region' => 'Negros Oriental',
+                'price_per_night' => 55.00,
+                'price_unit' => 'entrance',
+                'image_url' => '/storage/campsites/kanto-kuridas-1.jpg',
+                'rating' => 0,
+                'reviews_count' => 0,
+                'capacity' => 15,
+                'is_featured' => true,
+                'latitude' => 9.28123456,
+                'longitude' => 123.24567890,
+            ]
+        );
 
         // ─── Sheintan Ridge View Camping Ground & Restaurant (owner: Pedro) ─
-                $sheintan = Campsite::create([
-            'owner_id' => $pedro->id,
-            'name' => 'Sheintan Ridge View Camping Ground & Restaurant',
-            'description' => 'It is a beautiful day up here! Enjoy a cooler environment at Sheintan Ridge View and avoid the heat of the city. We have cold drinks, food, billiards, private karaoke, amazing view rooms, and a lot of camping spaces for you to enjoy. Open 6am-10pm daily for hot meals, hot and cold drinks, and snacks. Visitor fee: PHP 30 per person (children under 13, PWD, and seniors PHP 20). Camping fee: PHP 75 per person. Tent rental: PHP 500 per 2-person tent including beddings, per night. Or bring your own tent for PHP 60 per tent per night. Native rooms available at PHP 800. Rooms with private toilet from PHP 1,000 pernight; aircon rooms PHP 2,300-2,500 per night. To book, call 09396277913 or 09953384029.',
-            'location' => 'Valencia, Negros Oriental',
-            'region' => 'Negros Oriental',
-            'price_per_night' => 75.00,
-            'price_unit' => 'entrance',
-            'pricing_mode' => 'detailed',
-            'image_url' => 'https://picsum.photos/seed/sheintan/600/400',
-            'rating' => 0,
-            'reviews_count' => 0,
-            'capacity' => 30,
-            'is_featured' => true,
-            'latitude' => 9.30123456,
-            'longitude' => 123.25678901,
-        ]);
+                            $sheintan = Campsite::updateOrCreate(
+            ['name' => 'Sheintan Ridge View Camping Ground & Restaurant'],
+            [
+                'owner_id' => $pedro->id,
+                'description' => 'It is a beautiful day up here! Enjoy a cooler environment at Sheintan Ridge View and avoid the heat of the city. We have cold drinks, food, billiards, private karaoke, amazing view rooms, and a lot of camping spaces for you toenjoy. Open 6am-10pm daily for hot meals, hot and cold drinks, and snacks. Visitor fee: PHP 30 per person (children under 13, PWD, and seniors PHP 20). Camping fee: PHP 75 per person. Tent rental: PHP 500 per 2-person tent including beddings, per night. Or bring your own tent for PHP 60 per tent per night. Native rooms available at PHP 800. Rooms with private toilet from PHP 1,000 pernight; aircon rooms PHP 2,300-2,500 per night. To book, call 09396277913 or 09953384029.',
+                'location' => 'Valencia, Negros Oriental',
+                'region' => 'Negros Oriental',
+                'price_per_night' => 75.00,
+                'price_unit' => 'entrance',
+                'pricing_mode' => 'detailed',
+                'image_url' => '/storage/campsites/shientan-1.jpg',
+                'rating' => 0,
+                'reviews_count' => 0,
+                'capacity' => 30,
+                'is_featured' => true,
+                'latitude' => 9.30123456,
+                'longitude' => 123.25678901,
+            ]
+        );
 
         // ─── Sheintan Ridge View — detailed pricing lines ───────────────
         // 8 real pricing lines sourced from the campsite's public listing.

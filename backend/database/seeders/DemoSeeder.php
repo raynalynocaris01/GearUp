@@ -116,6 +116,12 @@ class DemoSeeder extends Seeder
         // Sheintan Native Room (Pedro), plus their gear items.
         $this->call(RealCampsitesSeeder::class);
 
+        // ─── Additional campsites with photos ───────────
+        // Dons Magna, Ecoco Rocks, Forest Camp, Highland Goat Farm,
+        // Inagbatan, Moon Garden, Pigeon Resort, Puncak Tanawan,
+        // Vista Panoramica + photos for all 12 campsites.
+        $this->call(NewCampsitesSeeder::class);
+
         // Look up the newly-created campsites so tour guides
         // can be attached to them.
         $grandiVista = Campsite::where('name', 'Grandi Vista Campsites')
