@@ -1,4 +1,5 @@
 import { cookies } from 'next/headers';
+import { GuideBookingsClient } from '@/components/guide/GuideBookingsClient';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL!;
 
@@ -53,14 +54,7 @@ async function getProfile(token: string): Promise<GuideProfile | null> {
   return await res.json();
 }
 
-function formatDate(iso: string | null): string {
-  if (!iso) return '—';
-  return new Date(iso).toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  });
-}
+ 
 
 export default async function GuideDashboardPage() {
   const token = await getToken();
@@ -137,60 +131,9 @@ export default async function GuideDashboardPage() {
       )}
 
       {/* Bookings */}
-      <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-100">
-          <h2 className="text-lg font-bold text-gray-900">Your Bookings</h2>
-        </div>
-
-        {bookings.length === 0 ? (
-          <div className="p-12 text-center">
-            <p className="text-gray-500 text-sm">
-              No bookings yet. Customers will be able to hire you when they book a
-              campsite and select your guide service.
-            </p>
-          </div>
-        ) : (
-          <div className="divide-y divide-gray-100">
-            {bookings.map((booking) => (
-              <div key={booking.id} className="p-5">
-                <div className="flex items-start justify-between gap-4 mb-2">
-                  <div>
-                    <p className="font-semibold text-gray-900">
-                      {booking.campsite?.name ?? 'Tour guide booking'}
-                    </p>
-                    <p className="text-xs text-gray-500 mt-0.5">
-                      {formatDate(booking.check_in)} —{' '}
-                      {formatDate(booking.check_out)} · {booking.guests}{' '}
-                      {booking.guests === 1 ? 'guest' : 'guests'}
-                    </p>
-                    {booking.user && (
-                      <p className="text-xs text-gray-500 mt-0.5">
-                        Customer: {booking.user.name}
-                      </p>
-                    )}
-                  </div>
-                  <div className="text-right shrink-0">
-                    <p className="text-lg font-bold text-gearup-600">
-                      PHP {parseFloat(booking.total_price).toFixed(2)}
-                    </p>
-                    <span
-                      className={`inline-block text-[10px] font-extrabold tracking-wider px-2 py-0.5 rounded mt-1 ${
-                        booking.guide_status === 'pending'
-                          ? 'bg-amber-100 text-amber-800'
-                          : booking.guide_status === 'accepted'
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-red-100 text-red-700'
-                      }`}
-                    >
-                      {(booking.guide_status ?? 'PENDING').toUpperCase()}
-                    </span>
-                  </div>
-                </div>
-                {/* Accept/decline buttons will be added in BK9.5c */}
-              </div>
-            ))}
-          </div>
-        )}
+      <div>
+        <h2 className="text-lg font-bold text-gray-900 mb-4">Your Bookings</h2>
+        <GuideBookingsClient bookings={bookings} />
       </div>
     </div>
   );
