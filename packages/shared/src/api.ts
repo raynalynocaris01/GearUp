@@ -72,7 +72,7 @@ export const authApi = (client: ApiClient) => ({
       password: string,
       passwordConfirmation: string,
       deviceName: string,
-      role: 'customer' | 'owner' = 'customer',
+      role: 'customer' | 'owner' | 'guide' = 'customer',
     ) =>
       client.post<AuthResponse>('/register', {
         name,
