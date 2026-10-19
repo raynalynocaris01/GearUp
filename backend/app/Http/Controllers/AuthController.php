@@ -16,7 +16,7 @@ class AuthController extends Controller
             'email'        => ['required', 'email', 'unique:users,email'],
             'password'     => ['required', 'string', 'min:8', 'confirmed'],
             'device_name'  => ['required', 'string'],
-            'role'         => ['sometimes', 'in:customer,owner'],
+            'role'         => ['sometimes', 'in:customer,owner,guide'],
         ]);
 
         $role = $data['role'] ?? 'customer';
@@ -26,7 +26,7 @@ class AuthController extends Controller
             'email'        => $data['email'],
             'password'     => $data['password'],
             'role'         => $role,
-            'is_approved'  => $role === 'customer', // owners need approval
+            'is_approved'  => $role === 'customer', // owners and guides need approval
             'is_suspended' => false,
         ]);
 
@@ -71,6 +71,35 @@ class AuthController extends Controller
     public function user(Request $request)
     {
         return response()->json($request->user());
+    }
+
+    /**
+     * POST /api/user/become-guide
+     * Upgrade an existing customer account to a tour guide account.
+     * Guide status requires admin approval before the profile goes live.
+     */
+    public function becomeGuide(Request $request)
+    {
+        $user = $request->user();
+
+        if ($user->role === 'guide') {
+            return response()->json([
+                'message' => 'You are already a tour guide.',
+            ], 400);
+        }
+
+        if ($user->role !== 'customer') {
+            return response()->json([
+                'message' => 'Only customer accounts can become tour guides.',
+            ], 400);
+        }
+
+        $user->update([
+            'role'         => 'guide',
+            'is_approved'  => false,
+        ]);
+
+        return response()->json($user->fresh());
     }
 
     public function logout(Request $request)

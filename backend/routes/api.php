@@ -49,6 +49,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user',   [AuthController::class, 'user']);
     Route::post('/logout',[AuthController::class, 'logout']);
 
+    // Guide upgrade flow: existing customer → guide (needs admin approval)
+    Route::post('/user/become-guide', [AuthController::class, 'becomeGuide']);
+
     // Event registrations (customer)
     Route::get('/my/events', [EventRegistrationController::class, 'mine']);
     Route::post('/events/{event}/register', [EventRegistrationController::class, 'store']);

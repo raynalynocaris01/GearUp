@@ -13,6 +13,7 @@ class TourGuide extends Model
     protected $fillable = [
         'campsite_id',
         'created_by',
+        'user_id',
         'name',
         'contact_number',
         'email',
@@ -35,6 +36,15 @@ class TourGuide extends Model
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    /**
+     * The user account that owns this tour guide profile.
+     * Nullable — legacy campsite guides created by owners may not have one.
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'user_id');
     }
 
     public function bookings()

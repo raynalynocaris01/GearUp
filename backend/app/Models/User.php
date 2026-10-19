@@ -70,4 +70,17 @@ class User extends Authenticatable
     {
         return $this->role === 'customer';
     }
+
+    public function isGuide(): bool
+    {
+        return $this->role === 'guide';
+    }
+
+    /**
+     * The tour guide profile owned by this user (only for role=guide).
+     */
+    public function guideProfile(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(TourGuide::class, 'user_id');
+    }
 }
