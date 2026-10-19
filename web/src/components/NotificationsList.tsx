@@ -106,7 +106,10 @@ export function NotificationsList({
                           {n.body}
                         </p>
                       )}
-                      <p className="text-xs text-gray-400 mt-1.5">
+                      <p
+                        className="text-xs text-gray-400 mt-1.5"
+                        suppressHydrationWarning
+                      >
                         {timeAgo(n.created_at)}
                       </p>
                     </div>

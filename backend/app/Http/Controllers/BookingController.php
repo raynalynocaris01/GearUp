@@ -574,7 +574,7 @@ class BookingController extends Controller
                     'guide.booking.created',
                     'New tour guide booking',
                     "Booking #{$booking->id} — you've been hired",
-                    '/guide/bookings',
+                    '/guide',
                 );
             }
         }
