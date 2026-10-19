@@ -22,6 +22,10 @@ class DashboardController extends Controller
         $pendingOwners = User::where('role', 'owner')
             ->where('is_approved', false)
             ->count();
+        $pendingGuides = User::where('role', 'guide')
+            ->where('is_approved', false)
+            ->count();
+        $pendingUsers = $pendingOwners + $pendingGuides;
         $suspendedUsers = User::where('is_suspended', true)->count();
 
         $totalCampsites = Campsite::count();
@@ -38,6 +42,8 @@ class DashboardController extends Controller
             'total_users' => $totalUsers,
             'total_owners' => $totalOwners,
             'pending_owners' => $pendingOwners,
+            'pending_guides' => $pendingGuides,
+            'pending_users' => $pendingUsers,
             'suspended_users' => $suspendedUsers,
             'total_campsites' => $totalCampsites,
             'featured_campsites' => $featuredCampsites,

@@ -52,7 +52,7 @@ export default async function AdminLayout({
   if (user.role !== 'admin') redirect('/');
 
   const stats = token ? await getAdminStats(token) : null;
-  const pendingCount = stats?.pending_owners ?? 0;
+  const pendingCount = stats?.pending_users ?? stats?.pending_owners ?? 0;
 
   return (
     <div className="min-h-screen bg-slate-50 flex">

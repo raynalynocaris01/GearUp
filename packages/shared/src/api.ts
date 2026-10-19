@@ -504,6 +504,8 @@ export interface AdminDashboardStats {
   total_users: number;
   total_owners: number;
   pending_owners: number;
+  pending_guides: number;
+  pending_users: number;
   suspended_users: number;
   total_campsites: number;
   featured_campsites: number;
