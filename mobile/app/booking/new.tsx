@@ -62,7 +62,13 @@ export default function NewBookingScreen() {
   const [pwd, setPwd] = useState(0);
   const [notes, setNotes] = useState('');
   const [availableGuides, setAvailableGuides] = useState<
-  { id: number; name: string; description: string | null; price_per_trip: string }[]
+  {
+    id: number;
+    name: string;
+    description: string | null;
+    price_per_trip: string;
+    campsite_id: number | null;
+  }[]
   >([]);
   const [selectedGuideId, setSelectedGuideId] = useState<number | null>(null);
   const [selectedRoomId, setSelectedRoomId] = useState<number | null>(null);
@@ -113,8 +119,11 @@ export default function NewBookingScreen() {
     if (!campsite) return;
     (async () => {
       try {
-        const res = await tourGuides.list({ campsite_id: campsite.id });
-        setAvailableGuides(res.data);
+        const [campsiteRes, independentRes] = await Promise.all([
+          tourGuides.list({ campsite_id: campsite.id }),
+          tourGuides.list({ independent: true }),
+        ]);
+        setAvailableGuides([...campsiteRes.data, ...independentRes.data]);
       } catch {
         // silent
       }
@@ -918,40 +927,74 @@ export default function NewBookingScreen() {
         </View>
       </TouchableOpacity>
 
-      {availableGuides.map((g) => {
-        const price = parseFloat(g.price_per_trip);
-        const active = selectedGuideId === g.id;
-        return (
-          <TouchableOpacity
-            key={g.id}
-            style={[
-              styles.guideOption,
-              active && styles.guideOptionActive,
-            ]}
-            onPress={() => setSelectedGuideId(g.id)}
-            activeOpacity={0.8}
-          >
-            <Ionicons
-              name={active ? 'radio-button-on' : 'radio-button-off'}
-              size={20}
-              color={active ? colors.gearupGreen : '#9ca3af'}
-            />
-            <View style={{ flex: 1 }}>
-              <View style={styles.guideRow}>
-                <Text style={styles.guideName}>{g.name}</Text>
-                <Text style={styles.guidePrice}>
-                  {price > 0 ? `+₱${price.toFixed(0)}` : 'Free'}
-                </Text>
-              </View>
-              {g.description && (
-                <Text style={styles.guideDesc} numberOfLines={2}>
-                  {g.description}
-                </Text>
-              )}
-            </View>
-          </TouchableOpacity>
+      {(() => {
+        const campsiteGuides = availableGuides.filter(
+          (g) => g.campsite_id !== null,
         );
-            })}
+        const independentGuides = availableGuides.filter(
+          (g) => g.campsite_id === null,
+        );
+
+        const renderRow = (g: (typeof availableGuides)[number]) => {
+          const price = parseFloat(g.price_per_trip);
+          const active = selectedGuideId === g.id;
+          return (
+            <TouchableOpacity
+              key={g.id}
+              style={[
+                styles.guideOption,
+                active && styles.guideOptionActive,
+              ]}
+              onPress={() => setSelectedGuideId(g.id)}
+              activeOpacity={0.8}
+            >
+              <Ionicons
+                name={active ? 'radio-button-on' : 'radio-button-off'}
+                size={20}
+                color={active ? colors.gearupGreen : '#9ca3af'}
+              />
+              <View style={{ flex: 1 }}>
+                <View style={styles.guideRow}>
+                  <Text style={styles.guideName}>{g.name}</Text>
+                  <Text style={styles.guidePrice}>
+                    {price > 0 ? `+₱${price.toFixed(0)}` : 'Free'}
+                  </Text>
+                </View>
+                {g.description && (
+                  <Text style={styles.guideDesc} numberOfLines={2}>
+                    {g.description}
+                  </Text>
+                )}
+              </View>
+            </TouchableOpacity>
+          );
+        };
+
+        return (
+          <>
+            {campsiteGuides.length > 0 && (
+              <>
+                <Text style={styles.gearSectionLabel}>
+                  Guides at this campsite
+                </Text>
+                <View style={{ gap: 8 }}>
+                  {campsiteGuides.map(renderRow)}
+                </View>
+              </>
+            )}
+            {independentGuides.length > 0 && (
+              <>
+                <Text style={styles.gearSectionLabel}>
+                  Independent guides (available anywhere)
+                </Text>
+                <View style={{ gap: 8 }}>
+                  {independentGuides.map(renderRow)}
+                </View>
+              </>
+            )}
+          </>
+        );
+      })()}
     </View>
   </View>
 )}

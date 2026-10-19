@@ -52,6 +52,7 @@ interface TourGuide {
   name: string;
   description: string | null;
   price_per_trip: string;
+  campsite_id: number | null;
 }
 
 interface BookingFormProps {
@@ -158,10 +159,17 @@ export function BookingForm({
     if (!campsite) return;
     (async () => {
       try {
-        const res = await fetch(`/api/tour-guides?campsite_id=${campsite.id}`);
-        if (!res.ok) return;
-        const data: TourGuide[] = await res.json();
-        setGuides(data);
+        const [campsiteRes, independentRes] = await Promise.all([
+          fetch(`/api/tour-guides?campsite_id=${campsite.id}`),
+          fetch(`/api/tour-guides?independent=true`),
+        ]);
+        const campsiteData: TourGuide[] = campsiteRes.ok
+          ? await campsiteRes.json()
+          : [];
+        const independentData: TourGuide[] = independentRes.ok
+          ? await independentRes.json()
+          : [];
+        setGuides([...campsiteData, ...independentData]);
       } catch {
         // silent
       }
@@ -880,45 +888,75 @@ export function BookingForm({
               </div>
             </label>
 
-            {guides.map((g) => {
-              const price = parseFloat(g.price_per_trip);
-              const active = selectedGuideId === g.id;
-              return (
-                <label
-                  key={g.id}
-                  className={`block border rounded-lg p-4 cursor-pointer transition ${
-                    active
-                      ? 'border-gearup-600 bg-gearup-50'
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                >
-                  <div className="flex items-start gap-3">
-                    <input
-                      type="radio"
-                      name="guide"
-                      checked={active}
-                      onChange={() => setSelectedGuideId(g.id)}
-                      className="mt-1 h-4 w-4 accent-gearup-600"
-                    />
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between gap-3">
-                        <p className="font-semibold text-gray-900 text-sm">
-                          {g.name}
-                        </p>
-                        <p className="text-sm font-bold text-gearup-600 shrink-0">
-                          {price > 0 ? `+₱${price.toFixed(0)}` : 'Free'}
-                        </p>
-                      </div>
-                      {g.description && (
-                        <p className="text-xs text-gray-500 mt-1 line-clamp-2">
-                          {g.description}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </label>
+            {(() => {
+              const campsiteGuides = guides.filter(
+                (g) => g.campsite_id !== null,
               );
-            })}
+              const independentGuides = guides.filter(
+                (g) => g.campsite_id === null,
+              );
+
+              const renderRow = (g: TourGuide) => {
+                const price = parseFloat(g.price_per_trip);
+                const active = selectedGuideId === g.id;
+                return (
+                  <label
+                    key={g.id}
+                    className={`block border rounded-lg p-4 cursor-pointer transition ${
+                      active
+                        ? 'border-gearup-600 bg-gearup-50'
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <input
+                        type="radio"
+                        name="guide"
+                        checked={active}
+                        onChange={() => setSelectedGuideId(g.id)}
+                        className="mt-1 h-4 w-4 accent-gearup-600"
+                      />
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between gap-3">
+                          <p className="font-semibold text-gray-900 text-sm">
+                            {g.name}
+                          </p>
+                          <p className="text-sm font-bold text-gearup-600 shrink-0">
+                            {price > 0 ? `+₱${price.toFixed(0)}` : 'Free'}
+                          </p>
+                        </div>
+                        {g.description && (
+                          <p className="text-xs text-gray-500 mt-1 line-clamp-2">
+                            {g.description}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </label>
+                );
+              };
+
+              return (
+                <>
+                  {campsiteGuides.length > 0 && (
+                    <>
+                      <p className="text-xs font-bold text-gray-700 uppercase tracking-wider mt-4 mb-1">
+                        Guides at this campsite
+                      </p>
+                      {campsiteGuides.map(renderRow)}
+                    </>
+                  )}
+                  {independentGuides.length > 0 && (
+                    <>
+                      <p className="text-xs font-bold text-gray-700 uppercase tracking-wider mt-4 mb-1">
+                        Independent guides (available anywhere)
+                      </p>
+                      {independentGuides.map(renderRow)}
+                    </>
+                  )}
+                </>
+              );
+            })()}
           </div>
         </div>
       )}
