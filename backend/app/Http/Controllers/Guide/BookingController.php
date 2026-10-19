@@ -103,13 +103,36 @@ class BookingController extends Controller
             ], 422);
         }
 
-        $booking->update(['guide_status' => 'declined']);
+        // Snapshot the guide fee BEFORE nulling the relation, then remove it
+        // from the booking total. Customer keeps the campsite but no longer
+        // pays for the declined guide.
+        $guideFee = 0.0;
+        if ($booking->tour_guide_id) {
+            $booking->loadMissing('tourGuide');
+            if ($booking->tourGuide) {
+                $guideFee = (float) $booking->tourGuide->price_per_trip;
+            }
+        }
+
+        $newTotal = max(0.0, (float) $booking->total_price - $guideFee);
+
+        $booking->update([
+            'guide_status' => 'declined',
+            'total_price' => $newTotal,
+        ]);
 
         NotificationService::notify(
             $booking->user_id,
             'booking.guide_declined',
             'Your tour guide could not make it',
-            "Booking #{$booking->id} — please contact support to arrange an alternative.",
+            $guideFee > 0
+                ? sprintf(
+                    'Booking #%d — the guide fee (PHP %.2f) has been removed. Your new total is PHP %.2f.',
+                    $booking->id,
+                    $guideFee,
+                    $newTotal,
+                )
+                : "Booking #{$booking->id} — please contact support to arrange an alternative.",
             "/bookings/{$booking->id}",
         );
 

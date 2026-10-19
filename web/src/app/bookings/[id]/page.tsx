@@ -52,6 +52,7 @@ interface Booking {
   pwd?: number;
   pricing_mode?: 'simple' | 'detailed';
   pricing_lines?: BookingPricingLineLocal[];
+  guide_status?: 'pending' | 'accepted' | 'declined' | null;
   total_price: string;
   status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
   notes: string | null;
@@ -302,6 +303,19 @@ export default async function BookingDetailPage({
                 cancelledAt={booking.cancelled_at ?? null}
               />
             </div>
+
+            {/* Guide declined banner */}
+            {booking.guide_status === 'declined' && (
+              <div className="mt-4 bg-amber-50 border border-amber-200 rounded-lg p-4 text-sm text-amber-900">
+                <p className="font-semibold mb-1">Tour guide declined</p>
+                <p>
+                  Your tour guide couldn&apos;t make it. The guide fee has
+                  been removed from your total — you&apos;re still booked for
+                  the campsite. Contact support if you want to book a
+                  different guide.
+                </p>
+              </div>
+            )}
 
             {/* Trip info */}
             <div className="mt-6 space-y-2 text-sm text-gray-700">

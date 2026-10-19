@@ -91,6 +91,28 @@ class GuideBookingTest extends TestCase
         $this->assertEquals('declined', $booking->fresh()->guide_status);
     }
 
+    public function test_declining_booking_removes_guide_fee_from_total(): void
+    {
+        [$guideUser, $guideProfile] = $this->makeApprovedGuide();
+        // makeApprovedGuide creates a guide with price_per_trip = 1000
+        $booking = $this->makeGuideBooking($guideProfile);
+
+        // Override the total to simulate a booking that included the guide fee
+        $booking->update(['total_price' => 1500]); // 500 campsite + 1000 guide
+
+        $this->actingAs($guideUser)
+            ->putJson("/api/guide/bookings/{$booking->id}/decline")
+            ->assertOk();
+
+        $fresh = $booking->fresh();
+        $this->assertEquals('declined', $fresh->guide_status);
+        // Guide reference is preserved so the guide can see declined bookings
+        // in their dashboard history.
+        $this->assertEquals($guideProfile->id, $fresh->tour_guide_id);
+        // 1500 - 1000 (guide fee) = 500
+        $this->assertEquals(500.0, (float) $fresh->total_price);
+    }
+
     public function test_guide_cannot_accept_already_accepted_booking(): void
     {
         [$guideUser, $guideProfile] = $this->makeApprovedGuide();
