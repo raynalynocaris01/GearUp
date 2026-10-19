@@ -88,7 +88,7 @@ export default function TourGuideDetailScreen() {
         {/* Hero */}
         <View style={styles.heroWrap}>
           {heroImage ? (
-            <Image source={{ uri: heroImage }} style={styles.hero} />
+            <Image source={{ uri: imgSrc(heroImage) }} style={styles.hero} />
           ) : (
             <View style={styles.heroPlaceholder}>
               <Text style={styles.heroEmoji}>🧭</Text>

@@ -21,6 +21,7 @@ import type {
 import { AdminHeader } from '../../components/admin/AdminHeader';
 import { BookingChart } from '../../components/owner/BookingChart';
 import { colors } from '../../theme';
+import { imgSrc } from '../../lib/images';
 
 function formatDate(iso: string | null): string {
   if (!iso) return '-';
@@ -228,7 +229,7 @@ export default function AdminDashboard() {
                     <View style={styles.thumb}>
                       {b.campsite?.image_url ? (
                         <Image
-                          source={{ uri: b.campsite.image_url }}
+                          source={{ uri: imgSrc(b.campsite.image_url) }}
                           style={styles.thumbImg}
                           resizeMode="cover"
                         />

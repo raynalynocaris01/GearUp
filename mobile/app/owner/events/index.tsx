@@ -16,6 +16,7 @@ import type { EventItem } from '@gearup/shared';
 import { OwnerHeader } from '../../../components/owner/OwnerHeader';
 import { DeleteEventButton } from '../../../components/owner/DeleteEventButton';
 import { colors } from '../../../theme';
+import { imgSrc } from '../../../lib/images';
 
 function formatRange(startsAt: string, endsAt: string): string {
   const start = new Date(startsAt);
@@ -121,7 +122,7 @@ export default function OwnerEventsScreen() {
               <View style={styles.cardTop}>
                 {item.image_url ? (
                   <Image
-                    source={{ uri: item.image_url }}
+                    source={{ uri: imgSrc(item.image_url) }}
                     style={styles.cardImage}
                   />
                 ) : (

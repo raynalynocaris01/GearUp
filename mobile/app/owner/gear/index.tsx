@@ -16,6 +16,7 @@ import { OwnerHeader } from '../../../components/owner/OwnerHeader';
 import type { GearItem } from '@gearup/shared';
 import { DeleteGearButton } from '../../../components/owner/DeleteGearButton';
 import { colors } from '../../../theme';
+import { imgSrc } from '../../../lib/images';
 
 export default function OwnerGearScreen() {
   const router = useRouter();
@@ -112,7 +113,7 @@ export default function OwnerGearScreen() {
               <View style={styles.cardTop}>
                 {item.image_url ? (
                   <Image
-                    source={{ uri: item.image_url }}
+                    source={{ uri: imgSrc(item.image_url) }}
                     style={styles.cardImage}
                   />
                 ) : (

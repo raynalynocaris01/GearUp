@@ -17,6 +17,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { campsites, bookings, tourGuides, gear } from '../../lib/api';
 import type { Campsite, GearItem } from '@gearup/shared';
 import { colors } from '../../theme';
+import { imgSrc } from '../../lib/images';
 
 function toDateString(d: Date): string {
   // YYYY-MM-DD in local time
@@ -521,7 +522,7 @@ export default function NewBookingScreen() {
         {/* Campsite summary */}
         <View style={styles.campsiteCard}>
           <Image
-            source={{ uri: campsite.image_url }}
+            source={{ uri: imgSrc(campsite.image_url) }}
             style={styles.campsiteImage}
           />
           <View style={{ flex: 1, gap: 3 }}>

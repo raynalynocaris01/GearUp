@@ -15,6 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { myGear, hasToken } from '../../lib/api';
 import type { GearItem } from '@gearup/shared';
 import { colors } from '../../theme';
+import { imgSrc } from '../../lib/images';
 
 export default function MyGearScreen() {
   const router = useRouter();
@@ -162,7 +163,7 @@ export default function MyGearScreen() {
               <View style={styles.thumb}>
                 {item.image_url ? (
                   <Image
-                    source={{ uri: item.image_url }}
+                    source={{ uri: imgSrc(item.image_url) }}
                     style={styles.thumbImg}
                     resizeMode="cover"
                   />

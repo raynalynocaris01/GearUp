@@ -15,6 +15,7 @@ import type { Campsite } from '@gearup/shared';
 import { CampsiteActions } from '../../components/admin/CampsiteActions';
 import { AdminHeader } from '../../components/admin/AdminHeader';
 import { colors } from '../../theme';
+import { imgSrc } from '../../lib/images';
 
 export default function AdminCampsitesScreen() {
   const [campsites, setCampsites] = useState<Campsite[]>([]);
@@ -83,7 +84,7 @@ export default function AdminCampsitesScreen() {
           renderItem={({ item }) => (
             <View style={styles.card}>
               <Image
-                source={{ uri: item.image_url }}
+                source={{ uri: imgSrc(item.image_url) }}
                 style={styles.cardImage}
               />
               <View style={styles.cardBody}>

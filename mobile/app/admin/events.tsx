@@ -14,6 +14,7 @@ import { admin } from '../../lib/api';
 import type { EventItem } from '@gearup/shared';
 import { AdminHeader } from '../../components/admin/AdminHeader';
 import { colors } from '../../theme';
+import { imgSrc } from '../../lib/images';
 
 function formatDate(iso: string): string {
   try {
@@ -94,7 +95,7 @@ export default function AdminEventsScreen() {
           renderItem={({ item }) => (
             <View style={styles.card}>
               <Image
-                source={{ uri: item.image_url }}
+                source={{ uri: imgSrc(item.image_url) }}
                 style={styles.cardImage}
               />
               <View style={styles.cardBody}>

@@ -16,6 +16,7 @@ import type { Booking } from '@gearup/shared';
 import { OwnerHeader } from '../../../../components/owner/OwnerHeader';
 import { MyGearBookingActions } from '../../../../components/my/MyGearBookingActions';
 import { colors } from '../../../../theme';
+import { imgSrc } from '../../../../lib/images';
 
 type Filter = 'all' | 'pending' | 'confirmed' | 'completed' | 'cancelled';
 
@@ -198,7 +199,7 @@ export default function OwnerGearBookingsScreen() {
                   <View style={styles.thumb}>
                     {firstImageUrl ? (
                       <Image
-                        source={{ uri: firstImageUrl }}
+                        source={{ uri: imgSrc(firstImageUrl) }}
                         style={styles.thumbImg}
                         resizeMode="cover"
                       />

@@ -9,6 +9,7 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import type { Booking } from '@gearup/shared';
 import { colors } from '../../theme';
+import { imgSrc } from '../../lib/images';
 
 interface Props {
   bookings: Booking[];
@@ -79,7 +80,7 @@ export function UpcomingBookings({ bookings, limit = 3 }: Props) {
                 <View style={styles.thumb}>
                   {imageUrl ? (
                     <Image
-                      source={{ uri: imageUrl }}
+                      source={{ uri: imgSrc(imageUrl) }}
                       style={styles.thumbImage}
                     />
                   ) : (
