@@ -39,6 +39,14 @@ class EnsureRole
             ], 403);
         }
 
+        // Guides must be approved before they can use guide routes.
+        if ($user->role === 'guide' && ! $user->is_approved) {
+            return response()->json([
+                'message' => 'Your guide account is pending admin approval.',
+                'code' => 'pending_approval',
+            ], 403);
+        }
+
         return $next($request);
     }
 }
