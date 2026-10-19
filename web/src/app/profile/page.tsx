@@ -1,6 +1,7 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { Navbar } from '@/components/Navbar';
+import { BecomeGuideCard } from '@/components/BecomeGuideCard';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL!;
 
@@ -48,9 +49,13 @@ export default async function ProfilePage() {
             <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">
               Account
             </h2>
-            <p className="text-gray-600 text-sm">
+            <p className="text-gray-600 text-sm mb-4">
               Your account details and settings will appear here soon.
             </p>
+            <BecomeGuideCard
+              role={user.role}
+              isApproved={user.is_approved}
+            />
           </div>
         </div>
       </main>
