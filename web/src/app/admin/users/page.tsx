@@ -8,7 +8,7 @@ interface AdminUser {
   id: number;
   name: string;
   email: string;
-  role: 'admin' | 'owner' | 'customer';
+  role: 'admin' | 'owner' | 'customer' | 'guide';
   is_approved: boolean;
   is_suspended: boolean;
   created_at: string;
@@ -60,6 +60,17 @@ function roleBadge(role: string, isApproved: boolean) {
       </span>
     );
   }
+  if (role === 'guide') {
+    return isApproved ? (
+      <span className="inline-block text-[10px] font-extrabold tracking-wider px-2 py-1 rounded bg-teal-100 text-teal-700">
+        GUIDE
+      </span>
+    ) : (
+      <span className="inline-block text-[10px] font-extrabold tracking-wider px-2 py-1 rounded bg-yellow-100 text-yellow-800">
+        PENDING GUIDE
+      </span>
+    );
+  }
   return (
     <span className="inline-block text-[10px] font-extrabold tracking-wider px-2 py-1 rounded bg-gray-100 text-gray-700">
       CUSTOMER
@@ -80,7 +91,7 @@ export default async function AdminUsersPage({
   const FILTERS = [
     { label: 'All', href: '/admin/users', active: !status && !role },
     {
-      label: 'Pending Owners',
+      label: 'Pending',
       href: '/admin/users?status=pending',
       active: status === 'pending',
     },
@@ -93,6 +104,11 @@ export default async function AdminUsersPage({
       label: 'Owners',
       href: '/admin/users?role=owner',
       active: role === 'owner',
+    },
+    {
+      label: 'Guides',
+      href: '/admin/users?role=guide',
+      active: role === 'guide',
     },
     {
       label: 'Customers',

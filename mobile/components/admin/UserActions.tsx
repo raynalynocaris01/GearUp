@@ -12,7 +12,7 @@ import { colors } from '../../theme';
 
 interface Props {
   userId: number;
-  role: 'admin' | 'owner' | 'customer';
+  role: 'admin' | 'owner' | 'customer' | 'guide';
   isApproved: boolean;
   isSuspended: boolean;
   onSuccess?: () => void;
@@ -121,7 +121,7 @@ export function UserActions({
 
   return (
     <View style={styles.row}>
-      {role === 'owner' && !isApproved && (
+      {(role === 'owner' || role === 'guide') && !isApproved && (
         <>
           <TouchableOpacity
             style={styles.approveButton}

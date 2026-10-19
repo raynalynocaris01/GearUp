@@ -13,7 +13,7 @@ import { auth, hasToken, clearToken } from '../../lib/api';
 import { colors } from '../../theme';
 import { OwnerDrawerContent } from '../../components/owner/OwnerDrawerContent';
 
-type Role = 'admin' | 'owner' | 'customer';
+type Role = 'admin' | 'owner' | 'customer' | 'guide';
 
 export default function OwnerLayout() {
   const router = useRouter();

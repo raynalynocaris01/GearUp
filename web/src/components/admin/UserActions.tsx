@@ -6,7 +6,7 @@ import { ConfirmModal } from '@/components/ui/ConfirmModal';
 
 interface Props {
   userId: number;
-  role: 'admin' | 'owner' | 'customer';
+  role: 'admin' | 'owner' | 'customer' | 'guide';
   isApproved: boolean;
   isSuspended: boolean;
 }
@@ -52,15 +52,20 @@ export function UserActions({
   return (
     <>
       <div className="flex flex-wrap gap-2 justify-end">
-        {role === 'owner' && !isApproved && (
+        {(role === 'owner' || role === 'guide') && !isApproved && (
           <>
             <button
               onClick={() =>
                 setModal({
                   action: 'approve',
-                  title: 'Approve this business owner?',
+                  title:
+                    role === 'guide'
+                      ? 'Approve this tour guide?'
+                      : 'Approve this business owner?',
                   message:
-                    'They will gain access to the owner dashboard and be able to post campsites.',
+                    role === 'guide'
+                      ? 'They will gain access to the guide dashboard and be able to accept tour bookings.'
+                      : 'They will gain access to the owner dashboard and be able to post campsites.',
                   confirmLabel: 'Approve',
                   variant: 'primary',
                 })
@@ -73,9 +78,14 @@ export function UserActions({
               onClick={() =>
                 setModal({
                   action: 'reject',
-                  title: 'Reject this business owner?',
+                  title:
+                    role === 'guide'
+                      ? 'Reject this tour guide?'
+                      : 'Reject this business owner?',
                   message:
-                    'They will be downgraded to a regular customer and will not be able to post campsites.',
+                    role === 'guide'
+                      ? 'They will be downgraded to a regular customer and will not be able to accept tour bookings.'
+                      : 'They will be downgraded to a regular customer and will not be able to post campsites.',
                   confirmLabel: 'Reject',
                   variant: 'danger',
                 })

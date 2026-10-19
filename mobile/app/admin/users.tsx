@@ -16,13 +16,20 @@ import { UserActions } from '../../components/admin/UserActions';
 import { AdminHeader } from '../../components/admin/AdminHeader';
 import { colors } from '../../theme';
 
-type Filter = 'all' | 'pending' | 'suspended' | 'owner' | 'customer';
+type Filter =
+  | 'all'
+  | 'pending'
+  | 'suspended'
+  | 'owner'
+  | 'guide'
+  | 'customer';
 
 const FILTERS: { key: Filter; label: string }[] = [
   { key: 'all', label: 'All' },
   { key: 'pending', label: 'Pending' },
   { key: 'suspended', label: 'Suspended' },
   { key: 'owner', label: 'Owners' },
+  { key: 'guide', label: 'Guides' },
   { key: 'customer', label: 'Customers' },
 ];
 
@@ -34,6 +41,11 @@ function roleBadge(role: string, isApproved: boolean) {
     return isApproved
       ? { text: 'OWNER', bg: '#dcfce7', color: '#15803d' }
       : { text: 'PENDING', bg: '#fef3c7', color: '#92400e' };
+  }
+  if (role === 'guide') {
+    return isApproved
+      ? { text: 'GUIDE', bg: '#ccfbf1', color: '#0f766e' }
+      : { text: 'PENDING GUIDE', bg: '#fef3c7', color: '#92400e' };
   }
   return { text: 'CUSTOMER', bg: '#f3f4f6', color: '#374151' };
 }
@@ -51,6 +63,7 @@ export default function AdminUsersScreen() {
       if (f === 'pending') params.status = 'pending';
       else if (f === 'suspended') params.status = 'suspended';
       else if (f === 'owner') params.role = 'owner';
+      else if (f === 'guide') params.role = 'guide';
       else if (f === 'customer') params.role = 'customer';
 
       const res = await admin.listUsers(params);
