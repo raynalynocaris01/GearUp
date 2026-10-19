@@ -1,9 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
   ScrollView,
   StyleSheet,
+  FlatList,
+  useWindowDimensions,
   Image,
   TouchableOpacity,
   ActivityIndicator,
@@ -27,6 +29,8 @@ export default function CampsiteDetailScreen() {
     null,
   );
   const [loading, setLoading] = useState(true);
+  const [activePhoto, setActivePhoto] = useState(0);
+  const { width: windowWidth } = useWindowDimensions();
   const [error, setError] = useState('');
   const [isGuest, setIsGuest] = useState(true);
   const openDirections = () => {
@@ -119,6 +123,13 @@ export default function CampsiteDetailScreen() {
       </View>
     );
   }
+  const galleryImages: string[] = (campsite.photos && campsite.photos.length > 0
+    ? [...campsite.photos].sort((a, b) => a.sort_order - b.sort_order).map((p) => p.image_url)
+    : [campsite.image_url]
+  )
+    .map((u) => imgSrc(u))
+    .filter((u): u is string => !!u);
+
 
   return (
     <View style={styles.container}>
@@ -126,9 +137,36 @@ export default function CampsiteDetailScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 120 }}
       >
-        {/* Hero image */}
+        {/* Photo gallery */}
         <View style={styles.heroWrap}>
-          <Image source={{ uri: imgSrc(campsite.image_url) }} style={styles.hero} />
+          {galleryImages.length > 1 ? (
+            <>
+              <FlatList
+                data={galleryImages}
+                horizontal
+                pagingEnabled
+                showsHorizontalScrollIndicator={false}
+                keyExtractor={(_, i) => String(i)}
+                onMomentumScrollEnd={(e) => {
+                  const idx = Math.round(e.nativeEvent.contentOffset.x / windowWidth);
+                  setActivePhoto(idx);
+                }}
+                renderItem={({ item }) => (
+                  <Image source={{ uri: item }} style={[styles.hero, { width: windowWidth }]} />
+                )}
+              />
+              <View style={styles.dotsRow} pointerEvents="none">
+                {galleryImages.map((_, i) => (
+                  <View
+                    key={i}
+                    style={[styles.dot, i === activePhoto && styles.dotActive]}
+                  />
+                ))}
+              </View>
+            </>
+          ) : (
+            <Image source={{ uri: galleryImages[0] }} style={styles.hero} />
+          )}
 
           <TouchableOpacity
             style={styles.backIcon}
@@ -136,14 +174,14 @@ export default function CampsiteDetailScreen() {
           >
             <Ionicons name="chevron-back" size={24} color="#fff" />
           </TouchableOpacity>
-          
 
           {campsite.is_featured && (
             <View style={styles.featuredBadge}>
-              <Text style={styles.featuredText}>★ Featured</Text>
+              <Text style={styles.featuredText}>{"\u2605"} Featured</Text>
             </View>
           )}
         </View>
+
 
         {/* Content */}
         <View style={styles.body}>
@@ -340,6 +378,24 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 300,
     backgroundColor: '#e5e7eb',
+  },
+  dotsRow: {
+    position: 'absolute',
+    bottom: 16,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 6,
+  },
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: 'rgba(255,255,255,0.5)',
+  },
+  dotActive: {
+    backgroundColor: '#fff',
   },
   backIcon: {
     position: 'absolute',
