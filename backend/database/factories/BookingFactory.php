@@ -25,6 +25,7 @@ class BookingFactory extends Factory
             'guests' => 2,
             'total_price' => 200.00,
             'status' => 'pending',
+            'guide_status' => null,
             'notes' => null,
         ];
     }

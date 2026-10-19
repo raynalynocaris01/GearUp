@@ -88,6 +88,28 @@ class DemoSeeder extends Seeder
             'is_approved' => true,
         ]);
 
+        // ─── Demo Tour Guide ────────────────────────────
+        $guideUser = User::create([
+            'name' => 'Demo Tour Guide',
+            'email' => 'guide@gearup.test',
+            'password' => 'password123',
+            'role' => 'guide',
+            'is_approved' => true,
+        ]);
+
+        TourGuide::create([
+            'user_id' => $guideUser->id,
+            'created_by' => $guideUser->id,
+            'campsite_id' => null,
+            'name' => $guideUser->name,
+            'contact_number' => '09171234567',
+            'email' => $guideUser->email,
+            'description' => 'Certified mountain guide with 5 years of trekking experience in Negros.',
+            'price_per_trip' => 1500.00,
+            'is_independent' => true,
+            'location' => 'Valencia, Negros Oriental',
+        ]);
+
         // ─── Real Campsites + Gear ──────────────────────
         // Delegates to RealCampsitesSeeder: Grandi Vista (Juan),
         // Kanto Kuridas (Maria), Sheintan Ridge View (Pedro),
@@ -177,6 +199,7 @@ class DemoSeeder extends Seeder
         $this->command->info('  rayna@example.com       (customer)');
         $this->command->info('  cedrix@example.com      (customer)');
         $this->command->info('  customer@gearup.test    (customer)');
+        $this->command->info('  guide@gearup.test       (approved tour guide)');
         $this->command->info('');
         $this->command->info('Campsites:');
         $this->command->info('  Grandi Vista Campsites');
