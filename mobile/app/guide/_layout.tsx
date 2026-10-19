@@ -1,5 +1,11 @@
 import { useEffect, useState } from 'react';
-import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
+import {
+  View,
+  Text,
+  ActivityIndicator,
+  StyleSheet,
+  TouchableOpacity,
+} from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { auth, hasToken } from '../../lib/api';
 import { colors } from '../../theme';
@@ -55,8 +61,16 @@ export default function GuideLayout() {
         <Text style={styles.pendingTitle}>Pending approval</Text>
         <Text style={styles.pendingText}>
           Your guide account is being reviewed. You&apos;ll be able to accept
-          bookings as soon as we approve it.
+          bookings as soon as we approve it. In the meantime, you can still
+          use GearUp as a customer.
         </Text>
+        <TouchableOpacity
+          onPress={() => router.replace('/(tabs)')}
+          style={styles.continueButton}
+          activeOpacity={0.85}
+        >
+          <Text style={styles.continueButtonText}>Continue as Customer</Text>
+        </TouchableOpacity>
       </View>
     );
   }
@@ -101,5 +115,17 @@ const styles = StyleSheet.create({
     color: '#6b7280',
     textAlign: 'center',
     lineHeight: 20,
+    marginBottom: 24,
+  },
+  continueButton: {
+    backgroundColor: colors.gearupGreen,
+    paddingHorizontal: 24,
+    paddingVertical: 14,
+    borderRadius: 10,
+  },
+  continueButtonText: {
+    color: '#fff',
+    fontWeight: '700',
+    fontSize: 14,
   },
 });
