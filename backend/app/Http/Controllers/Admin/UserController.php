@@ -51,12 +51,36 @@ class UserController extends Controller
     {
         $user->update(['is_approved' => true]);
 
+        // If approving a tour guide, create their tour_guides profile.
+        // They can then fill in price, description, and contact from
+        // the "My Guide Profile" screen after logging in.
+        if ($user->role === 'guide' && ! $user->guideProfile) {
+            \App\Models\TourGuide::create([
+                'user_id'        => $user->id,
+                'name'           => $user->name,
+                'email'          => $user->email,
+                'contact_number' => '',
+                'description'    => null,
+                'price_per_trip' => 0,
+                'is_independent' => true,
+                'campsite_id'    => null,
+                'location'       => null,
+                'created_by'     => $user->id,
+            ]);
+        }
+
+        // Guides land on their guide dashboard; owners/customers keep /owner.
+        $actionUrl = $user->role === 'guide' ? '/guide' : '/owner';
+        $message = $user->role === 'guide'
+            ? 'You can now accept tour guide bookings on GearUp.'
+            : 'You can now list campsites, gear, and events on GearUp.';
+
         NotificationService::notify(
             $user->id,
             'account.approved',
             'Your account was approved',
-            'You can now list campsites, gear, and events on GearUp.',
-            '/owner',
+            $message,
+            $actionUrl,
         );
 
         return response()->json($user->fresh());
