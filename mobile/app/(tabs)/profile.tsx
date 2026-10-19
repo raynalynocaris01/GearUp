@@ -228,9 +228,18 @@ export default function ProfileScreen() {
     <Ionicons name="chevron-forward" size={18} color="#fff" />
   </TouchableOpacity>
 )}
- 
 
- 
+{/* Notifications (all roles) */}
+<TouchableOpacity
+  style={styles.manageButton}
+  onPress={() => router.push('/notifications' as any)}
+>
+  <View style={styles.manageButtonContent}>
+    <Ionicons name="notifications-outline" size={20} color="#fff" />
+    <Text style={styles.manageButtonText}>Notifications</Text>
+  </View>
+  <Ionicons name="chevron-forward" size={18} color="#fff" />
+</TouchableOpacity>
 
       <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
         <Ionicons name="log-out-outline" size={18} color="#dc2626" />
