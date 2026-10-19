@@ -9,6 +9,8 @@ use App\Http\Controllers\Owner\PricingLineController as OwnerPricingLineControll
 use App\Http\Controllers\Owner\DashboardController as OwnerDashboardController;
 use App\Http\Controllers\Owner\TourGuideController as OwnerTourGuideController;
 use App\Http\Controllers\Admin\BookingController as AdminBookingController;
+use App\Http\Controllers\Guide\BookingController as GuideBookingController;
+use App\Http\Controllers\Guide\ProfileController as GuideProfileController;
 use App\Http\Controllers\Admin\CampsiteController as AdminCampsiteController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
  use App\Http\Controllers\Admin\UserController as AdminUserController;
@@ -150,6 +152,19 @@ Route::middleware(['auth:sanctum', 'role:owner'])->prefix('owner')->group(functi
     Route::get('/events/{event}/registrations', [OwnerEventRegistrationController::class, 'index']);
 });
 
+
+// ─── Guide only ──────────────────────────────────────────
+Route::middleware(['auth:sanctum', 'role:guide'])->prefix('guide')->group(function () {
+    // Profile
+    Route::get('/profile', [GuideProfileController::class, 'show']);
+    Route::put('/profile', [GuideProfileController::class, 'update']);
+
+    // Bookings
+    Route::get('/bookings', [GuideBookingController::class, 'index']);
+    Route::get('/bookings/{booking}', [GuideBookingController::class, 'show']);
+    Route::put('/bookings/{booking}/accept', [GuideBookingController::class, 'accept']);
+    Route::put('/bookings/{booking}/decline', [GuideBookingController::class, 'decline']);
+});
 
 // ─── Admin only ──────────────────────────────────────────
 Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(function () {
