@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState } from 'react';
 import type { ReactNode } from 'react';
+import { NotificationBellRow } from '@/components/NotificationBellRow';
 
 type IconName = 'bookings' | 'profile' | 'logout' | 'arrowLeft';
 
@@ -154,6 +155,9 @@ export function GuideSidebar({
 
       {/* Bottom */}
       <div className="border-t border-gray-100 shrink-0 pb-4">
+        {/* Notification bell */}
+        <NotificationBellRow href="/guide/notifications" />
+
         {/* User block */}
         <div className="px-5 py-3 border-t border-gray-100 flex items-center gap-3">
           <div className="w-9 h-9 rounded-full bg-gearup-600 text-white flex items-center justify-center font-bold text-sm shrink-0">

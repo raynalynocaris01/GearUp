@@ -4,6 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { UserMenu } from './UserMenu';
+import { NotificationBell } from './NotificationBell';
 
 type NavbarProps = {
   user?: {
@@ -109,7 +110,10 @@ export function Navbar({ user }: NavbarProps) {
         {/* Auth area */}
         <div className="flex items-center gap-3">
           {user ? (
-            <UserMenu user={user} />
+            <>
+              <NotificationBell />
+              <UserMenu user={user} />
+            </>
           ) : (
             <>
               <Link
