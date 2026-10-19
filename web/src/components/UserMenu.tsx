@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
 type UserMenuProps = {
-  user: { name: string; email: string };
+  user: { name: string; email: string; role?: string };
 };
 
 export function UserMenu({ user }: UserMenuProps) {
@@ -98,6 +98,17 @@ export function UserMenu({ user }: UserMenuProps) {
             <span className="text-base">👤</span>
             <span>Profile</span>
           </Link>
+
+          {user.role === 'guide' && (
+            <Link
+              href="/guide"
+              onClick={() => setOpen(false)}
+              className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition border-t border-gray-100"
+            >
+              <span className="text-base">🧭</span>
+              <span>Guide Dashboard</span>
+            </Link>
+          )}
 
           <button
             onClick={handleLogout}

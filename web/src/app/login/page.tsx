@@ -35,10 +35,12 @@ export default function LoginPage() {
 
     // Owners go straight to their dashboard; everyone else goes home
           const role = data.user?.role;
-      if (role === 'admin') {
+       if (role === 'admin') {
         router.push('/admin');
       } else if (role === 'owner') {
         router.push('/owner');
+      } else if (role === 'guide') {
+        router.push('/guide');
       } else {
         router.push('/');
       }
