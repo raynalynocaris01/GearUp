@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useFocusEffect } from 'expo-router';
-import { campsites } from '../../lib/api';
+import { campsites, notifications as notifApi } from '../../lib/api';
 import type { Campsite } from '@gearup/shared';
 import { colors } from '../../theme';
 import { FilterModal } from '../../components/FilterModal';
@@ -138,9 +138,20 @@ export default function HomeScreen() {
     router.push(qs ? `/(tabs)/explore?${qs}` : '/(tabs)/explore');
   };
 
-  const handleComingSoon = () => {
-    Alert.alert('Coming soon', 'This feature is being built.');
-  };
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useFocusEffect(
+    useCallback(() => {
+      (async () => {
+        try {
+          const res = await notifApi.unreadCount();
+          setUnreadCount(res.data.count);
+        } catch {}
+      })();
+    }, [])
+  );
+
+ 
 
     const handleFeaturePress = (
     action:
@@ -204,13 +215,20 @@ export default function HomeScreen() {
         </View>
         <TouchableOpacity
           style={styles.iconButton}
-          onPress={handleComingSoon}
+          onPress={() => router.push('/notifications' as any)}
         >
           <Ionicons
             name="notifications-outline"
             size={24}
             color="#111827"
           />
+          {unreadCount > 0 && (
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </Text>
+            </View>
+          )}
         </TouchableOpacity>
       </View>
 
@@ -361,7 +379,24 @@ const styles = StyleSheet.create({
   brandText: { fontSize: 22, fontWeight: '900', letterSpacing: -0.5 },
   brandDark: { color: '#111827' },
   brandGreen: { color: colors.gearupGreen },
-  iconButton: { padding: 8 },
+   iconButton: { padding: 8, position: 'relative' },
+  badge: {
+    position: 'absolute',
+    top: 2,
+    right: 2,
+    minWidth: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: '#dc2626',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 3,
+  },
+  badgeText: {
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: '800',
+  },
 
   scroll: { flex: 1 },
   scrollContent: { paddingBottom: 16 },
