@@ -257,7 +257,7 @@ export default function ExploreScreen() {
               activeOpacity={0.85}
             >
               <Image
-                source={{ uri: item.image_url }}
+                source={{ uri: imgSrc(item.image_url) }}
                 style={styles.campsiteImage}
               />
               <View style={styles.campsiteBody}>

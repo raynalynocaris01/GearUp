@@ -6,6 +6,7 @@ import {
   Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { imgSrc } from '../lib/images';
 import { colors } from '../theme';
 
 type Category = 'Campsite' | 'Gear Rental' | 'Tour Guide' | 'Event';
@@ -52,7 +53,7 @@ export function FeaturedCard({
       {/* Image */}
       <View style={styles.imageWrap}>
         {imageUrl ? (
-          <Image source={{ uri: imageUrl }} style={styles.image} />
+          <Image source={{ uri: imgSrc(imageUrl) }} style={styles.image} />
         ) : (
           <View style={[styles.image, styles.imageFallback]}>
             <Ionicons name="image-outline" size={28} color="#9ca3af" />
@@ -113,7 +114,7 @@ const styles = StyleSheet.create({
   },
   imageWrap: {
     position: 'relative',
-    height: 120,
+    height: 160,
     backgroundColor: '#e5e7eb',
   },
     image: { width: '100%', height: 160, backgroundColor: '#e5e7eb' },
