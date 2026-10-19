@@ -5,6 +5,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -14,11 +15,11 @@ import { colors } from '../../theme';
 export default function ProfileScreen() {
   const router = useRouter();
   const [user, setUser] = useState<{
-  name: string;
-  email: string;
-  role: 'admin' | 'owner' | 'customer';
-  is_approved: boolean;
-} | null>(null);
+    name: string;
+    email: string;
+    role: 'admin' | 'owner' | 'customer' | 'guide';
+    is_approved: boolean;
+  } | null>(null);
 
   const [loading, setLoading] = useState(true);
 
@@ -47,7 +48,11 @@ export default function ProfileScreen() {
             setUser({
               name: data.name,
               email: data.email,
-              role: data.role ?? 'customer',
+              role: (data.role ?? 'customer') as
+                | 'admin'
+                | 'owner'
+                | 'customer'
+                | 'guide',
               is_approved: data.is_approved ?? false,
             });
           }
@@ -72,6 +77,46 @@ export default function ProfileScreen() {
     await clearToken();
     setUser(null);
     router.replace('/(tabs)');
+  };
+
+  const handleBecomeGuide = () => {
+    Alert.alert(
+      'Become a Tour Guide',
+      'Your application will be reviewed by our team. Are you sure?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Apply',
+          onPress: async () => {
+            try {
+              await auth.becomeGuide();
+              Alert.alert(
+                'Application submitted',
+                'Your guide application is pending admin approval.',
+              );
+              const res = await auth.user();
+              const data = res.data as any;
+              setUser({
+                name: data.name,
+                email: data.email,
+                role: (data.role ?? 'customer') as
+                  | 'admin'
+                  | 'owner'
+                  | 'customer'
+                  | 'guide',
+                is_approved: data.is_approved ?? false,
+              });
+            } catch (err: any) {
+              const msg =
+                err?.response?.data?.message ??
+                err?.message ??
+                'Could not submit application.';
+              Alert.alert('Error', msg);
+            }
+          },
+        },
+      ],
+    );
   };
 
   if (loading) {
@@ -149,6 +194,36 @@ export default function ProfileScreen() {
     <View style={styles.manageButtonContent}>
       <Ionicons name="shield-outline" size={20} color="#fff" />
       <Text style={styles.manageButtonText}>Admin panel</Text>
+    </View>
+    <Ionicons name="chevron-forward" size={18} color="#fff" />
+  </TouchableOpacity>
+)}
+
+{/* Guide section */}
+{user.role === 'guide' && (
+  <TouchableOpacity
+    style={styles.manageButton}
+    onPress={() => router.push('/guide' as any)}
+  >
+    <View style={styles.manageButtonContent}>
+      <Ionicons name="compass-outline" size={20} color="#fff" />
+      <Text style={styles.manageButtonText}>
+        {user.is_approved ? 'Guide dashboard' : 'Guide application pending'}
+      </Text>
+    </View>
+    <Ionicons name="chevron-forward" size={18} color="#fff" />
+  </TouchableOpacity>
+)}
+
+{/* Customer "Become a Guide" CTA */}
+{user.role === 'customer' && (
+  <TouchableOpacity
+    style={[styles.manageButton, { backgroundColor: colors.gearupGreenLight }]}
+    onPress={handleBecomeGuide}
+  >
+    <View style={styles.manageButtonContent}>
+      <Ionicons name="compass-outline" size={20} color="#fff" />
+      <Text style={styles.manageButtonText}>Become a tour guide</Text>
     </View>
     <Ionicons name="chevron-forward" size={18} color="#fff" />
   </TouchableOpacity>

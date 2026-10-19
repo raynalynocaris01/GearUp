@@ -45,7 +45,7 @@ export interface AuthUser {
   id: number;
   name: string;
   email: string;
-  role: 'admin' | 'owner' | 'customer';
+  role: 'admin' | 'owner' | 'customer' | 'guide';
   is_approved: boolean;
   is_suspended?: boolean;
   email_verified_at: string | null;
@@ -84,6 +84,8 @@ export const authApi = (client: ApiClient) => ({
       }),
 
   user: () => client.get<AuthUser>('/user'),
+
+  becomeGuide: () => client.post<AuthUser>('/user/become-guide'),
 
   logout: () => client.post<{ message: string }>('/logout'),
 });

@@ -41,6 +41,8 @@ export default function LoginScreen() {
         router.replace('/admin');
       } else if (role === 'owner') {
         router.replace('/owner');
+      } else if (role === 'guide') {
+        router.replace('/guide');
       } else {
         router.replace('/(tabs)/profile');
       }

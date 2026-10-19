@@ -212,6 +212,16 @@ export default function SignupScreen() {
               <Text style={styles.linkTextBold}>Sign in</Text>
             </Text>
           </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => router.push('/signup-guide' as any)}
+            style={styles.linkButton}
+          >
+            <Text style={styles.linkText}>
+              Want to be a tour guide?{' '}
+              <Text style={styles.linkTextBold}>Apply here</Text>
+            </Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
