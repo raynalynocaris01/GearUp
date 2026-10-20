@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers';
 import { GuideProfileForm } from '@/components/guide/GuideProfileForm';
+import { GuidePasswordForm } from '@/components/guide/GuidePasswordForm';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL!;
 
@@ -54,6 +55,7 @@ export default async function GuideProfilePage() {
       </div>
 
       <GuideProfileForm profile={profile} />
+      <GuidePasswordForm />
     </div>
   );
 }

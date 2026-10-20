@@ -159,6 +159,9 @@ Route::middleware(['auth:sanctum', 'role:guide'])->prefix('guide')->group(functi
     Route::get('/profile', [GuideProfileController::class, 'show']);
     Route::put('/profile', [GuideProfileController::class, 'update']);
 
+    // Settings
+    Route::post('/settings/password', [\App\Http\Controllers\Owner\SettingsController::class, 'updatePassword']);
+
     // Bookings
     Route::get('/bookings', [GuideBookingController::class, 'index']);
     Route::get('/bookings/{booking}', [GuideBookingController::class, 'show']);
