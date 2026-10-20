@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -11,7 +11,7 @@ import {
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { guide as guideApi, notifications as notifApi } from '../../lib/api';
+import { guide as guideApi, notifications as notifApi, auth } from '../../lib/api';
 import { colors } from '../../theme';
 import { GuideBookingsList } from '../../components/guide/GuideBookingsList';
 
@@ -38,6 +38,20 @@ interface Booking {
 
 export default function GuideDashboardScreen() {
   const router = useRouter();
+
+  // Force redirect to profile if password_must_change is set
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await auth.user();
+        if ((res.data as any).password_must_change) {
+          router.replace('/guide/profile');
+        }
+      } catch {
+        // ignore
+      }
+    })();
+  }, [router]);
   const insets = useSafeAreaInsets();
   const [unreadCount, setUnreadCount] = useState(0);
   const [profile, setProfile] = useState<GuideProfile | null>(null);

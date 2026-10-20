@@ -1,4 +1,5 @@
 import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
 import { GuideBookingsClient } from '@/components/guide/GuideBookingsClient';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL!;
@@ -56,9 +57,31 @@ async function getProfile(token: string): Promise<GuideProfile | null> {
 
  
 
+async function getCurrentUser(token: string) {
+  try {
+    const res = await fetch(`${API_URL}/user`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: 'application/json',
+      },
+      cache: 'no-store',
+    });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
+
 export default async function GuideDashboardPage() {
   const token = await getToken();
   if (!token) return null;
+
+  // Force redirect to profile if password_must_change is set
+  const currentUser = await getCurrentUser(token);
+  if (currentUser && currentUser.password_must_change) {
+    redirect('/guide/profile?force=true');
+  }
 
   const [bookings, profile] = await Promise.all([
     getBookings(token),

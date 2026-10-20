@@ -66,6 +66,7 @@ class TourGuideController extends Controller
                 'role' => 'guide',
                 'is_approved' => true,
                 'is_suspended' => false,
+                'password_must_change' => true,
             ]);
 
             return TourGuide::create([

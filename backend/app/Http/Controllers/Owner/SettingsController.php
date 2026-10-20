@@ -57,6 +57,7 @@ class SettingsController extends Controller
 
         $user->update([
             'password' => Hash::make($data['password']),
+            'password_must_change' => false,
         ]);
 
         return response()->json(['message' => 'Password updated.']);
