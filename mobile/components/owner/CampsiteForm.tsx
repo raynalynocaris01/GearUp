@@ -19,6 +19,7 @@ import { owner } from '../../lib/api';
 import type { Campsite, CreateCampsitePayload } from '@gearup/shared';
 import { colors } from '../../theme';
 import { PricingLinesEditor } from './PricingLinesEditor';
+import { imgSrc } from '../../lib/images';
 
 interface Props {
   mode: 'create' | 'edit';
@@ -393,7 +394,7 @@ export function CampsiteForm({ mode, initial }: Props) {
         <Field label="Campsite photo">
           {imageUri && (
             <Image
-              source={{ uri: imageUri }}
+              source={{ uri: imgSrc(imageUri) }}
               style={styles.imagePreview}
               resizeMode="cover"
             />

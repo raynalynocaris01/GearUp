@@ -16,6 +16,7 @@ import { useRouter } from 'expo-router';
 import { owner } from '../../lib/api';
 import type { EventItem } from '@gearup/shared';
 import { colors } from '../../theme';
+import { imgSrc } from '../../lib/images';
 
 interface Props {
   mode: 'create' | 'edit';
@@ -257,7 +258,7 @@ export function EventForm({ mode, initial }: Props) {
           <View style={{ marginBottom: 16 }}>
             <Text style={styles.label}>Preview</Text>
             <Image
-              source={{ uri: form.image_url }}
+              source={{ uri: imgSrc(form.image_url) }}
               style={styles.imagePreview}
               resizeMode="cover"
             />
