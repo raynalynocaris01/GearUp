@@ -36,7 +36,7 @@ export default async function GuideProfilePage() {
 
   if (!profile) {
     return (
-      <div className="max-w-2xl mx-auto bg-white rounded-xl border border-gray-100 p-8">
+    <div className="max-w-2xl">
         <p className="text-gray-600 text-sm">
           Could not load your guide profile. Please try again later.
         </p>
@@ -45,7 +45,7 @@ export default async function GuideProfilePage() {
   }
 
   return (
-    <div>
+    <div className="max-w-2xl mx-auto">
       <div className="mb-8">
         <h1 className="text-3xl font-black text-gray-900">Your Guide Profile</h1>
         <p className="text-sm text-gray-500 mt-1">

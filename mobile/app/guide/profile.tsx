@@ -40,6 +40,12 @@ export default function GuideProfileScreen() {
   const [contact, setContact] = useState('');
   const [description, setDescription] = useState('');
 
+  // Password change state
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [changingPassword, setChangingPassword] = useState(false);
+
   useEffect(() => {
     (async () => {
       try {
@@ -57,6 +63,46 @@ export default function GuideProfileScreen() {
       }
     })();
   }, []);
+
+  const handleChangePassword = async () => {
+    if (newPassword !== confirmPassword) {
+      Alert.alert('Passwords do not match', 'New password and confirmation must match.');
+      return;
+    }
+    if (newPassword.length < 8) {
+      Alert.alert('Too short', 'New password must be at least 8 characters.');
+      return;
+    }
+    if (!currentPassword) {
+      Alert.alert('Required', 'Please enter your current password.');
+      return;
+    }
+
+    setChangingPassword(true);
+    try {
+      await guideApi.settings.changePassword({
+        current_password: currentPassword,
+        password: newPassword,
+        password_confirmation: confirmPassword,
+      });
+      Alert.alert('Success', 'Your password has been updated.', [
+        { text: 'OK', onPress: () => router.back() },
+      ]);
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch (err: any) {
+      const msg =
+        err?.response?.data?.errors?.current_password?.[0] ??
+        err?.response?.data?.errors?.password?.[0] ??
+        err?.response?.data?.message ??
+        err?.message ??
+        'Could not change password.';
+      Alert.alert('Error', msg);
+    } finally {
+      setChangingPassword(false);
+    }
+  };
 
   const handleSave = async () => {
     if (!price.trim()) {
@@ -196,6 +242,60 @@ export default function GuideProfileScreen() {
             <Text style={styles.saveText}>Save Changes</Text>
           )}
         </TouchableOpacity>
+
+        {/* Divider */}
+        <View style={styles.divider} />
+
+        {/* Change password section */}
+        <Text style={styles.sectionTitle}>Change password</Text>
+        <Text style={styles.sectionHint}>
+          Keep your account secure by using a password you don't use elsewhere.
+        </Text>
+
+        <Field label="Current password">
+          <TextInput
+            value={currentPassword}
+            onChangeText={setCurrentPassword}
+            secureTextEntry
+            placeholder="Enter your current password"
+            placeholderTextColor={colors.textMuted}
+            style={styles.input}
+          />
+        </Field>
+
+        <Field label="New password (min 8 characters)">
+          <TextInput
+            value={newPassword}
+            onChangeText={setNewPassword}
+            secureTextEntry
+            placeholder="Enter new password"
+            placeholderTextColor={colors.textMuted}
+            style={styles.input}
+          />
+        </Field>
+
+        <Field label="Confirm new password">
+          <TextInput
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
+            secureTextEntry
+            placeholder="Re-enter new password"
+            placeholderTextColor={colors.textMuted}
+            style={styles.input}
+          />
+        </Field>
+
+        <TouchableOpacity
+          onPress={handleChangePassword}
+          disabled={changingPassword}
+          style={[styles.saveBtn, changingPassword && styles.saveBtnDisabled]}
+        >
+          {changingPassword ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.saveText}>Update password</Text>
+          )}
+        </TouchableOpacity>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -297,4 +397,20 @@ const styles = StyleSheet.create({
   },
   saveBtnDisabled: { opacity: 0.6 },
   saveText: { color: '#fff', fontSize: 15, fontWeight: '800' },
+  divider: {
+    height: 1,
+    backgroundColor: '#e5e7eb',
+    marginVertical: 28,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '900',
+    color: '#111827',
+    marginBottom: 4,
+  },
+  sectionHint: {
+    fontSize: 12,
+    color: '#6b7280',
+    marginBottom: 20,
+  },
 });

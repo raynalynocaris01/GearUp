@@ -899,4 +899,11 @@ export const guideApi = (client: ApiClient) => ({
     decline: (id: number | string) =>
       client.put<GuideBookingPayload>(`/guide/bookings/${id}/decline`),
   },
+  settings: {
+    changePassword: (payload: {
+      current_password: string;
+      password: string;
+      password_confirmation: string;
+    }) => client.post<{ message: string }>('/guide/settings/password', payload),
+  },
 });
