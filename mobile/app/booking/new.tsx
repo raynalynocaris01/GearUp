@@ -589,7 +589,7 @@ export default function NewBookingScreen() {
                 ? new Date()
                 : isoToDate(checkIn)
             }
-            onChange={(event, date) => {
+            onValueChange={(event, date) => {
               if (Platform.OS === 'android') setShowPicker(null);
               if (!date) return;
               const iso = toDateString(date);
@@ -602,6 +602,7 @@ export default function NewBookingScreen() {
                 setCheckOut(iso);
               }
             }}
+            onDismiss={() => setShowPicker(null)}
           />
         )}
 
