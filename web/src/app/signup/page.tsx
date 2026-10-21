@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
+import { Mail, Lock as LockIcon } from 'lucide-react';
 
 // ──────────────────────────────────────────────────────────
 // Icon components (module-level, defined once per module)
@@ -167,9 +168,7 @@ export default function SignupPage() {
 
             {/* Email */}
             <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg">
-                ✉
-              </span>
+              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
               <input
                 type="email"
                 value={email}
@@ -185,9 +184,7 @@ export default function SignupPage() {
 
             {/* Password */}
             <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg">
-                🔒
-              </span>
+              <LockIcon className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
               <input
                 type={showPassword ? 'text' : 'password'}
                 value={password}
@@ -208,9 +205,7 @@ export default function SignupPage() {
 
             {/* Confirmed password */}
             <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg">
-                🔒
-              </span>
+              <LockIcon className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
               <input
                 type={showPasswordConfirmation ? 'text' : 'password'}
                 value={passwordConfirmation}
