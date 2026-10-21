@@ -79,6 +79,7 @@ export default function BusinessSignupPage() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
+        terms_accepted: true,
         name: `${firstName} ${lastName}`.trim(),
         email,
         password,

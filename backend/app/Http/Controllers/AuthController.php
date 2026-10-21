@@ -18,6 +18,7 @@ class AuthController extends Controller
             'password'     => ['required', 'string', 'min:8', 'confirmed'],
             'device_name'  => ['required', 'string'],
             'role'         => ['sometimes', 'in:customer,owner,guide'],
+            'terms_accepted' => ['required', 'accepted'],
         ]);
 
         $role = $data['role'] ?? 'customer';
@@ -29,6 +30,7 @@ class AuthController extends Controller
             'role'         => $role,
             'is_approved'  => $role === 'customer', // owners and guides need approval
             'is_suspended' => false,
+            'terms_accepted_at' => now(),
         ]);
 
         if ($role === 'owner' || $role === 'guide') {

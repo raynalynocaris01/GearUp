@@ -81,6 +81,7 @@ export const authApi = (client: ApiClient) => ({
         password_confirmation: passwordConfirmation,
         device_name: deviceName,
         role,
+        terms_accepted: true,
       }),
 
   user: () => client.get<AuthUser>('/user'),

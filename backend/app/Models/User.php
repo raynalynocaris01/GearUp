@@ -19,6 +19,7 @@ class User extends Authenticatable
         'is_approved',
         'is_suspended',
         'password_must_change',
+        'terms_accepted_at',
     ];
 
     protected $hidden = [
@@ -34,6 +35,7 @@ class User extends Authenticatable
             'is_approved' => 'boolean',
             'is_suspended' => 'boolean',
             'password_must_change' => 'boolean',
+            'terms_accepted_at' => 'datetime',
         ];
     }
 
