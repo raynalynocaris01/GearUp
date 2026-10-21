@@ -11,9 +11,12 @@ import {
   Image,
   KeyboardAvoidingView,
   Platform,
+  Pressable,
+  Modal,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { campsites, bookings, tourGuides, gear } from '../../lib/api';
 import type { Campsite, GearItem } from '@gearup/shared';
 import { colors } from '../../theme';
@@ -25,6 +28,15 @@ function toDateString(d: Date): string {
   const mm = String(d.getMonth() + 1).padStart(2, '0');
   const dd = String(d.getDate()).padStart(2, '0');
   return `${yyyy}-${mm}-${dd}`;
+}
+
+function isoToDate(iso: string): Date {
+  return new Date(iso + 'T00:00:00');
+}
+
+function formatDateLabel(iso: string): string {
+  const d = new Date(iso + 'T00:00:00');
+  return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
 }
 
 function addDays(d: Date, days: number): Date {
@@ -56,6 +68,7 @@ export default function NewBookingScreen() {
 
   const [checkIn, setCheckIn] = useState(toDateString(tomorrow));
   const [checkOut, setCheckOut] = useState(toDateString(dayAfter));
+  const [showPicker, setShowPicker] = useState<null | 'checkIn' | 'checkOut'>(null);
   const [guests, setGuests] = useState(1);
   const [adults, setAdults] = useState(1);
   const [children, setChildren] = useState(0);
@@ -541,31 +554,56 @@ export default function NewBookingScreen() {
         {/* Dates */}
         <Text style={styles.sectionTitle}>Dates</Text>
         <View style={styles.fieldCard}>
-          <View style={styles.fieldRow}>
-            <Text style={styles.fieldLabel}>Check-in</Text>
-            <TextInput
-              style={styles.dateInput}
-              value={checkIn}
-              onChangeText={setCheckIn}
-              placeholder="YYYY-MM-DD"
-              placeholderTextColor={colors.textMuted}
-            />
-          </View>
+          <TouchableOpacity
+            style={styles.dateRow}
+            onPress={() => setShowPicker('checkIn')}
+            activeOpacity={0.7}
+          >
+            <View>
+              <Text style={styles.dateRowLabel}>CHECK-IN</Text>
+              <Text style={styles.dateRowValue}>{formatDateLabel(checkIn)}</Text>
+            </View>
+            <Ionicons name="calendar-outline" size={22} color={colors.textMuted} />
+          </TouchableOpacity>
           <View style={styles.divider} />
-          <View style={styles.fieldRow}>
-            <Text style={styles.fieldLabel}>Check-out</Text>
-            <TextInput
-              style={styles.dateInput}
-              value={checkOut}
-              onChangeText={setCheckOut}
-              placeholder="YYYY-MM-DD"
-              placeholderTextColor={colors.textMuted}
-            />
-          </View>
+          <TouchableOpacity
+            style={styles.dateRow}
+            onPress={() => setShowPicker('checkOut')}
+            activeOpacity={0.7}
+          >
+            <View>
+              <Text style={styles.dateRowLabel}>CHECK-OUT</Text>
+              <Text style={styles.dateRowValue}>{formatDateLabel(checkOut)}</Text>
+            </View>
+            <Ionicons name="calendar-outline" size={22} color={colors.textMuted} />
+          </TouchableOpacity>
         </View>
-        <Text style={styles.hint}>
-          Use YYYY-MM-DD format. Example: {toDateString(tomorrow)}
-        </Text>
+
+        {showPicker && (
+          <DateTimePicker
+            value={isoToDate(showPicker === 'checkIn' ? checkIn : checkOut)}
+            mode="date"
+            display={Platform.OS === 'ios' ? 'inline' : 'default'}
+            minimumDate={
+              showPicker === 'checkIn'
+                ? new Date()
+                : isoToDate(checkIn)
+            }
+            onChange={(event, date) => {
+              if (Platform.OS === 'android') setShowPicker(null);
+              if (!date) return;
+              const iso = toDateString(date);
+              if (showPicker === 'checkIn') {
+                setCheckIn(iso);
+                if (iso >= checkOut) {
+                  setCheckOut(toDateString(addDays(date, 1)));
+                }
+              } else {
+                setCheckOut(iso);
+              }
+            }}
+          />
+        )}
 
         {/* Accommodation picker */}
         {campsite.children && campsite.children.length > 0 && (
@@ -1201,13 +1239,23 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   fieldLabel: { fontSize: 14, color: '#111827', fontWeight: '600' },
-  dateInput: {
-    fontSize: 14,
-    color: colors.gearupGreen,
-    fontWeight: '700',
-    textAlign: 'right',
-    minWidth: 120,
+  dateRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     paddingVertical: 4,
+  },
+  dateRowLabel: {
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+    color: '#6b7280',
+    marginBottom: 4,
+  },
+  dateRowValue: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: colors.gearupGreen,
   },
   divider: {
     height: 1,
