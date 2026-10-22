@@ -106,7 +106,7 @@ export function AboutSection() {
             <div className="h-px bg-gray-300 w-full mt-2" />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {[
               {
                 title: 'Book Campsites',
@@ -123,13 +123,8 @@ export function AboutSection() {
                 desc: 'Get the right equipment for your adventure — from tents and backpacks to hiking and camping gear.',
                 icon: <><rect x="4" y="8" width="16" height="14" rx="2"/><path d="M8 8V4a4 4 0 018 0v4"/></>,
               },
-              {
-                title: 'Join Events',
-                desc: 'Be part of guided trips, workshops, and outdoor events to meet new people and explore more.',
-                icon: <><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><polygon points="12 14 13.5 17 16.5 17 14.5 19 15 22 12 20 9 22 9.5 19 7.5 17 10.5 17 12 14"/></>,
-              },
             ].map((item, i) => (
-              <div key={i} className={`text-center flex flex-col items-center ${i !== 3 ? 'lg:border-r lg:border-gray-200' : ''}`}>
+              <div key={i} className={`text-center flex flex-col items-center ${i !== 2 ? 'lg:border-r lg:border-gray-200' : ''}`}>
                 <div className="w-24 h-24 bg-[#f3f6f1] rounded-full flex items-center justify-center mb-6">
                   <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#1e6b3a" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                     {item.icon}
