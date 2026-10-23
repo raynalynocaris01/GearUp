@@ -36,9 +36,17 @@ export function TourGuidesManager({ campsiteId, initialGuides }: Props) {
     if (!adding) return;
     fetch('/api/owner/tour-guides')
       .then((res) => (res.ok ? res.json() : []))
-      .then((data) => setMyGuides(Array.isArray(data) ? data : []))
+      .then((data) => {
+        const all = Array.isArray(data) ? data : [];
+        // Filter out guides already attached to THIS campsite
+        const available = all.filter(
+          (g: TourGuide & { campsite_id?: number | null }) =>
+            !g.campsite_id || g.campsite_id !== campsiteId,
+        );
+        setMyGuides(available);
+      })
       .catch(() => setMyGuides([]));
-  }, [adding]);
+  }, [adding, campsiteId]);
 
 
   const [form, setForm] = useState({
