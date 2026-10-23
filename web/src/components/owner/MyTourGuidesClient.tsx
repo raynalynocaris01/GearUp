@@ -56,7 +56,7 @@ export function MyTourGuidesClient({ guides }: Props) {
     if (!creating) return;
     let cancelled = false;
     setLoadingCampsites(true);
-    fetch('/api/owner/campsites')
+    fetch('/api/owner/campsites?parents_only=1')
       .then((r) => (r.ok ? r.json() : []))
       .then((data) => {
         if (!cancelled) setCampsites(Array.isArray(data) ? data : []);

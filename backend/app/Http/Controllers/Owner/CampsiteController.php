@@ -11,6 +11,7 @@ class CampsiteController extends Controller
             public function index(Request $request)
     {
         $campsites = Campsite::where('owner_id', $request->user()->id)
+            ->when($request->boolean('parents_only'), fn ($q) => $q->whereNull('parent_campsite_id'))
             ->with('tourGuides')
             ->withCount('bookings')
             ->withSum(['bookings as revenue' => function ($query) {
