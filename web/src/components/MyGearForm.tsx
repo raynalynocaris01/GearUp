@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type { GearItem } from '@gearup/shared';
+import { appImageSrc } from '@/components/AppImage';
 
 interface Props {
   mode: 'create' | 'edit';
@@ -235,7 +236,7 @@ export function MyGearForm({ mode, initial }: Props) {
           <div className="relative w-full h-48 rounded-lg overflow-hidden border border-gray-200 bg-gray-50">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={previewUrl}
+              src={appImageSrc(previewUrl)}
               alt="Gear preview"
               className="w-full h-full object-cover"
               onLoad={() => console.log('[preview] image loaded:', previewUrl)}
