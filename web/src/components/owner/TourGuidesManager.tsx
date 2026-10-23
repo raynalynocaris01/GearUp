@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
+import { Mail } from 'lucide-react';
 interface TourGuide {
   id: number;
   name: string;
@@ -24,6 +25,7 @@ export function TourGuidesManager({ campsiteId, initialGuides }: Props) {
   const [loading, setLoading] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [error, setError] = useState('');
+  const [tempPassword, setTempPassword] = useState<string | null>(null);
 
   const [form, setForm] = useState({
     name: '',
@@ -45,6 +47,10 @@ export function TourGuidesManager({ campsiteId, initialGuides }: Props) {
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    if (!form.email.trim()) {
+      setError('Email is required.');
+      return;
+    }
     setLoading(true);
 
     try {
@@ -59,7 +65,7 @@ export function TourGuidesManager({ campsiteId, initialGuides }: Props) {
             price_per_trip: form.price_per_trip
               ? Number(form.price_per_trip)
               : 0,
-            email: form.email || undefined,
+            email: form.email,
             description: form.description || undefined,
           }),
         },
@@ -73,6 +79,7 @@ export function TourGuidesManager({ campsiteId, initialGuides }: Props) {
       }
 
       setGuides((prev) => [...prev, data]);
+      if (data.temp_password) setTempPassword(data.temp_password);
       resetForm();
       setAdding(false);
       router.refresh();
@@ -138,7 +145,7 @@ export function TourGuidesManager({ campsiteId, initialGuides }: Props) {
                 </p>
 
                 {g.email && (
-                  <p className="text-sm text-gray-600">✉️ {g.email}</p>
+                        <p className="text-sm text-gray-600"><Mail className="inline-block h-4 w-4 mr-1 text-gray-500" /> {g.email}</p>
                 )}
                 {g.description && (
                   <p className="text-sm text-gray-500 mt-2 italic">
@@ -239,10 +246,11 @@ export function TourGuidesManager({ campsiteId, initialGuides }: Props) {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">
-              Email (optional)
+              Email *
             </label>
             <input
               type="email"
+              required
               value={form.email}
               onChange={(e) =>
                 setForm((f) => ({ ...f, email: e.target.value }))
@@ -295,6 +303,45 @@ export function TourGuidesManager({ campsiteId, initialGuides }: Props) {
         >
           + Add a tour guide
         </button>
+      )}
+
+      {/* Temp password display after successful creation */}
+      {tempPassword && (
+        <div className="bg-green-50 border border-green-200 rounded-2xl p-6 space-y-3">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h3 className="font-bold text-green-900 text-lg">
+                Tour guide created
+              </h3>
+              <p className="text-sm text-green-800 mt-1">
+                Share this temp password with the guide so they can log in:
+              </p>
+              <div className="mt-3 flex items-center gap-3 bg-white border border-green-300 rounded-lg px-4 py-3">
+                <code className="font-mono text-base font-bold text-green-900 flex-1 break-all">
+                  {tempPassword}
+                </code>
+                <button
+                  type="button"
+                  onClick={() => navigator.clipboard.writeText(tempPassword)}
+                  className="text-xs font-semibold text-green-700 hover:text-green-900 px-3 py-1.5 rounded border border-green-300 bg-green-100 hover:bg-green-200 transition shrink-0"
+                >
+                  Copy
+                </button>
+              </div>
+              <p className="text-xs text-green-700 mt-2">
+                They should change this password after first login.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setTempPassword(null)}
+              className="text-green-700 hover:text-green-900 text-xl font-bold leading-none"
+              aria-label="Dismiss"
+            >
+              ×
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );

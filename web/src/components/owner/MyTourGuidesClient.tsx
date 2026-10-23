@@ -47,6 +47,7 @@ export function MyTourGuidesClient({ guides }: Props) {
   });
   const [savingEdit, setSavingEdit] = useState(false);
   const [editError, setEditError] = useState('');
+  const [tempPassword, setTempPassword] = useState<string | null>(null);
 
   const counts = useMemo(
     () => ({
@@ -77,6 +78,10 @@ export function MyTourGuidesClient({ guides }: Props) {
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    if (!form.email.trim()) {
+      setError('Email is required.');
+      return;
+    }
     setSubmitting(true);
     try {
       const res = await fetch('/api/owner/tour-guides', {
@@ -89,7 +94,7 @@ export function MyTourGuidesClient({ guides }: Props) {
             ? Number(form.price_per_trip)
             : 0,
           location: form.location.trim() || undefined,
-          email: form.email.trim() || undefined,
+          email: form.email.trim(),
           description: form.description.trim() || undefined,
         }),
       });
@@ -101,6 +106,7 @@ export function MyTourGuidesClient({ guides }: Props) {
             'Could not create guide.',
         );
       }
+      if (data.temp_password) setTempPassword(data.temp_password);
       resetForm();
       setCreating(false);
       router.refresh();
@@ -307,10 +313,11 @@ export function MyTourGuidesClient({ guides }: Props) {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">
-              Email (optional)
+              Email *
             </label>
             <input
               type="email"
+              required
               value={form.email}
               onChange={(e) =>
                 setForm((f) => ({ ...f, email: e.target.value }))
@@ -360,6 +367,45 @@ export function MyTourGuidesClient({ guides }: Props) {
             </button>
           </div>
         </form>
+      )}
+
+      {/* Temp password display after successful creation */}
+      {tempPassword && (
+        <div className="bg-green-50 border border-green-200 rounded-2xl p-6 space-y-3">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h3 className="font-bold text-green-900 text-lg">
+                Tour guide created
+              </h3>
+              <p className="text-sm text-green-800 mt-1">
+                Share this temp password with the guide so they can log in:
+              </p>
+              <div className="mt-3 flex items-center gap-3 bg-white border border-green-300 rounded-lg px-4 py-3">
+                <code className="font-mono text-base font-bold text-green-900 flex-1 break-all">
+                  {tempPassword}
+                </code>
+                <button
+                  type="button"
+                  onClick={() => navigator.clipboard.writeText(tempPassword)}
+                  className="text-xs font-semibold text-green-700 hover:text-green-900 px-3 py-1.5 rounded border border-green-300 bg-green-100 hover:bg-green-200 transition shrink-0"
+                >
+                  Copy
+                </button>
+              </div>
+              <p className="text-xs text-green-700 mt-2">
+                They should change this password after first login.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setTempPassword(null)}
+              className="text-green-700 hover:text-green-900 text-xl font-bold leading-none"
+              aria-label="Dismiss"
+            >
+              x
+            </button>
+          </div>
+        </div>
       )}
 
             {/* Guides list */}
