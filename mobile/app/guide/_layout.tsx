@@ -57,7 +57,7 @@ export default function GuideLayout() {
   if (!user.is_approved) {
     return (
       <View style={styles.pending}>
-        <Text style={styles.pendingIcon}>⏳</Text>
+        <Ionicons name="hourglass-outline" size={56} color="#d97706" style={{ marginBottom: 16 }} />
         <Text style={styles.pendingTitle}>Pending approval</Text>
         <Text style={styles.pendingText}>
           Your guide account is being reviewed. You&apos;ll be able to accept
