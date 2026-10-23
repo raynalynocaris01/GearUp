@@ -56,6 +56,50 @@ class GearItemController extends Controller
         return response()->json(['message' => 'Gear item deleted.']);
     }
 
+    /**
+     * POST /api/owner/gear/{gearItem}/image
+     * Accepts a single image file and replaces the gear item's image.
+     */
+    public function uploadImage(Request $request, GearItem $gearItem)
+    {
+        $this->authorizeOwner($request, $gearItem);
+
+        $request->validate([
+            'image' => [
+                'required',
+                'file',
+                'image',
+                'mimes:jpg,jpeg,png,webp',
+                'max:2048', // 2 MB
+            ],
+        ]);
+
+        // Delete the old file if it was a local storage upload
+        $oldUrl = $gearItem->image_url;
+        if ($oldUrl && str_contains($oldUrl, '/storage/gear/')) {
+            $oldPath = 'gear/' . basename($oldUrl);
+            if (\Storage::disk('public')->exists($oldPath)) {
+                \Storage::disk('public')->delete($oldPath);
+            }
+        }
+
+        // Store the new file
+        $file = $request->file('image');
+        $extension = $file->getClientOriginalExtension();
+        $filename = 'gear-' . $gearItem->id . '-' . time() . '.' . $extension;
+
+        $file->storeAs('gear', $filename, 'public');
+
+        $url = '/storage/gear/' . $filename;
+
+        $gearItem->update(['image_url' => $url]);
+
+        return response()->json([
+            'message' => 'Image uploaded.',
+            'image_url' => $url,
+            'gear' => $gearItem->fresh(),
+        ]);
+    }
     private function validateGear(Request $request, bool $partial = false): array
     {
         $rules = [
