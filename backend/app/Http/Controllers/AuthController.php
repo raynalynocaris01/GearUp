@@ -187,4 +187,34 @@ class AuthController extends Controller
             'user' => $user->fresh(),
         ]);
     }
+
+    /**
+     * POST /api/user/change-password
+     * Universal password change for any authenticated user (customer, owner, guide, admin).
+     */
+    public function changePassword(Request $request)
+    {
+        $user = $request->user();
+
+        $data = $request->validate([
+            'current_password' => ['required', 'string'],
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
+        ]);
+
+        if (!\Hash::check($data['current_password'], $user->password)) {
+            return response()->json([
+                'message' => 'Current password is incorrect.',
+                'errors' => [
+                    'current_password' => ['Current password is incorrect.'],
+                ],
+            ], 422);
+        }
+
+        $user->update([
+            'password' => \Hash::make($data['password']),
+            'password_must_change' => false,
+        ]);
+
+        return response()->json(['message' => 'Password updated.']);
+    }
 }

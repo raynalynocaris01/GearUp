@@ -49,6 +49,7 @@ Route::get('/home/recommended', [\App\Http\Controllers\HomeController::class, 'r
 // ─── Authenticated (any role) ────────────────────────────
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user',   [AuthController::class, 'user']);
+    Route::post('/user/change-password', [AuthController::class, 'changePassword']);
     Route::post('/user/avatar', [AuthController::class, 'uploadAvatar']);
     Route::post('/logout',[AuthController::class, 'logout']);
 
