@@ -395,6 +395,15 @@ export const ownerApi = (client: ApiClient) => ({
       },
     ),
 
+  uploadGearImage: (id: number | string, formData: FormData) =>
+    client.post<{ message: string; image_url: string; gear: GearItem }>(
+      `/owner/gear/${id}/image`,
+      formData,
+      {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      },
+    ),
+
   // Pricing lines (detailed mode)
   listPricingLines: (campsiteId: number | string) =>
     client.get<PricingLine[]>(
@@ -724,6 +733,15 @@ export const myGearApi = (client: ApiClient) => ({
 
   remove: (id: number | string) =>
     client.delete<{ message: string }>(`/my/gear/${id}`),
+
+  uploadMyGearImage: (id: number | string, formData: FormData) =>
+    client.post<{ message: string; image_url: string; gear: GearItem }>(
+      `/my/gear/${id}/image`,
+      formData,
+      {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      },
+    ),
 
   bookings: (params?: { status?: string }) =>
     client.get<Booking[]>('/my/gear-bookings', { params }),
