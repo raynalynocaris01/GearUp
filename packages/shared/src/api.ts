@@ -95,6 +95,12 @@ export const authApi = (client: ApiClient) => ({
       },
     ),
 
+  changePassword: (payload: {
+    current_password: string;
+    password: string;
+    password_confirmation: string;
+  }) => client.post<{ message: string }>('/user/change-password', payload),
+
   becomeGuide: () => client.post<AuthUser>('/user/become-guide'),
 
   logout: () => client.post<{ message: string }>('/logout'),
