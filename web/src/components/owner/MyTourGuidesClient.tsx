@@ -1,9 +1,9 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import type { TourGuide } from '@gearup/shared';
+import type { Campsite, TourGuide } from '@gearup/shared';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 
 type FilterKey = 'all' | 'attached' | 'independent';
@@ -23,6 +23,7 @@ export function MyTourGuidesClient({ guides }: Props) {
   const [filter, setFilter] = useState<FilterKey>('all');
   const [creating, setCreating] = useState(false);
   const [form, setForm] = useState({
+    campsite_id: '' as number | '',
     name: '',
     contact_number: '',
     price_per_trip: '',
@@ -48,6 +49,28 @@ export function MyTourGuidesClient({ guides }: Props) {
   const [savingEdit, setSavingEdit] = useState(false);
   const [editError, setEditError] = useState('');
   const [tempPassword, setTempPassword] = useState<string | null>(null);
+  const [campsites, setCampsites] = useState<Campsite[]>([]);
+  const [loadingCampsites, setLoadingCampsites] = useState(false);
+
+  useEffect(() => {
+    if (!creating) return;
+    let cancelled = false;
+    setLoadingCampsites(true);
+    fetch('/api/owner/campsites')
+      .then((r) => (r.ok ? r.json() : []))
+      .then((data) => {
+        if (!cancelled) setCampsites(Array.isArray(data) ? data : []);
+      })
+      .catch(() => {
+        if (!cancelled) setCampsites([]);
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingCampsites(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [creating]);
 
   const counts = useMemo(
     () => ({
@@ -67,6 +90,7 @@ export function MyTourGuidesClient({ guides }: Props) {
 
   const resetForm = () =>
     setForm({
+      campsite_id: '',
       name: '',
       contact_number: '',
       price_per_trip: '',
@@ -84,7 +108,11 @@ export function MyTourGuidesClient({ guides }: Props) {
     }
     setSubmitting(true);
     try {
-      const res = await fetch('/api/owner/tour-guides', {
+      const url =
+        form.campsite_id !== ''
+          ? `/api/owner/campsites/${form.campsite_id}/tour-guides`
+          : '/api/owner/tour-guides';
+      const res = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -250,6 +278,39 @@ export function MyTourGuidesClient({ guides }: Props) {
             Tour guides help customers plan and lead their trips.
 
           </p>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              Campsite (optional)
+            </label>
+            <select
+              value={form.campsite_id === '' ? '' : String(form.campsite_id)}
+              onChange={(e) =>
+                setForm((f) => ({
+                  ...f,
+                  campsite_id: e.target.value ? Number(e.target.value) : '',
+                }))
+              }
+              disabled={loadingCampsites}
+              className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-gearup-600 disabled:opacity-60"
+            >
+              <option value="">
+                {loadingCampsites
+                  ? 'Loading campsites...'
+                  : 'No campsite (independent guide)'}
+              </option>
+              {campsites.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+            <p className="text-xs text-gray-500 mt-1">
+              Attached guides appear on their campsite page. Leave blank to
+              create an independent guide that appears on the public Tour
+              Guides directory.
+            </p>
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
