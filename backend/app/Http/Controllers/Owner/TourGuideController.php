@@ -125,7 +125,7 @@ class TourGuideController extends Controller
      */
     /**
      * POST /api/owner/campsites/{campsite}/attach-guide
-     * Attach an existing guide profile to this campsite.
+     * Attach an existing guide profile to this campsite by ID.
      */
     public function attach(Request $request, Campsite $campsite)
     {
