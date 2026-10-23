@@ -3,9 +3,10 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { appImageSrc } from './AppImage';
 
 type UserMenuProps = {
-  user: { name: string; email: string; role?: string };
+  user: { name: string; email: string; role?: string; avatar_url?: string | null };
 };
 
 export function UserMenu({ user }: UserMenuProps) {
@@ -65,8 +66,17 @@ export function UserMenu({ user }: UserMenuProps) {
         aria-haspopup="menu"
         aria-expanded={open}
       >
-        <div className="w-7 h-7 rounded-full bg-gearup-600 text-white flex items-center justify-center text-xs font-bold">
-          {user.name.charAt(0).toUpperCase()}
+        <div className="w-7 h-7 rounded-full bg-gearup-600 text-white flex items-center justify-center text-xs font-bold overflow-hidden">
+          {user.avatar_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={appImageSrc(user.avatar_url)}
+              alt={user.name}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            user.name.charAt(0).toUpperCase()
+          )}
         </div>
         <span className="text-sm font-medium text-gray-800">
           Hi, {firstName}

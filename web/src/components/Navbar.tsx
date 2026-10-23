@@ -12,6 +12,7 @@ type NavbarProps = {
     email: string;
     role?: string;
     is_approved?: boolean;
+    avatar_url?: string | null;
   } | null;
 };
 
