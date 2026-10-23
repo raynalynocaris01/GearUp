@@ -24,7 +24,7 @@ const EMPTY: GearItem = {
   description: '',
   category: 'Tent',
   price_per_day: '',
-  image_url: 'https://picsum.photos/seed/newgear/600/400',
+  image_url: '',
   stock: 1,
   is_available: true,
 };
@@ -47,10 +47,26 @@ export function GearForm({ mode, initial }: Props) {
   const [errors, setErrors] = useState<Record<string, string[]>>({});
   const [generalError, setGeneralError] = useState('');
 
+  // File upload state
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(initial?.image_url ?? null);
+
   const update = <K extends keyof GearItem>(
     key: K,
     value: GearItem[K],
   ) => setForm((f) => ({ ...f, [key]: value }));
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null;
+    setImageFile(file);
+    if (file) {
+      const localUrl = URL.createObjectURL(file);
+      setPreviewUrl(localUrl);
+    } else {
+      setPreviewUrl(form.image_url || null);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,7 +80,8 @@ export function GearForm({ mode, initial }: Props) {
         description: form.description,
         category: form.category,
         price_per_day: Number(form.price_per_day),
-        image_url: form.image_url,
+        // Send the existing URL, or an empty string which we'll bypass validation for later
+        image_url: form.image_url || 'https://picsum.photos/seed/newgear/600/400',
         stock: Number(form.stock),
         is_available: form.is_available,
       };
@@ -87,12 +104,33 @@ export function GearForm({ mode, initial }: Props) {
         return;
       }
 
+      const gearId = mode === 'create' ? data.id : initial?.id;
+
+      // 2. Upload the image if one was selected
+      if (imageFile && gearId) {
+        setUploadingImage(true);
+        const formData = new FormData();
+        formData.append('image', imageFile);
+
+        const uploadRes = await fetch(`/api/owner/gear/${gearId}/image`, {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!uploadRes.ok) {
+          const uploadData = await uploadRes.json().catch(() => ({}));
+          setGeneralError(uploadData.message ?? 'Image upload failed.');
+          return;
+        }
+      }
+
       router.push('/owner/gear');
       router.refresh();
     } catch {
       setGeneralError('Network error. Please try again.');
     } finally {
       setSubmitting(false);
+      setUploadingImage(false);
     }
   };
 
@@ -176,18 +214,16 @@ export function GearForm({ mode, initial }: Props) {
         </Field>
       </div>
 
-      <Field label="Image URL" error={errors.image_url?.[0]}>
+      <Field label="Gear Image" error={errors.image_url?.[0]}>
         <input
-          type="url"
-          value={form.image_url}
-          onChange={(e) => update('image_url', e.target.value)}
-          placeholder="https://example.com/photo.jpg"
-          required
-          className={inputClass}
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          onChange={handleFileChange}
+          className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gearup-600 focus:border-transparent"
         />
       </Field>
 
-      {form.image_url && (
+      {previewUrl && (
         <div>
           <p className="text-sm font-medium text-gray-700 mb-1.5">
             Preview
@@ -195,7 +231,7 @@ export function GearForm({ mode, initial }: Props) {
           <div className="relative w-full h-48 rounded-lg overflow-hidden border border-gray-200 bg-gray-50">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={form.image_url}
+              src={previewUrl}
               alt="Gear preview"
               className="w-full h-full object-cover"
               onError={(e) => {
