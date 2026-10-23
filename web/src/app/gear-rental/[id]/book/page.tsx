@@ -4,6 +4,7 @@ import { notFound, redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
 import { Navbar } from '@/components/Navbar';
 import { BookingForm } from '@/components/BookingForm';
+import { appImageSrc } from '@/components/AppImage';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL!;
 
@@ -114,7 +115,7 @@ export default async function BookGearPage({
               {gear.image_url && (
                 <div className="relative h-44 bg-gray-100">
                   <Image
-                    src={gear.image_url}
+                    src={appImageSrc(gear.image_url)}
                     alt={gear.name}
                     fill
                     sizes="400px"
