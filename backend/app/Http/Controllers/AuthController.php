@@ -143,4 +143,48 @@ class AuthController extends Controller
 
         return response()->json(['message' => 'Logged out']);
     }
+
+    /**
+     * POST /api/user/avatar
+     * Upload (or replace) the authenticated user's profile picture.
+     */
+    public function uploadAvatar(Request $request)
+    {
+        $request->validate([
+            'image' => [
+                'required',
+                'file',
+                'image',
+                'mimes:jpg,jpeg,jfif,png,webp',
+                'max:2048', // 2 MB
+            ],
+        ]);
+
+        $user = $request->user();
+
+        // Delete previous avatar file if it was a local storage upload
+        $oldUrl = $user->avatar_url;
+        if ($oldUrl && str_contains($oldUrl, '/storage/avatars/')) {
+            $oldPath = 'avatars/' . basename($oldUrl);
+            if (\Storage::disk('public')->exists($oldPath)) {
+                \Storage::disk('public')->delete($oldPath);
+            }
+        }
+
+        // Store new avatar
+        $file = $request->file('image');
+        $extension = $file->getClientOriginalExtension();
+        $filename = 'avatar-' . $user->id . '-' . time() . '.' . $extension;
+        $file->storeAs('avatars', $filename, 'public');
+
+        $url = '/storage/avatars/' . $filename;
+
+        $user->update(['avatar_url' => $url]);
+
+        return response()->json([
+            'message' => 'Avatar uploaded.',
+            'avatar_url' => $url,
+            'user' => $user->fresh(),
+        ]);
+    }
 }
