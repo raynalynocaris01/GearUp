@@ -31,4 +31,6 @@ packages/*/dist/
 Thumbs.db
 .idea/
 .vscode/
-*.swp
+*.swp*.bak
+*.bak2
+*.bak3
