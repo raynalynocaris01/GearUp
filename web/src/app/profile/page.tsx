@@ -136,11 +136,6 @@ export default async function ProfilePage() {
         {/* Account section */}
         <Section title="Account" rows={accountRows} />
 
-        {/* Activity section */}
-        <Section
-          title="Activity"
-          rows={[{ href: '/notifications', label: 'Notifications' }]}
-        />
 
         {/* About section */}
         <Section title="About" rows={aboutRows} />
