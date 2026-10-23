@@ -22,9 +22,25 @@ const getToken = () => SecureStore.getItemAsync(TOKEN_KEY);
 
 const clearToken = () => SecureStore.deleteItemAsync(TOKEN_KEY);
 
-const handleUnauthorized = async () => {
+const handleUnauthorized = async (url: string) => {
   await clearToken();
-  router.replace('/login');
+
+  // Only redirect to login if a PROTECTED endpoint returned 401.
+  // Public endpoints just clear the stale token — user continues as guest.
+  const protectedPrefixes = [
+    '/user',
+    '/bookings',
+    '/owner/',
+    '/guide/',
+    '/admin/',
+    '/my/',
+  ];
+
+  const isProtected = protectedPrefixes.some((p) => url.includes(p));
+
+  if (isProtected) {
+    router.replace('/login');
+  }
 };
 
 export const api = createApiClient({

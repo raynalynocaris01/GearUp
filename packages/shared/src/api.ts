@@ -5,7 +5,7 @@ export type TokenProvider = () => Promise<string | null>;
 export interface ApiClientOptions {
   baseURL: string;
   getToken: TokenProvider;
-  onUnauthorized?: () => void | Promise<void>;
+  onUnauthorized?: (url: string) => void | Promise<void>;
 }
 
 export const createApiClient = ({
@@ -29,7 +29,7 @@ export const createApiClient = ({
       if (error.response?.status === 401) {
         const url = error.config?.url ?? '';
         if (!url.endsWith('/logout') && onUnauthorized) {
-          await onUnauthorized();
+          await onUnauthorized(url);
         }
       }
       return Promise.reject(error);
@@ -346,7 +346,7 @@ export interface CreateCampsitePayload {
 export interface CreateTourGuidePayload {
   name: string;
   contact_number: string;
-  email?: string;
+  email: string;
   description?: string;
   price_per_trip?: number;
   location?: string;
@@ -424,8 +424,10 @@ export const ownerApi = (client: ApiClient) => ({
     client.get<TourGuide[]>(`/owner/campsites/${campsiteId}/tour-guides`),
 
   createTourGuide: (campsiteId: number | string, payload: CreateTourGuidePayload) =>
-    client.post<TourGuide>(`/owner/campsites/${campsiteId}/tour-guides`, payload),
-
+    client.post<{ guide: TourGuide; temp_password: string; message: string }>(
+      `/owner/campsites/${campsiteId}/tour-guides`,
+      payload,
+    ),
   deleteTourGuide: (guideId: number | string) =>
     client.delete(`/owner/tour-guides/${guideId}`),
   
@@ -434,7 +436,7 @@ export const ownerApi = (client: ApiClient) => ({
 
   // Create an independent guide (no campsite)
   createIndependentGuide: (payload: CreateTourGuidePayload) =>
-    client.post<TourGuide>('/owner/tour-guides', {
+    client.post<{ guide: TourGuide; temp_password: string; message: string }>('/owner/tour-guides', {
       ...payload,
       is_independent: true,
     }),
@@ -599,7 +601,7 @@ export const adminApi = (client: ApiClient) => ({
     client.get<TourGuide[]>('/admin/tour-guides', { params }),
 
   createTourGuide: (payload: CreateTourGuidePayload) =>
-    client.post<TourGuide>('/admin/tour-guides', payload),
+    client.post<{ guide: TourGuide; temp_password: string; message: string }>('/admin/tour-guides', payload),
 
   updateTourGuide: (
     id: number | string,
