@@ -31,7 +31,7 @@ class GearItemController extends Controller
             'description' => ['nullable', 'string'],
             'category' => ['required', 'string', 'max:100'],
             'price_per_day' => ['required', 'numeric', 'min:0'],
-            'image_url' => ['nullable', 'url', 'max:2048'],
+            'image_url' => ['nullable', 'string', 'max:2048'],
             'stock' => ['required', 'integer', 'min:1'],
             'is_available' => ['sometimes', 'boolean'],
         ]);
@@ -72,7 +72,7 @@ class GearItemController extends Controller
             'description' => ['nullable', 'string'],
             'category' => ['sometimes', 'string', 'max:100'],
             'price_per_day' => ['sometimes', 'numeric', 'min:0'],
-            'image_url' => ['nullable', 'url', 'max:2048'],
+            'image_url' => ['nullable', 'string', 'max:2048'],
             'stock' => ['sometimes', 'integer', 'min:1'],
             'is_available' => ['sometimes', 'boolean'],
         ]);
