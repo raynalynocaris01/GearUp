@@ -261,7 +261,7 @@ export default async function OwnerDashboardPage() {
           <Link
             key={c.label}
             href={c.href}
-            className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition p-5"
+            className="bg-slate-50 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition p-5"
           >
             <div
               className={`w-11 h-11 rounded-xl ${c.accent} flex items-center justify-center mb-4`}
@@ -291,7 +291,7 @@ export default async function OwnerDashboardPage() {
       <UpcomingBookings bookings={bookings} limit={3} />
 
       {/* Quick start */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
+      <div className="bg-slate-50 rounded-2xl border border-gray-100 shadow-sm p-8">
         <h2 className="text-lg font-bold text-gray-900 mb-2">
           Quick start
         </h2>
