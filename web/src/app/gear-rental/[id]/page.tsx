@@ -173,12 +173,18 @@ export default async function GearDetailPage({
 
               {gear.is_available && gear.stock > 0 ? (
                 <>
-                  <Link
-                    href={bookHref}
-                    className="block w-full bg-gearup-600 hover:bg-gearup-700 text-white font-semibold text-center py-3 rounded-lg transition"
-                  >
-                    {isGuest ? 'Sign in to Rent' : 'Rent this Gear'}
-                  </Link>
+                  {isOwnGear ? (
+                    <div className="block w-full bg-gray-200 text-gray-500 font-semibold text-center py-3 rounded-lg cursor-not-allowed select-none">
+                      You can't book your own gear
+                    </div>
+                  ) : (
+                    <Link
+                      href={bookHref}
+                      className="block w-full bg-gearup-600 hover:bg-gearup-700 text-white font-semibold text-center py-3 rounded-lg transition"
+                    >
+                      {isGuest ? 'Sign in to Rent' : 'Rent this Gear'}
+                    </Link>
+                  )}
                   {isGuest && (
                     <p className="text-xs text-gray-500 text-center mt-3">
                       You need an account to rent gear.
