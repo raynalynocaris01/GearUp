@@ -138,14 +138,6 @@ export default function OwnerLayout() {
         name="notifications"
         options={{ title: 'Notifications', drawerItemStyle: { display: 'none' } }}
       />
-      <Drawer.Screen
-        name="gear/new"
-        options={{ headerShown: false, drawerItemStyle: { display: 'none' } }}
-      />
-      <Drawer.Screen
-        name="gear/[id]/edit"
-        options={{ headerShown: false, drawerItemStyle: { display: 'none' } }}
-      />
     </Drawer>
   );
 }
