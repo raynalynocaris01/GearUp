@@ -264,17 +264,17 @@ export function MyTourGuidesClient({ initialGuides, onRefresh }: Props) {
             color="#fff"
           />
           <Text style={styles.createBtnText}>
-            {creating ? 'Cancel' : 'New independent guide'}
+            {creating ? 'Cancel' : 'New tour guide'}
           </Text>
         </TouchableOpacity>
 
         {/* Create form */}
         {creating && (
           <View style={styles.formCard}>
-            <Text style={styles.formTitle}>Add independent guide</Text>
+            <Text style={styles.formTitle}>Add tour guide</Text>
             <Text style={styles.formHint}>
-              Independent guides are not attached to a campsite. They appear in
-              the public Tour Guides directory.
+              Tour guides help customers plan and lead their trips.
+
             </Text>
 
             <Text style={styles.label}>Full name *</Text>

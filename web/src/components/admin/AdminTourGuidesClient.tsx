@@ -230,7 +230,7 @@ export function AdminTourGuidesClient({ guides }: Props) {
           onClick={() => setCreating((v) => !v)}
           className="inline-flex items-center gap-2 bg-gearup-600 hover:bg-gearup-700 text-white font-semibold text-sm px-5 py-3 rounded-lg transition"
         >
-          {creating ? 'Cancel' : '+ New independent guide'}
+          {creating ? 'Cancel' : '+ New tour guide'}
         </button>
       </div>
 

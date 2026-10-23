@@ -233,7 +233,7 @@ export function MyTourGuidesClient({ guides }: Props) {
           onClick={() => setCreating((v) => !v)}
           className="inline-flex items-center gap-2 bg-gearup-600 hover:bg-gearup-700 text-white font-semibold text-sm px-5 py-3 rounded-lg transition"
         >
-          {creating ? 'Cancel' : '+ New independent guide'}
+          {creating ? 'Cancel' : '+ New tour guide'}
         </button>
       </div>
 
@@ -244,11 +244,11 @@ export function MyTourGuidesClient({ guides }: Props) {
           className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4"
         >
           <h3 className="font-bold text-gray-900 text-lg">
-            Add independent guide
+            Add tour guide
           </h3>
           <p className="text-xs text-gray-500">
-            Independent guides are not attached to a campsite. They appear in
-            the public Tour Guides directory.
+            Tour guides help customers plan and lead their trips.
+
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
