@@ -175,13 +175,21 @@ export default function GearDetailScreen() {
           <Text style={styles.ctaPriceUnit}>per day</Text>
         </View>
         {available ? (
-          <TouchableOpacity
-            style={styles.ctaButton}
-            onPress={() => router.push(`/gear-rental/${item.id}/book`)}
-            activeOpacity={0.85}
-          >
-            <Text style={styles.ctaButtonText}>Rent this Gear</Text>
-          </TouchableOpacity>
+          isOwnGear ? (
+            <View style={[styles.ctaButton, { backgroundColor: '#e5e7eb' }]}>
+              <Text style={[styles.ctaButtonText, { color: '#6b7280' }]}>
+                You can't book your own gear
+              </Text>
+            </View>
+          ) : (
+            <TouchableOpacity
+              style={styles.ctaButton}
+              onPress={() => router.push(`/gear-rental/${item.id}/book`)}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.ctaButtonText}>Rent this Gear</Text>
+            </TouchableOpacity>
+          )
         ) : (
           <View style={[styles.ctaButton, styles.ctaDisabled]}>
             <Text style={styles.ctaDisabledText}>Unavailable</Text>
