@@ -15,6 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { owner } from '../../lib/api';
 import type { TourGuide } from '@gearup/shared';
 import { colors } from '../../theme';
+import * as Clipboard from 'expo-clipboard';
 
 interface Props {
   campsiteId: number;
@@ -26,6 +27,7 @@ export function TourGuidesManager({ campsiteId, initialGuides }: Props) {
   const [adding, setAdding] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [tempPassword, setTempPassword] = useState<string | null>(null);
 
   const [form, setForm] = useState({
   name: '',
@@ -56,16 +58,33 @@ export function TourGuidesManager({ campsiteId, initialGuides }: Props) {
     );
     return;
   }
+    if (!form.email.trim()) {
+      Alert.alert('Missing email', 'Email is required to create a guide account.');
+      return;
+    }
     setSubmitting(true);
     try {
       const res = await owner.createTourGuide(campsiteId, {
         name: form.name.trim(),
         contact_number: form.contact_number.trim(),
         price_per_trip: Number(form.price_per_trip),
-        email: form.email.trim() || undefined,
+        email: form.email.trim(),
         description: form.description.trim() || undefined,
       });
-      setGuides((prev) => [...prev, res.data]);
+      setGuides((prev) => [...prev, res.data.guide]);
+      if (res.data.temp_password) {
+        Alert.alert(
+          'Tour guide created',
+          `Temp password: ${res.data.temp_password}\n\nShare this with the guide so they can log in. They should change it on first login.`,
+          [
+            {
+              text: 'Copy password',
+              onPress: () => Clipboard.setStringAsync(res.data.temp_password),
+            },
+            { text: 'OK', style: 'cancel' },
+          ],
+        );
+      }
       resetForm();
       setAdding(false);
     } catch (err: any) {
@@ -187,7 +206,7 @@ export function TourGuidesManager({ campsiteId, initialGuides }: Props) {
               style={styles.input}
               value={form.email}
               onChangeText={(v) => setForm((f) => ({ ...f, email: v }))}
-              placeholder="Email (optional)"
+              placeholder="Email *"
               placeholderTextColor={colors.textMuted}
               autoCapitalize="none"
               keyboardType="email-address"

@@ -16,6 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { owner } from '../../lib/api';
 import type { TourGuide } from '@gearup/shared';
 import { colors } from '../../theme';
+import * as Clipboard from 'expo-clipboard';
 
 type FilterKey = 'all' | 'attached' | 'independent';
 
@@ -50,6 +51,7 @@ export function MyTourGuidesClient({ initialGuides, onRefresh }: Props) {
   });
   const [savingEdit, setSavingEdit] = useState(false);
   const [editError, setEditError] = useState('');
+  const [tempPassword, setTempPassword] = useState<string | null>(null);
 
   const [form, setForm] = useState({
     name: '',
@@ -93,18 +95,26 @@ export function MyTourGuidesClient({ initialGuides, onRefresh }: Props) {
       Alert.alert('Missing fields', 'Name and contact number are required.');
       return;
     }
+    if (!form.email.trim()) {
+      Alert.alert('Missing email', 'Email is required to create a guide account.');
+      return;
+    }
     setSubmitting(true);
     try {
-      await owner.createIndependentGuide({
+      const res = await owner.createIndependentGuide({
         name: form.name.trim(),
         contact_number: form.contact_number.trim(),
         price_per_trip: form.price_per_trip
           ? Number(form.price_per_trip)
           : 0,
         location: form.location.trim() || undefined,
-        email: form.email.trim() || undefined,
+        email: form.email.trim(),
         description: form.description.trim() || undefined,
       });
+
+      if (res.data.temp_password) {
+        setTempPassword(res.data.temp_password);
+      }
       resetForm();
       setCreating(false);
       await onRefresh?.();
@@ -309,7 +319,7 @@ export function MyTourGuidesClient({ initialGuides, onRefresh }: Props) {
               placeholderTextColor="#9ca3af"
             />
 
-            <Text style={styles.label}>Email (optional)</Text>
+            <Text style={styles.label}>Email *</Text>
             <TextInput
               style={styles.input}
               value={form.email}
@@ -365,6 +375,36 @@ export function MyTourGuidesClient({ initialGuides, onRefresh }: Props) {
                 ) : (
                   <Text style={styles.submitBtnText}>Add guide</Text>
                 )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+
+        {/* Temp password display after successful creation */}
+        {tempPassword && (
+          <View style={styles.tempPasswordBox}>
+            <Text style={styles.tempPasswordTitle}>Tour guide created</Text>
+            <Text style={styles.tempPasswordHint}>
+              Share this temp password with the guide so they can log in:
+            </Text>
+            <View style={styles.tempPasswordCode}>
+              <Text style={styles.tempPasswordText}>{tempPassword}</Text>
+            </View>
+            <View style={styles.tempPasswordActions}>
+              <TouchableOpacity
+                onPress={async () => {
+                  await Clipboard.setStringAsync(tempPassword);
+                  Alert.alert('Copied', 'Temp password copied to clipboard.');
+                }}
+                style={styles.tempPasswordCopyBtn}
+              >
+                <Text style={styles.tempPasswordCopyText}>Copy password</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => setTempPassword(null)}
+                style={styles.tempPasswordDismiss}
+              >
+                <Text style={styles.tempPasswordDismissText}>Dismiss</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -611,6 +651,69 @@ export function MyTourGuidesClient({ initialGuides, onRefresh }: Props) {
 }
 
 const styles = StyleSheet.create({
+  tempPasswordBox: {
+    backgroundColor: "#f0fdf4",
+    borderWidth: 1,
+    borderColor: "#86efac",
+    borderRadius: 14,
+    padding: 16,
+    marginBottom: 16,
+  },
+  tempPasswordTitle: {
+    fontSize: 16,
+    fontWeight: "800",
+    color: "#14532d",
+    marginBottom: 4,
+  },
+  tempPasswordHint: {
+    fontSize: 12,
+    color: "#166534",
+    marginBottom: 10,
+  },
+  tempPasswordCode: {
+    backgroundColor: "#ffffff",
+    borderWidth: 1,
+    borderColor: "#86efac",
+    borderRadius: 10,
+    padding: 12,
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  tempPasswordText: {
+    fontSize: 16,
+    fontWeight: "800",
+    color: "#14532d",
+    fontFamily: "monospace",
+    letterSpacing: 1,
+  },
+  tempPasswordActions: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    alignItems: "center",
+    gap: 12,
+    marginTop: 4,
+  },
+  tempPasswordCopyBtn: {
+    backgroundColor: "#16a34a",
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  tempPasswordCopyText: {
+    color: "#ffffff",
+    fontSize: 12,
+    fontWeight: "800",
+  },
+  tempPasswordDismiss: {
+    alignSelf: "flex-end",
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+  },
+  tempPasswordDismissText: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#166534",
+  },
   scrollContent: { padding: 16 },
 
   filtersRow: {
