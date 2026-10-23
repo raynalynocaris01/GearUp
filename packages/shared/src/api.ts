@@ -86,6 +86,15 @@ export const authApi = (client: ApiClient) => ({
 
   user: () => client.get<AuthUser>('/user'),
 
+  uploadAvatar: (formData: FormData) =>
+    client.post<{ message: string; avatar_url: string; user: AuthUser }>(
+      '/user/avatar',
+      formData,
+      {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      },
+    ),
+
   becomeGuide: () => client.post<AuthUser>('/user/become-guide'),
 
   logout: () => client.post<{ message: string }>('/logout'),

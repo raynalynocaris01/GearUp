@@ -10,6 +10,9 @@ import {
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
+import { Image } from 'react-native';
+import { imgSrc } from '../../lib/images';
 import { auth, clearToken, hasToken } from '../../lib/api';
 import { colors } from '../../theme';
 
@@ -18,6 +21,7 @@ type UserRole = 'admin' | 'owner' | 'customer' | 'guide';
 type ProfileUser = {
   name: string;
   email: string;
+  avatar_url: string | null;
   role: UserRole;
   is_approved: boolean;
 };
@@ -36,6 +40,7 @@ export default function ProfileScreen() {
     setUser({
       name: data.name,
       email: data.email,
+      avatar_url: (data as any).avatar_url ?? null,
       role: (data.role ?? 'customer') as UserRole,
       is_approved: data.is_approved ?? false,
     });
@@ -65,6 +70,7 @@ export default function ProfileScreen() {
             setUser({
               name: data.name,
               email: data.email,
+              avatar_url: (data as any).avatar_url ?? null,
               role: (data.role ?? 'customer') as UserRole,
               is_approved: data.is_approved ?? false,
             });
@@ -82,6 +88,40 @@ export default function ProfileScreen() {
       };
     }, []),
   );
+
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+
+  const handleAvatarPress = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission needed', 'Please allow photo access to update your avatar.');
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+    if (result.canceled || !result.assets[0]) return;
+
+    const uri = result.assets[0].uri;
+    setUploadingAvatar(true);
+    try {
+      const formData = new FormData();
+      const filename = uri.split('/').pop() ?? 'avatar.jpg';
+      const match = /\.(\w+)$/.exec(filename);
+      const type = match ? `image/${match[1]}` : 'image/jpeg';
+      formData.append('image', { uri, name: filename, type } as any);
+
+      await auth.uploadAvatar(formData);
+      await fetchUser();
+    } catch (err: any) {
+      Alert.alert('Upload failed', err?.response?.data?.message ?? 'Could not upload avatar.');
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
 
   const handleLogout = async () => {
     try {
@@ -179,11 +219,29 @@ export default function ProfileScreen() {
     >
       {/* ── Header ──────────────────────────────────── */}
       <View style={styles.profileHeader}>
-        <View style={styles.avatar}>
-          <Text style={styles.avatarText}>
-            {user.name.charAt(0).toUpperCase()}
-          </Text>
-        </View>
+        <TouchableOpacity
+          style={styles.avatarWrap}
+          onPress={handleAvatarPress}
+          activeOpacity={0.8}
+          disabled={uploadingAvatar}
+        >
+          {user.avatar_url ? (
+            <Image source={{ uri: imgSrc(user.avatar_url) }} style={styles.avatar} />
+          ) : (
+            <View style={styles.avatar}>
+              <Text style={styles.avatarText}>
+                {user.name.charAt(0).toUpperCase()}
+              </Text>
+            </View>
+          )}
+          <View style={styles.avatarEditBadge}>
+            {uploadingAvatar ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <Ionicons name="camera" size={14} color="#fff" />
+            )}
+          </View>
+        </TouchableOpacity>
         <Text style={styles.name}>{user.name}</Text>
         <Text style={styles.email}>{user.email}</Text>
         <View style={styles.roleBadge}>
@@ -370,6 +428,20 @@ const styles = StyleSheet.create({
     backgroundColor: '#f9fafb',
   },
   profileHeader: { alignItems: 'center', gap: 6, marginBottom: 24 },
+  avatarWrap: { position: 'relative', marginBottom: 8 },
+  avatarEditBadge: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    backgroundColor: colors.gearupGreen,
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    borderWidth: 2,
+    borderColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   avatar: {
     width: 80,
     height: 80,
