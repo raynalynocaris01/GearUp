@@ -238,8 +238,10 @@ export function MyGearForm({ mode, initial }: Props) {
               src={previewUrl}
               alt="Gear preview"
               className="w-full h-full object-cover"
+              onLoad={() => console.log('[preview] image loaded:', previewUrl)}
               onError={(e) => {
-                (e.target as HTMLImageElement).style.display = 'none';
+                console.error('[preview] failed to load:', previewUrl);
+                (e.target as HTMLImageElement).style.opacity = '0.2';
               }}
             />
           </div>
