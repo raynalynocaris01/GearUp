@@ -122,7 +122,26 @@ class TourGuideController extends Controller
      */
     public function destroy(TourGuide $tourGuide)
     {
-        $tourGuide->delete();
+        // Block deletion if active bookings exist
+        $hasActiveBookings = $tourGuide->bookings()
+            ->whereIn('status', ['pending', 'confirmed'])
+            ->exists();
+
+        if ($hasActiveBookings) {
+            return response()->json([
+                'message' => 'Cannot delete a guide with active bookings. Cancel or complete them first.',
+            ], 409);
+        }
+
+        DB::transaction(function () use ($tourGuide) {
+            $userId = $tourGuide->user_id;
+            $tourGuide->delete();
+            if ($userId) {
+                User::where('id', $userId)
+                    ->where('role', 'guide')
+                    ->update(['is_suspended' => true]);
+            }
+        });
 
         return response()->json(['message' => 'Tour guide removed.']);
     }
