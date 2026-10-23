@@ -8,13 +8,11 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
-  KeyboardAvoidingView,
-  Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { guide as guideApi } from '../../lib/api';
+import { auth, guide as guideApi } from '../../lib/api';
 import { colors } from '../../theme';
 
 interface GuideProfile {
@@ -45,11 +43,18 @@ export default function GuideProfileScreen() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [changingPassword, setChangingPassword] = useState(false);
+  const [mustChangePassword, setMustChangePassword] = useState(false);
 
   useEffect(() => {
     (async () => {
       try {
         const res = await guideApi.profile.get();
+
+        // Fetch user to check if password must be changed
+        try {
+          const userRes = await auth.user();
+          setMustChangePassword((userRes.data as any).password_must_change === true);
+        } catch {}
         setProfile(res.data);
         setPrice(res.data.price_per_trip);
         setLocation(res.data.location ?? '');
@@ -88,6 +93,7 @@ export default function GuideProfileScreen() {
       Alert.alert('Success', 'Your password has been updated.', [
         { text: 'OK', onPress: () => router.back() },
       ]);
+      setMustChangePassword(false);
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
@@ -145,17 +151,32 @@ export default function GuideProfileScreen() {
   }
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={[
+        styles.scrollContent,
+        { paddingTop: insets.top + 16, paddingBottom: 300 },
+      ]}
+      keyboardShouldPersistTaps="handled"
+      keyboardDismissMode="interactive"
+      automaticallyAdjustKeyboardInsets
+      showsVerticalScrollIndicator={false}
     >
-      <ScrollView
-        style={styles.container}
-        contentContainerStyle={[
-          styles.scrollContent,
-          { paddingTop: insets.top + 16 },
-        ]}
-      >
+        {/* Password change required banner */}
+        {mustChangePassword && (
+          <View style={styles.forceBanner}>
+            <Ionicons name="warning-outline" size={24} color="#92400e" />
+            <View style={{ flex: 1 }}>
+              <Text style={styles.forceBannerTitle}>
+                Password change required
+              </Text>
+              <Text style={styles.forceBannerText}>
+                Please set a new password before continuing.
+              </Text>
+            </View>
+          </View>
+        )}
+
         {/* Header */}
         <View style={styles.headerRow}>
           <TouchableOpacity
@@ -297,7 +318,6 @@ export default function GuideProfileScreen() {
           )}
         </TouchableOpacity>
       </ScrollView>
-    </KeyboardAvoidingView>
   );
 }
 
@@ -317,6 +337,28 @@ function Field({
 }
 
 const styles = StyleSheet.create({
+  forceBanner: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+    backgroundColor: '#fef3c7',
+    borderWidth: 1,
+    borderColor: '#fcd34d',
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 16,
+  },
+  forceBannerTitle: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#92400e',
+    marginBottom: 2,
+  },
+  forceBannerText: {
+    fontSize: 12,
+    color: '#78350f',
+    lineHeight: 16,
+  },
   container: { flex: 1, backgroundColor: '#f9fafb' },
   scrollContent: { padding: 16, paddingBottom: 40 },
   center: {
