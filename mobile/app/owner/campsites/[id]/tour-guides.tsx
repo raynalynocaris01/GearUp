@@ -62,7 +62,7 @@ export default function TourGuidesScreen() {
           >
             <TourGuidesManager
               campsiteId={campsite.id}
-              initialGuides={guides}
+              initialGuides={guides.filter((g, i, arr) => arr.findIndex(x => x.id === g.id) === i)}
             />
           </ScrollView>
         </>
