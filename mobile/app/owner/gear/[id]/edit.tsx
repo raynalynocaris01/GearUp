@@ -3,6 +3,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { View, StyleSheet, ActivityIndicator, Text } from 'react-native';
 import { GearForm } from '../../../../components/owner/GearForm';
+import { OwnerHeader } from '../../../../components/owner/OwnerHeader';
 import { owner } from '../../../../lib/api';
 
 export default function EditGearScreen() {
@@ -25,7 +26,8 @@ export default function EditGearScreen() {
   }, [id]);
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <OwnerHeader title="Edit Gear" />
       <View style={{ flex: 1 }}>
         {loading ? (
           <View style={styles.center}>
