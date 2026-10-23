@@ -392,7 +392,7 @@ export function CampsiteForm({ mode, initial }: Props) {
             }`}
           >
             <span
-              className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition ${
+              className={`inline-block h-5 w-5 transform rounded-full bg-slate-50 shadow transition ${
                 form.is_available ? 'translate-x-6' : 'translate-x-1'
               }`}
             />
@@ -558,7 +558,7 @@ function RoomVariantsSection({
           No rooms yet.
         </div>
       ) : (
-        <div className="bg-white border border-gray-100 rounded-lg divide-y divide-gray-100 mb-3">
+        <div className="bg-slate-50 border border-gray-100 rounded-lg divide-y divide-gray-100 mb-3">
           {rooms.map((room) => (
             <div
               key={room.id}

@@ -135,7 +135,7 @@ export default async function OwnerGearBookingDetailPage({
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-6">
           {/* Status + Customer */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+          <div className="bg-slate-50 rounded-2xl border border-gray-100 shadow-sm p-6">
             <div className="flex items-center gap-3 mb-4">
               <span
                 className={`inline-block text-[10px] font-extrabold tracking-wider px-2 py-1 rounded ${
@@ -167,7 +167,7 @@ export default async function OwnerGearBookingDetailPage({
           </div>
 
           {/* Dates */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+          <div className="bg-slate-50 rounded-2xl border border-gray-100 shadow-sm p-6">
             <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">
               Rental dates
             </p>
@@ -186,7 +186,7 @@ export default async function OwnerGearBookingDetailPage({
           </div>
 
           {/* Actions */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+          <div className="bg-slate-50 rounded-2xl border border-gray-100 shadow-sm p-6">
             <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4">
               Actions
             </p>

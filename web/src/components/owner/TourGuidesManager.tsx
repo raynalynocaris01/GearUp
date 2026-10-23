@@ -180,7 +180,7 @@ export function TourGuidesManager({ campsiteId, initialGuides }: Props) {
     <div className="space-y-4">
       {/* Guides list */}
       {guides.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-dashed border-gray-200 p-10 text-center">
+        <div className="bg-slate-50 rounded-2xl border border-dashed border-gray-200 p-10 text-center">
           <div className="text-4xl mb-3">🧭</div>
           <p className="text-sm text-gray-500">
             No tour guides yet. Add one below so customers know who can guide
@@ -192,7 +192,7 @@ export function TourGuidesManager({ campsiteId, initialGuides }: Props) {
           {guides.map((g) => (
             <div
               key={g.id}
-              className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex items-start justify-between gap-4"
+              className="bg-slate-50 rounded-2xl border border-gray-100 shadow-sm p-5 flex items-start justify-between gap-4"
             >
                             <div className="flex-1">
                 <div className="flex items-center justify-between gap-3">
@@ -250,7 +250,7 @@ export function TourGuidesManager({ campsiteId, initialGuides }: Props) {
       {adding ? (
         <form
           onSubmit={handleAdd}
-          className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4"
+          className="bg-slate-50 rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4"
         >
           <h3 className="font-bold text-gray-900 text-lg">
             Add a tour guide
@@ -423,7 +423,7 @@ export function TourGuidesManager({ campsiteId, initialGuides }: Props) {
               <p className="text-sm text-green-800 mt-1">
                 Share this temp password with the guide so they can log in:
               </p>
-              <div className="mt-3 flex items-center gap-3 bg-white border border-green-300 rounded-lg px-4 py-3">
+              <div className="mt-3 flex items-center gap-3 bg-slate-50 border border-green-300 rounded-lg px-4 py-3">
                 <code className="font-mono text-base font-bold text-green-900 flex-1 break-all">
                   {tempPassword}
                 </code>

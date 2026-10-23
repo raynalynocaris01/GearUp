@@ -269,7 +269,7 @@ export function MyTourGuidesClient({ guides }: Props) {
       {creating && (
         <form
           onSubmit={handleCreate}
-          className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4"
+          className="bg-slate-50 rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4"
         >
           <h3 className="font-bold text-gray-900 text-lg">
             Add tour guide
@@ -441,7 +441,7 @@ export function MyTourGuidesClient({ guides }: Props) {
               <p className="text-sm text-green-800 mt-1">
                 Share this temp password with the guide so they can log in:
               </p>
-              <div className="mt-3 flex items-center gap-3 bg-white border border-green-300 rounded-lg px-4 py-3">
+              <div className="mt-3 flex items-center gap-3 bg-slate-50 border border-green-300 rounded-lg px-4 py-3">
                 <code className="font-mono text-base font-bold text-green-900 flex-1 break-all">
                   {tempPassword}
                 </code>
@@ -471,7 +471,7 @@ export function MyTourGuidesClient({ guides }: Props) {
 
             {/* Guides list */}
       {visible.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-dashed border-gray-200 p-12 text-center">
+        <div className="bg-slate-50 rounded-2xl border border-dashed border-gray-200 p-12 text-center">
           <p className="text-base font-bold text-gray-900 mb-1">
             No guides {filter !== 'all' ? 'in this filter' : 'yet'}
           </p>
@@ -482,7 +482,7 @@ export function MyTourGuidesClient({ guides }: Props) {
           </p>
         </div>
       ) : (
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm divide-y divide-gray-100">
+        <div className="bg-slate-50 rounded-2xl border border-gray-100 shadow-sm divide-y divide-gray-100">
           {visible.map((g) => {
             const isEditing = editingId === g.id;
             return (

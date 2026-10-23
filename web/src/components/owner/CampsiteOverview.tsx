@@ -20,7 +20,7 @@ type Props = {
 export function CampsiteOverview({ campsites }: Props) {
   if (!campsites || campsites.length === 0) {
     return (
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-10">
+      <div className="bg-slate-50 rounded-2xl border border-gray-100 shadow-sm p-6 mb-10">
         <h2 className="text-lg font-bold text-gray-900 mb-4">
           Campsite Overview
         </h2>
@@ -38,7 +38,7 @@ export function CampsiteOverview({ campsites }: Props) {
     })}`;
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm mb-10 overflow-hidden">
+    <div className="bg-slate-50 rounded-2xl border border-gray-100 shadow-sm mb-10 overflow-hidden">
       <div className="flex items-center justify-between px-6 pt-6 pb-4">
         <div>
           <h2 className="text-lg font-bold text-gray-900">
