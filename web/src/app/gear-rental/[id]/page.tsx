@@ -69,6 +69,7 @@ export default async function GearDetailPage({
   if (!gear) notFound();
 
   const isGuest = !user;
+  const isOwnGear = !isGuest && user?.id === gear.owner_id;
   const bookHref = isGuest ? '/login' : `/gear-rental/${gear.id}/book`;
 
   return (

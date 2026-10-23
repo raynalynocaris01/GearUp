@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { gear } from '../../lib/api';
+import { gear , auth, hasToken } from '../../lib/api';
 import type { GearItem } from '@gearup/shared';
 import { colors } from '../../theme';
 import { imgSrc } from '../../lib/images';
@@ -22,6 +22,19 @@ export default function GearDetailScreen() {
   const [item, setItem] = useState<GearItem | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [userId, setUserId] = useState<number | null>(null);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const token = await hasToken();
+        if (token) {
+          const res = await auth.user();
+          setUserId(res.data.id);
+        }
+      } catch {}
+    })();
+  }, []);
 
   useEffect(() => {
     (async () => {
@@ -39,6 +52,8 @@ export default function GearDetailScreen() {
       }
     })();
   }, [id]);
+
+  const isOwnGear = !!(userId && item && userId === item.owner_id);
 
   if (loading) {
     return (

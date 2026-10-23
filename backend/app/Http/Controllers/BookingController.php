@@ -58,6 +58,35 @@ class BookingController extends Controller
         ]);
 
         $hasMultiGear = !empty($data['gear_items']);
+        // ── Own-listing guard ──────────────────────────────────────
+        // A user cannot book their own gear. Reject at API level so it
+        // can't happen via direct POST even if the UI is bypassed.
+        $authUserId = $request->user()?->id;
+
+        $gearIdsToCheck = [];
+        if (!empty($data['gear_item_id'])) {
+            $gearIdsToCheck[] = (int) $data['gear_item_id'];
+        }
+        if (!empty($data['gear_items']) && is_array($data['gear_items'])) {
+            foreach ($data['gear_items'] as $line) {
+                if (!empty($line['gear_item_id'])) {
+                    $gearIdsToCheck[] = (int) $line['gear_item_id'];
+                }
+            }
+        }
+
+        if ($authUserId && !empty($gearIdsToCheck)) {
+            $ownedGearExists = \App\Models\GearItem::whereIn('id', array_unique($gearIdsToCheck))
+                ->where('owner_id', $authUserId)
+                ->exists();
+            if ($ownedGearExists) {
+                throw ValidationException::withMessages([
+                    'gear_item_id' => [
+                        'You cannot book your own gear. Please remove your own listings from this booking.',
+                    ],
+                ]);
+            }
+        }
 
         if (
             empty($data['campsite_id']) &&
