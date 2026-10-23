@@ -69,7 +69,7 @@ class GearItemController extends Controller
                 'required',
                 'file',
                 'image',
-                'mimes:jpg,jpeg,png,webp',
+                'mimes:jpg,jpeg,jfif,png,webp',
                 'max:2048', // 2 MB
             ],
         ]);
@@ -107,7 +107,7 @@ class GearItemController extends Controller
             'description' => [$partial ? 'sometimes' : 'required', 'string'],
             'category' => [$partial ? 'sometimes' : 'required', 'string', 'max:100'],
             'price_per_day' => [$partial ? 'sometimes' : 'required', 'numeric', 'min:0'],
-            'image_url' => [$partial ? 'sometimes' : 'required', 'url'],
+            'image_url' => ['nullable', 'string', 'max:255'],
             'stock' => [$partial ? 'sometimes' : 'required', 'integer', 'min:0'],
             'is_available' => ['sometimes', 'boolean'],
         ];
