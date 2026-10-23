@@ -3,6 +3,7 @@ import Image from 'next/image';
 import { cookies } from 'next/headers';
 import { Navbar } from '@/components/Navbar';
 import { MyGearDeleteButton } from '@/components/MyGearDeleteButton';
+import { appImageSrc } from '@/components/AppImage';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL!;
 
@@ -107,7 +108,7 @@ export default async function MyGearPage() {
                 <div className="relative w-40 shrink-0 bg-gray-100">
                   {g.image_url ? (
                     <Image
-                      src={g.image_url}
+                      src={appImageSrc(g.image_url)}
                       alt={g.name}
                       fill
                       sizes="160px"
