@@ -238,6 +238,22 @@ class TourGuideController extends Controller
             ], 409);
         }
 
+        // If the guide is attached to a campsite, DETACH it instead of deleting.
+        // This keeps the guide in the owner's "My Tour Guides" pool so they
+        // can be re-attached to a campsite later. If the guide is already
+        // independent (campsite_id is null), we do a hard delete.
+        if ($tourGuide->campsite_id !== null) {
+            $tourGuide->update([
+                'campsite_id' => null,
+                'is_independent' => true,
+            ]);
+
+            return response()->json([
+                'message' => 'Tour guide detached from campsite. You can re-attach them anytime from My Tour Guides.',
+            ]);
+        }
+
+        // Independent guide — hard delete (user stays, guide profile is removed)
         DB::transaction(function () use ($tourGuide) {
             $userId = $tourGuide->user_id;
             $tourGuide->delete();
