@@ -107,7 +107,7 @@ export function TourGuidesManager({ campsiteId, initialGuides, onRefresh }: Prop
       });
 
       const savedGuide = res.data.guide ?? res.data;
-      setGuides((prev) => [...prev, savedGuide]);
+      setGuides((prev) => { const exists = prev.some((g) => g.id === savedGuide.id); return exists ? prev.map((g) => g.id === savedGuide.id ? savedGuide : g) : [...prev, savedGuide]; });
       if (res.data.temp_password) setTempPassword(res.data.temp_password);
 
       resetForm();
