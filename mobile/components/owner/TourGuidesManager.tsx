@@ -53,13 +53,18 @@ export function TourGuidesManager({ campsiteId, initialGuides, onRefresh }: Prop
     let cancelled = false;
     owner.listAllMyGuides()
       .then((res) => {
-        if (!cancelled) setMyGuides(res.data || []);
+        if (cancelled) return;
+        const all = res.data || [];
+        const available = all.filter(
+          (g: any) => !g.campsite_id || g.campsite_id !== campsiteId,
+        );
+        setMyGuides(available);
       })
       .catch(() => {
         if (!cancelled) setMyGuides([]);
       });
     return () => { cancelled = true; };
-  }, [adding]);
+  }, [adding, campsiteId]);
 
   const handleSelectGuide = (g: TourGuide) => {
     setSelectedGuideId(g.id);
@@ -97,6 +102,34 @@ export function TourGuidesManager({ campsiteId, initialGuides, onRefresh }: Prop
     }
 
     setLoading(true);
+    // If a chip is selected, attach by ID (no new account created)
+    if (selectedGuideId !== null) {
+      setLoading(true);
+      try {
+        const attachRes = await owner.attachGuide(campsiteId, selectedGuideId);
+        const attachedGuide = attachRes.data;
+        setGuides((prev) => {
+          const exists = prev.some((g) => g.id === attachedGuide.id);
+          return exists
+            ? prev.map((g) => (g.id === attachedGuide.id ? attachedGuide : g))
+            : [...prev, attachedGuide];
+        });
+        resetForm();
+        setAdding(false);
+        if (onRefresh) onRefresh();
+        return;
+      } catch (err: any) {
+        Alert.alert(
+          'Error',
+          err?.response?.data?.message || 'Could not attach guide.',
+        );
+        return;
+      } finally {
+        setLoading(false);
+      }
+    }
+
+
     try {
       const res = await owner.createTourGuide(campsiteId, {
         name: form.name.trim(),
