@@ -1,21 +1,30 @@
 import { useEffect, useState } from 'react';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   View,
   StyleSheet,
   ActivityIndicator,
-  Alert,
+  Text,
 } from 'react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router';
-import { owner } from '../../../../lib/api';
-import type { GearItem } from '@gearup/shared';
-import { OwnerHeader } from '../../../../components/owner/OwnerHeader';
 import { GearForm } from '../../../../components/owner/GearForm';
-import { colors } from '../../../../theme';
+import { OwnerHeader } from '../../../../components/owner/OwnerHeader';
+import { owner } from '../../../../lib/api';
+
+interface GearItem {
+  id?: number;
+  name: string;
+  description: string | null;
+  category: string;
+  price_per_day: string;
+  image_url: string | null;
+  stock: number;
+  is_available: boolean;
+}
 
 export default function EditGearScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
-
   const [item, setItem] = useState<GearItem | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -25,7 +34,6 @@ export default function EditGearScreen() {
         const res = await owner.getGear(id);
         setItem(res.data);
       } catch {
-        Alert.alert('Error', 'Could not load this gear item.');
         router.back();
       } finally {
         setLoading(false);
@@ -34,20 +42,24 @@ export default function EditGearScreen() {
   }, [id]);
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <OwnerHeader title="Edit Gear" />
-      {loading || !item ? (
-        <View style={styles.center}>
-          <ActivityIndicator size="large" color={colors.gearupGreen} />
-        </View>
-      ) : (
-        <GearForm mode="edit" initial={item} />
-      )}
-    </View>
+      <View style={{ flex: 1 }}>
+        {loading ? (
+          <View style={styles.center}>
+            <ActivityIndicator size="large" color="#15803d" />
+            <Text style={styles.loadingText}>Loading gear...</Text>
+          </View>
+        ) : item ? (
+          <GearForm mode="edit" initial={item} />
+        ) : null}
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f9fafb' },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  loadingText: { marginTop: 12, color: '#6b7280', fontSize: 14 },
 });

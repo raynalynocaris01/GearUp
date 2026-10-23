@@ -1,13 +1,19 @@
+import { useRouter } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { View, StyleSheet } from 'react-native';
-import { OwnerHeader } from '../../../components/owner/OwnerHeader';
 import { GearForm } from '../../../components/owner/GearForm';
+import { OwnerHeader } from '../../../components/owner/OwnerHeader';
 
 export default function NewGearScreen() {
+  const router = useRouter();
+
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <OwnerHeader title="Add Gear" />
-      <GearForm mode="create" />
-    </View>
+      <View style={{ flex: 1 }}>
+        <GearForm mode="create" />
+      </View>
+    </SafeAreaView>
   );
 }
 
