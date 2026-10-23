@@ -82,7 +82,7 @@ class EventController extends Controller
             'ends_at' => [$partial ? 'sometimes' : 'required', 'date', 'after:starts_at'],
             'price_per_person' => [$partial ? 'sometimes' : 'required', 'numeric', 'min:0'],
             'capacity' => [$partial ? 'sometimes' : 'required', 'integer', 'min:1'],
-            'image_url' => [$partial ? 'sometimes' : 'required', 'url'],
+            'image_url' => [$partial ? 'sometimes' : 'required', 'string'],
             'is_published' => ['sometimes', 'boolean'],
         ];
 
