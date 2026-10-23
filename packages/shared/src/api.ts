@@ -5,7 +5,7 @@ export type TokenProvider = () => Promise<string | null>;
 export interface ApiClientOptions {
   baseURL: string;
   getToken: TokenProvider;
-  onUnauthorized?: () => void | Promise<void>;
+  onUnauthorized?: (url: string) => void | Promise<void>;
 }
 
 export const createApiClient = ({
@@ -29,7 +29,7 @@ export const createApiClient = ({
       if (error.response?.status === 401) {
         const url = error.config?.url ?? '';
         if (!url.endsWith('/logout') && onUnauthorized) {
-          await onUnauthorized();
+          await onUnauthorized(url);
         }
       }
       return Promise.reject(error);
