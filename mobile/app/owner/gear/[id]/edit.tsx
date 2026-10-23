@@ -1,31 +1,14 @@
 import { useEffect, useState } from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import {
-  View,
-  StyleSheet,
-  ActivityIndicator,
-  Text,
-} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { View, StyleSheet, ActivityIndicator, Text } from 'react-native';
 import { GearForm } from '../../../../components/owner/GearForm';
-import { OwnerHeader } from '../../../../components/owner/OwnerHeader';
 import { owner } from '../../../../lib/api';
-
-interface GearItem {
-  id?: number;
-  name: string;
-  description: string | null;
-  category: string;
-  price_per_day: string;
-  image_url: string | null;
-  stock: number;
-  is_available: boolean;
-}
 
 export default function EditGearScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const [item, setItem] = useState<GearItem | null>(null);
+  const [item, setItem] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -42,8 +25,7 @@ export default function EditGearScreen() {
   }, [id]);
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <OwnerHeader title="Edit Gear" />
+    <SafeAreaView style={styles.container} edges={['bottom']}>
       <View style={{ flex: 1 }}>
         {loading ? (
           <View style={styles.center}>
