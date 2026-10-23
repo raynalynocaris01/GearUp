@@ -336,6 +336,11 @@ export default function ProfileScreen() {
           icon="calendar-outline"
           label="My bookings"
           onPress={() => router.push('/(tabs)/bookings' as any)}
+        />
+        <MenuRow
+          icon="lock-closed-outline"
+          label="Change password"
+          onPress={() => router.push('/profile/change-password' as any)}
           isLast={!(isCustomer || isGuide || isOwner)}
         />
       </View>
