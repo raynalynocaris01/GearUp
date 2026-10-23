@@ -5,6 +5,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
+  ScrollView,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -51,10 +52,19 @@ export default function TourGuidesScreen() {
               <Text style={{ fontWeight: '800' }}>{campsite.name}</Text>
             </Text>
           </View>
-          <TourGuidesManager
-            campsiteId={campsite.id}
-            initialGuides={guides}
-          />
+          <ScrollView
+            style={{ flex: 1 }}
+            contentContainerStyle={{ paddingBottom: 140 }}
+            keyboardShouldPersistTaps="handled"
+            keyboardDismissMode="interactive"
+            automaticallyAdjustKeyboardInsets
+            showsVerticalScrollIndicator={false}
+          >
+            <TourGuidesManager
+              campsiteId={campsite.id}
+              initialGuides={guides}
+            />
+          </ScrollView>
         </>
       ) : null}
     </View>
