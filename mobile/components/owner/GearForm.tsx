@@ -11,13 +11,10 @@ import {
   Alert,
   Image,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { owner } from '../../lib/api';
 import { imgSrc } from '../../lib/images';
-import { OwnerHeader } from './OwnerHeader';
-
 interface GearItem {
   id?: number;
   name: string;
@@ -168,14 +165,14 @@ export function GearForm({ mode, initial }: Props) {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top']}>
-      <OwnerHeader title={mode === 'create' ? 'Add Gear' : 'Edit Gear'} />
+    <View style={styles.container}>
       <ScrollView
         style={styles.container}
         contentContainerStyle={{ padding: 16, paddingBottom: 140 }}
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="interactive"
         automaticallyAdjustKeyboardInsets
+        showsVerticalScrollIndicator={false}
       >
         <Text style={styles.label}>Gear name</Text>
         <TextInput
@@ -291,11 +288,11 @@ export function GearForm({ mode, initial }: Props) {
           </TouchableOpacity>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#f9fafb' },
+
   container: { flex: 1, backgroundColor: '#f9fafb' },
   label: {
     fontSize: 13,
