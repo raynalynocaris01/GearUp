@@ -107,7 +107,7 @@ export function TourGuidesManager({ campsiteId, initialGuides, onRefresh }: Prop
       setLoading(true);
       try {
         const attachRes = await owner.attachGuide(campsiteId, selectedGuideId);
-        const attachedGuide = attachRes.data;
+        const attachedGuide = attachRes.data.guide ?? attachRes.data;
         setGuides((prev) => {
           const exists = prev.some((g) => g.id === attachedGuide.id);
           return exists

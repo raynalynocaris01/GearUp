@@ -429,7 +429,7 @@ export const ownerApi = (client: ApiClient) => ({
       payload,
     ),
   attachGuide: (campsiteId: number | string, guideId: number | string) =>
-    client.post<TourGuide>(`/owner/campsites/${campsiteId}/attach-guide`, { guide_id: Number(guideId) }),
+    client.post<{ guide: TourGuide; message: string }>(`/owner/campsites/${campsiteId}/attach-guide`, { guide_id: Number(guideId) }),
 
   deleteTourGuide: (guideId: number | string) =>
     client.delete(`/owner/tour-guides/${guideId}`),
