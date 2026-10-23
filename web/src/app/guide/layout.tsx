@@ -1,6 +1,8 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { GuideSidebar } from '@/components/guide/GuideSidebar';
+import Link from 'next/link';
+import { Clock } from 'lucide-react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL!;
 
@@ -38,7 +40,7 @@ export default async function GuideLayout({
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center px-6">
         <div className="max-w-2xl text-center">
-          <div className="text-6xl mb-6">⏳</div>
+          <Clock className="h-16 w-16 text-amber-500 mx-auto mb-6" />
           <h1 className="text-3xl font-black text-gray-900 mb-3">
             Your guide account is pending approval
           </h1>
@@ -47,6 +49,12 @@ export default async function GuideLayout({
             reviewing your application. You&apos;ll be able to accept bookings
             as soon as we approve it.
           </p>
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 bg-gearup-600 hover:bg-gearup-700 text-white font-semibold text-sm px-6 py-3 rounded-lg transition"
+          >
+            Continue as Customer
+          </Link>
         </div>
       </div>
     );
