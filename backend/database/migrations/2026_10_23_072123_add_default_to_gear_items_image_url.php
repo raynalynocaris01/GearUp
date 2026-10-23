@@ -3,21 +3,23 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
     public function up(): void
     {
-        // Make image_url nullable with an empty string default.
-        // The two-step save flow creates the gear row first (without an image),
-        // then uploads the image via a separate endpoint.
-        DB::statement("ALTER TABLE gear_items MODIFY COLUMN image_url VARCHAR(2048) NULL DEFAULT ''");
+        // Make image_url nullable with empty string default.
+        // Uses Schema builder (portable) instead of raw ALTER...MODIFY
+        // so it works on both MySQL and SQLite (used by PHPUnit tests).
+        Schema::table('gear_items', function (Blueprint $table) {
+            $table->string('image_url', 2048)->nullable()->default('')->change();
+        });
     }
 
     public function down(): void
     {
-        // Restore the original NOT NULL constraint (no default).
-        DB::statement("ALTER TABLE gear_items MODIFY COLUMN image_url VARCHAR(2048) NOT NULL");
+        Schema::table('gear_items', function (Blueprint $table) {
+            $table->string('image_url', 2048)->nullable(false)->default(null)->change();
+        });
     }
 };
