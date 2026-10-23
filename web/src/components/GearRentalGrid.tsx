@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import type { GearItem } from '@gearup/shared';
+import { appImageSrc } from '@/components/AppImage';
 
 type FilterKey = 'all' | 'owner' | 'individual';
 
@@ -154,7 +155,7 @@ export function GearRentalGrid({ gear }: Props) {
               <div className="relative h-48 bg-gray-100">
                 {g.image_url ? (
                   <Image
-                    src={g.image_url}
+                    src={appImageSrc(g.image_url)}
                     alt={g.name}
                     fill
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
