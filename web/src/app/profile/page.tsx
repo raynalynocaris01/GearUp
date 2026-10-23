@@ -34,7 +34,6 @@ async function getCurrentUser(): Promise<User | null> {
 interface Row {
   href: string;
   label: string;
-  icon: string;
 }
 
 export default async function ProfilePage() {
@@ -48,21 +47,21 @@ export default async function ProfilePage() {
 
   const accountRows: Row[] = [];
   if (isCustomer || isGuide) {
-    accountRows.push({ href: '/my-gear', label: 'My gear listings', icon: '📦' });
-    accountRows.push({ href: '/my-gear/bookings', label: 'My gear rentals', icon: '🛍️' });
+    accountRows.push({ href: '/my-gear', label: 'My gear listings' });
+    accountRows.push({ href: '/my-gear/bookings', label: 'My gear rentals' });
   }
   if (isOwner) {
-    accountRows.push({ href: '/owner/settings', label: 'Business settings', icon: '⚙️' });
+    accountRows.push({ href: '/owner/settings', label: 'Business settings' });
   }
   if (isGuide) {
-    accountRows.push({ href: '/guide/profile', label: 'Guide profile', icon: '👤' });
+    accountRows.push({ href: '/guide/profile', label: 'Guide profile' });
   }
-  accountRows.push({ href: '/bookings', label: 'My bookings', icon: '📅' });
-  accountRows.push({ href: '/profile/change-password', label: 'Change password', icon: '🔒' });
+  accountRows.push({ href: '/bookings', label: 'My bookings' });
+  accountRows.push({ href: '/profile/change-password', label: 'Change password' });
 
   const aboutRows: Row[] = [
-    { href: '/terms', label: 'Terms of service', icon: '📄' },
-    { href: '/privacy', label: 'Privacy policy', icon: '🛡️' },
+    { href: '/terms', label: 'Terms of service' },
+    { href: '/privacy', label: 'Privacy policy' },
   ];
 
   const initial = user.name.charAt(0).toUpperCase();
@@ -84,7 +83,7 @@ export default async function ProfilePage() {
       <div className="max-w-3xl mx-auto px-4 py-10">
         {/* Header */}
         <div className="flex flex-col items-center gap-3 mb-8">
-          <div className="w-24 h-24 rounded-full bg-gearup-600 text-white flex items-center justify-center text-4xl font-black overflow-hidden">
+          <div className="w-24 h-24 rounded-full bg-gearup-600 text-white flex items-center justify-center text-4xl font-black overflow-hidden shadow-md">
             {user.avatar_url ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
@@ -109,29 +108,27 @@ export default async function ProfilePage() {
         {isOwner && user.is_approved && (
           <Link
             href="/owner"
-            className="flex items-center justify-between bg-gearup-600 hover:bg-gearup-700 text-white font-bold px-5 py-4 rounded-xl mb-4"
+            className="flex items-center justify-between bg-gearup-600 hover:bg-gearup-700 text-white font-bold px-5 py-4 rounded-xl mb-4 transition"
           >
-            <span className="flex items-center gap-3">💼 Manage my business</span>
+            <span>Manage my business</span>
             <span>›</span>
           </Link>
         )}
         {isAdmin && (
           <Link
             href="/admin"
-            className="flex items-center justify-between bg-gearup-600 hover:bg-gearup-700 text-white font-bold px-5 py-4 rounded-xl mb-4"
+            className="flex items-center justify-between bg-gearup-600 hover:bg-gearup-700 text-white font-bold px-5 py-4 rounded-xl mb-4 transition"
           >
-            <span className="flex items-center gap-3">🛡️ Admin panel</span>
+            <span>Admin panel</span>
             <span>›</span>
           </Link>
         )}
         {isGuide && (
           <Link
             href="/guide"
-            className="flex items-center justify-between bg-gearup-600 hover:bg-gearup-700 text-white font-bold px-5 py-4 rounded-xl mb-4"
+            className="flex items-center justify-between bg-gearup-600 hover:bg-gearup-700 text-white font-bold px-5 py-4 rounded-xl mb-4 transition"
           >
-            <span className="flex items-center gap-3">
-              🧭 {user.is_approved ? 'Guide dashboard' : 'Guide application pending'}
-            </span>
+            <span>{user.is_approved ? 'Guide dashboard' : 'Guide application pending'}</span>
             <span>›</span>
           </Link>
         )}
@@ -142,7 +139,7 @@ export default async function ProfilePage() {
         {/* Activity section */}
         <Section
           title="Activity"
-          rows={[{ href: '/notifications', label: 'Notifications', icon: '🔔' }]}
+          rows={[{ href: '/notifications', label: 'Notifications' }]}
         />
 
         {/* About section */}
@@ -165,12 +162,11 @@ function Section({ title, rows }: { title: string; rows: Row[] }) {
           <Link
             key={row.href}
             href={row.href}
-            className={`flex items-center gap-4 px-5 py-4 hover:bg-slate-100 transition ${
+            className={`flex items-center justify-between px-5 py-4 hover:bg-slate-100 transition ${
               i < rows.length - 1 ? 'border-b border-slate-200' : ''
             }`}
           >
-            <span className="text-xl">{row.icon}</span>
-            <span className="flex-1 text-sm font-semibold text-gray-900">
+            <span className="text-sm font-semibold text-gray-900">
               {row.label}
             </span>
             <span className="text-gray-400">›</span>
