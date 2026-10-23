@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { Mail } from 'lucide-react';
@@ -11,6 +11,7 @@ interface TourGuide {
   email: string | null;
   description: string | null;
   price_per_trip?: string;
+  campsite?: { name: string } | null;
 }
 
 interface Props {
@@ -26,6 +27,19 @@ export function TourGuidesManager({ campsiteId, initialGuides }: Props) {
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [error, setError] = useState('');
   const [tempPassword, setTempPassword] = useState<string | null>(null);
+  // Pool of existing guides for the assign dropdown
+  const [myGuides, setMyGuides] = useState<TourGuide[]>([]);
+  const [selectedGuideId, setSelectedGuideId] = useState<string>('');
+  const [assigning, setAssigning] = useState(false);
+
+  useEffect(() => {
+    if (!adding) return;
+    fetch('/api/owner/tour-guides')
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data) => setMyGuides(Array.isArray(data) ? data : []))
+      .catch(() => setMyGuides([]));
+  }, [adding]);
+
 
   const [form, setForm] = useState({
     name: '',
@@ -78,7 +92,8 @@ export function TourGuidesManager({ campsiteId, initialGuides }: Props) {
         return;
       }
 
-      setGuides((prev) => [...prev, data]);
+      const savedGuide = data.guide ?? data;
+      setGuides((prev) => [...prev, savedGuide]);
       if (data.temp_password) setTempPassword(data.temp_password);
       resetForm();
       setAdding(false);
@@ -192,6 +207,50 @@ export function TourGuidesManager({ campsiteId, initialGuides }: Props) {
           <h3 className="font-bold text-gray-900 text-lg">
             Add a tour guide
           </h3>
+
+          {/* Dropdown for assigning an existing guide */}
+          <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Assign an existing guide from your pool
+            </label>
+            <div className="flex gap-2">
+              <select
+                value={selectedGuideId}
+                onChange={(e) => {
+                  const id = e.target.value;
+                  setSelectedGuideId(id);
+                  if (id) {
+                    const guide = myGuides.find((g) => g.id === Number(id));
+                    if (guide) {
+                      setForm({
+                        name: guide.name,
+                        contact_number: guide.contact_number,
+                        price_per_trip: guide.price_per_trip ?? '',
+                        email: guide.email ?? '',
+                        description: guide.description ?? '',
+                      });
+                    }
+                  } else {
+                    resetForm();
+                  }
+                }}
+                className="flex-1 border border-gray-300 rounded-lg px-4 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-gearup-600"
+              >
+                <option value="">-- Select a guide --</option>
+                {myGuides.map((g) => (
+                  <option key={g.id} value={g.id}>
+                    {g.name} {g.campsite ? '(currently at ' + g.campsite.name + ')' : '(independent)'}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="relative flex py-2 items-center">
+            <div className="flex-grow border-t border-gray-200"></div>
+            <span className="flex-shrink-0 mx-4 text-gray-400 text-sm">OR CREATE NEW</span>
+            <div className="flex-grow border-t border-gray-200"></div>
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>

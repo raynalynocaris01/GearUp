@@ -113,6 +113,7 @@ Route::middleware(['auth:sanctum', 'role:owner'])->prefix('owner')->group(functi
     // Tour guides
     Route::get('/campsites/{campsite}/tour-guides',    [OwnerTourGuideController::class, 'index']);
     Route::post('/campsites/{campsite}/tour-guides',   [OwnerTourGuideController::class, 'store']);
+    Route::post('/campsites/{campsite}/attach-guide', [OwnerTourGuideController::class, 'attach']);
     Route::put('/tour-guides/{tourGuide}',             [OwnerTourGuideController::class, 'update']);
     Route::delete('/tour-guides/{tourGuide}',          [OwnerTourGuideController::class, 'destroy']);
     Route::get('/tour-guides',                          [OwnerTourGuideController::class, 'all']);

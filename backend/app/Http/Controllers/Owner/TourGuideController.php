@@ -57,6 +57,34 @@ class TourGuideController extends Controller
         $data['created_by'] = $request->user()->id;
         $data['price_per_trip'] = $data['price_per_trip'] ?? 0;
 
+        // Check if a guide with this email already exists
+        $existingUser = User::where('email', $data['email'])->first();
+
+        if ($existingUser && $existingUser->role === 'guide') {
+            // Find their existing guide profile
+            $existingGuide = TourGuide::where('user_id', $existingUser->id)->first();
+
+            if ($existingGuide) {
+                // Update the existing guide to be attached to this campsite
+                $existingGuide->update([
+                    'campsite_id' => $campsite->id,
+                    'is_independent' => false,
+                    'created_by' => $data['created_by'],
+                    'name' => $data['name'],
+                    'contact_number' => $data['contact_number'],
+                    'description' => $data['description'] ?? $existingGuide->description,
+                    'price_per_trip' => $data['price_per_trip'],
+                ]);
+
+                return response()->json([
+                    'guide' => $existingGuide->load(['campsite:id,name,location,image_url', 'creator:id,name,email']),
+                    'temp_password' => null,
+                    'message' => 'Existing tour guide attached to campsite.',
+                ], 200);
+            }
+        }
+
+        // If no existing guide, proceed with creating a new one
         $tempPassword = Str::random(12);
 
         $guide = DB::transaction(function () use ($data, $tempPassword, $campsite) {
@@ -95,6 +123,37 @@ class TourGuideController extends Controller
      * POST /api/owner/tour-guides
      * Create an independent guide (not attached to a campsite).
      */
+    /**
+     * POST /api/owner/campsites/{campsite}/attach-guide
+     * Attach an existing guide profile to this campsite.
+     */
+    public function attach(Request $request, Campsite $campsite)
+    {
+        $this->authorizeOwner($request, $campsite);
+
+        $request->validate([
+            'guide_id' => ['required', 'integer', 'exists:tour_guides,id'],
+        ]);
+
+        $guide = TourGuide::findOrFail($request->input('guide_id'));
+
+        // Ensure the owner actually owns this guide profile
+        if ($guide->created_by !== $request->user()->id && (! $guide->campsite || $guide->campsite->owner_id !== $request->user()->id)) {
+            abort(403, 'You do not own this tour guide profile.');
+        }
+
+        $guide->update([
+            'campsite_id' => $campsite->id,
+            'is_independent' => false,
+        ]);
+
+        return response()->json([
+            'message' => 'Guide attached to campsite.',
+            'guide' => $guide->load('campsite'),
+        ]);
+    }
+
+
     public function storeIndependent(Request $request)
     {
         $data = $request->validate($this->guideRules());
@@ -209,7 +268,7 @@ class TourGuideController extends Controller
         return [
             'name' => ['required', 'string', 'max:255'],
             'contact_number' => ['required', 'string', 'max:50'],
-            'email' => ['required', 'email', 'max:255', 'unique:users,email'],
+            'email' => ['required', 'email', 'max:255'],
             'description' => ['nullable', 'string', 'max:1000'],
             'price_per_trip' => ['nullable', 'numeric', 'min:0'],
             'location' => ['nullable', 'string', 'max:255'],
