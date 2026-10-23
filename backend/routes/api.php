@@ -141,6 +141,7 @@ Route::middleware(['auth:sanctum', 'role:owner'])->prefix('owner')->group(functi
     Route::get('/gear/{gearItem}',     [OwnerGearItemController::class, 'show']);
     Route::put('/gear/{gearItem}',     [OwnerGearItemController::class, 'update']);
     Route::delete('/gear/{gearItem}',  [OwnerGearItemController::class, 'destroy']);
+    Route::post('/gear/{gearItem}/image', [OwnerGearItemController::class, 'uploadImage']);
 
         // Events
     Route::get('/events', [\App\Http\Controllers\Owner\EventController::class, 'index']);
