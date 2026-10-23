@@ -1,248 +1,342 @@
-import { useState, useCallback } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import {
   View,
   Text,
-  ScrollView,
-  StyleSheet,
   TextInput,
   TouchableOpacity,
-  Alert,
-  Switch,
+  ScrollView,
+  StyleSheet,
   ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
+  Alert,
+  Image,
 } from 'react-native';
-import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
+import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { myGear } from '../../../lib/api';
-import type { GearItem } from '@gearup/shared';
-import { colors } from '../../../theme';
+import { imgSrc } from '../../../lib/images';
+
+interface GearItem {
+  id?: number;
+  name: string;
+  description: string | null;
+  category: string;
+  price_per_day: string;
+  image_url: string | null;
+  stock: number;
+  is_available: boolean;
+}
 
 export default function EditMyGearScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const [item, setItem] = useState<GearItem | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+  const { id } = useLocalSearchParams<{ id: string }>();
 
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [category, setCategory] = useState('');
+  const [category, setCategory] = useState('Tent');
   const [pricePerDay, setPricePerDay] = useState('');
-  const [imageUrl, setImageUrl] = useState('');
-  const [stock, setStock] = useState('');
+  const [stock, setStock] = useState('1');
   const [isAvailable, setIsAvailable] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
 
-  const load = async () => {
-    if (!id) return;
-    try {
-      const res = await myGear.get(id);
-      const it = res.data;
-      setItem(it);
-      setName(it.name);
-      setDescription(it.description ?? '');
-      setCategory(it.category);
-      setPricePerDay(String(it.price_per_day));
-      setImageUrl(it.image_url ?? '');
-      setStock(String(it.stock));
-      setIsAvailable(it.is_available);
-    } catch {
-      // silent
-    } finally {
-      setLoading(false);
+  const [imageUri, setImageUri] = useState<string | null>(null);
+  const [originalImageUrl, setOriginalImageUrl] = useState<string | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await myGear.get(id);
+        const item: GearItem = res.data;
+        setName(item.name);
+        setDescription(item.description ?? '');
+        setCategory(item.category);
+        setPricePerDay(String(item.price_per_day));
+        setStock(String(item.stock));
+        setIsAvailable(item.is_available);
+        setImageUri(item.image_url);
+        setOriginalImageUrl(item.image_url);
+      } catch {
+        Alert.alert('Error', 'Could not load gear.');
+        router.back();
+      }
+    })();
+  }, [id]);
+
+  const pickImage = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission needed', 'Please allow photo access to upload an image.');
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [16, 10],
+      quality: 0.8,
+    });
+    if (!result.canceled && result.assets[0]) {
+      setImageUri(result.assets[0].uri);
     }
   };
 
-  useFocusEffect(
-    useCallback(() => {
-      load();
-    }, [id]),
-  );
+  const handleSubmit = async () => {
+    if (!name.trim() || !description.trim()) {
+      Alert.alert('Missing fields', 'Please fill in all required fields.');
+      return;
+    }
 
-  const submit = async () => {
-    if (!item) return;
-    setSaving(true);
+    setSubmitting(true);
     try {
-      await myGear.update(item.id, {
+      // Step 1: update gear (skip image_url if we're uploading a new one)
+      const willUploadNewImage =
+        !!imageUri && imageUri !== originalImageUrl;
+
+      const payload: {
+        name: string;
+        description: string;
+        category: string;
+        price_per_day: number;
+        stock: number;
+        is_available: boolean;
+        image_url?: string;
+      } = {
         name: name.trim(),
         description: description.trim(),
-        category: category.trim(),
-        price_per_day: Number(pricePerDay),
-        image_url: imageUrl.trim(),
-        stock: Number(stock),
+        category,
+        price_per_day: Number(pricePerDay) || 0,
+        stock: Number(stock) || 1,
         is_available: isAvailable,
-      });
-      router.replace('/my-gear' as any);
+        ...(willUploadNewImage ? {} : { image_url: imageUri || '' }),
+      };
+
+      await myGear.update(id, payload);
+
+      // Step 2: upload new image if picked
+      if (willUploadNewImage && imageUri) {
+        setUploadingImage(true);
+        const formData = new FormData();
+        const filename = imageUri.split('/').pop() ?? 'photo.jpg';
+        const match = /\.(\w+)$/.exec(filename);
+        const type = match ? `image/${match[1]}` : 'image/jpeg';
+        formData.append('image', {
+          uri: imageUri,
+          name: filename,
+          type,
+        } as any);
+        await myGear.uploadMyGearImage(id, formData);
+        setUploadingImage(false);
+      }
+
+      router.back();
     } catch (err: any) {
-      Alert.alert(
-        'Error',
-        err?.response?.data?.message ?? 'Could not update gear.',
-      );
+      const data = err.response?.data;
+      const message =
+        data?.errors?.image?.[0] ??
+        data?.errors?.name?.[0] ??
+        data?.message ??
+        err.message ??
+        'Could not save gear.';
+      Alert.alert('Error', message);
     } finally {
-      setSaving(false);
+      setSubmitting(false);
     }
   };
 
-  if (loading) {
-    return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color={colors.gearupGreen} />
-      </View>
-    );
-  }
-
-  if (!item) {
-    return (
-      <View style={styles.center}>
-        <Text style={styles.emptyText}>Item not found.</Text>
-      </View>
-    );
-  }
-
   return (
-    <KeyboardAvoidingView
+    <ScrollView
       style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      contentContainerStyle={{ padding: 16, paddingBottom: 140 }}
+      keyboardShouldPersistTaps="handled"
+      keyboardDismissMode="interactive"
+      automaticallyAdjustKeyboardInsets
     >
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <Ionicons name="chevron-back" size={24} color="#111827" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Edit gear</Text>
-        <View style={{ width: 32 }} />
-      </View>
+      <Text style={styles.label}>Gear name</Text>
+      <TextInput
+        style={styles.input}
+        value={name}
+        onChangeText={setName}
+        placeholder="e.g. 4-Person Camping Tent"
+        placeholderTextColor="#9ca3af"
+      />
 
-      <ScrollView
-        style={styles.scroll}
-        contentContainerStyle={styles.content}
-        keyboardShouldPersistTaps="handled"
-      >
-        <Text style={styles.label}>Name</Text>
-        <TextInput value={name} onChangeText={setName} style={styles.input} />
+      <Text style={styles.label}>Description</Text>
+      <TextInput
+        style={[styles.input, styles.textarea]}
+        value={description}
+        onChangeText={setDescription}
+        placeholder="Describe the gear, condition, what's included..."
+        placeholderTextColor="#9ca3af"
+        multiline
+        numberOfLines={4}
+      />
 
-        <Text style={styles.label}>Description</Text>
-        <TextInput
-          value={description}
-          onChangeText={setDescription}
-          style={[styles.input, styles.textarea]}
-          multiline
-        />
-
-        <Text style={styles.label}>Category</Text>
-        <TextInput
-          value={category}
-          onChangeText={setCategory}
-          style={styles.input}
-        />
-
-        <Text style={styles.label}>Price per day (PHP)</Text>
-        <TextInput
-          value={pricePerDay}
-          onChangeText={setPricePerDay}
-          style={styles.input}
-          keyboardType="decimal-pad"
-        />
-
-        <Text style={styles.label}>Stock</Text>
-        <TextInput
-          value={stock}
-          onChangeText={setStock}
-          style={styles.input}
-          keyboardType="number-pad"
-        />
-
-        <Text style={styles.label}>Image URL</Text>
-        <TextInput
-          value={imageUrl}
-          onChangeText={setImageUrl}
-          style={styles.input}
-          autoCapitalize="none"
-        />
-
-        <View style={styles.switchRow}>
-          <Text style={styles.switchLabel}>Available for rent</Text>
-          <Switch
-            value={isAvailable}
-            onValueChange={setIsAvailable}
-            trackColor={{ true: colors.gearupGreen }}
+      <View style={styles.row}>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.label}>Category</Text>
+          <TextInput
+            style={styles.input}
+            value={category}
+            onChangeText={setCategory}
+            placeholder="e.g. Tent"
+            placeholderTextColor="#9ca3af"
           />
         </View>
+        <View style={{ width: 12 }} />
+        <View style={{ flex: 1 }}>
+          <Text style={styles.label}>Price per day (₱)</Text>
+          <TextInput
+            style={styles.input}
+            value={pricePerDay}
+            onChangeText={setPricePerDay}
+            placeholder="150"
+            placeholderTextColor="#9ca3af"
+            keyboardType="numeric"
+          />
+        </View>
+      </View>
 
-        <TouchableOpacity
-          style={[styles.primaryBtn, saving && { opacity: 0.6 }]}
-          onPress={submit}
-          disabled={saving}
-          activeOpacity={0.85}
-        >
-          <Text style={styles.primaryBtnText}>
-            {saving ? 'Saving...' : 'Save changes'}
-          </Text>
+      <View style={styles.row}>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.label}>Stock (units)</Text>
+          <TextInput
+            style={styles.input}
+            value={stock}
+            onChangeText={setStock}
+            placeholder="1"
+            placeholderTextColor="#9ca3af"
+            keyboardType="numeric"
+          />
+        </View>
+        <View style={{ width: 12 }} />
+        <View style={{ flex: 1 }}>
+          <Text style={styles.label}>Availability</Text>
+          <TouchableOpacity
+            onPress={() => setIsAvailable(!isAvailable)}
+            style={styles.checkboxRow}
+          >
+            <View style={[styles.checkbox, isAvailable && styles.checkboxOn]}>
+              {isAvailable && <Ionicons name="checkmark" size={16} color="#fff" />}
+            </View>
+            <Text style={styles.checkboxLabel}>Available</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      <Text style={styles.label}>Gear image</Text>
+      <TouchableOpacity onPress={pickImage} style={styles.pickBtn}>
+        <Ionicons name="image-outline" size={20} color="#15803d" />
+        <Text style={styles.pickBtnText}>
+          {imageUri ? 'Change image' : 'Pick an image'}
+        </Text>
+      </TouchableOpacity>
+
+      {imageUri && (
+        <View style={styles.previewWrap}>
+          <Image
+            source={{ uri: imgSrc(imageUri) }}
+            style={styles.preview}
+            resizeMode="cover"
+          />
+        </View>
+      )}
+
+      <View style={styles.actions}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.cancelBtn}>
+          <Text style={styles.cancelBtnText}>Cancel</Text>
         </TouchableOpacity>
-
-        <View style={{ height: 40 }} />
-      </ScrollView>
-    </KeyboardAvoidingView>
+        <TouchableOpacity
+          onPress={handleSubmit}
+          disabled={submitting}
+          style={[styles.submitBtn, submitting && { opacity: 0.6 }]}
+        >
+          {submitting ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.submitBtnText}>Save Changes</Text>
+          )}
+        </TouchableOpacity>
+      </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f9fafb' },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingTop: 55,
-    paddingBottom: 12,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
-  },
-  backBtn: { padding: 4 },
-  headerTitle: { fontSize: 17, fontWeight: '800', color: '#111827' },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  emptyText: { fontSize: 14, color: colors.textMuted },
-  scroll: { flex: 1 },
-  content: { padding: 16 },
   label: {
-    fontSize: 11,
-    fontWeight: '700',
+    fontSize: 13,
+    fontWeight: '600',
     color: '#374151',
-    marginTop: 12,
     marginBottom: 6,
-    textTransform: 'uppercase',
-    letterSpacing: 0.4,
+    marginTop: 12,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#e5e7eb',
+    borderColor: '#d1d5db',
     borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
     fontSize: 14,
     color: '#111827',
     backgroundColor: '#fff',
   },
-  textarea: { minHeight: 90, textAlignVertical: 'top' },
-  switchRow: {
+  textarea: { minHeight: 100, textAlignVertical: 'top' },
+  row: { flexDirection: 'row', alignItems: 'flex-end' },
+  checkboxRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    gap: 8,
+    paddingVertical: 12,
+  },
+  checkbox: {
+    width: 22,
+    height: 22,
+    borderRadius: 4,
+    borderWidth: 2,
+    borderColor: '#d1d5db',
     backgroundColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkboxOn: { backgroundColor: '#15803d', borderColor: '#15803d' },
+  checkboxLabel: { fontSize: 14, color: '#374151' },
+  pickBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    borderWidth: 2,
+    borderStyle: 'dashed',
+    borderColor: '#15803d',
     borderRadius: 10,
+    paddingVertical: 14,
+    backgroundColor: '#f0fdf4',
+  },
+  pickBtnText: { color: '#15803d', fontWeight: '600', fontSize: 14 },
+  previewWrap: {
+    marginTop: 12,
+    borderRadius: 10,
+    overflow: 'hidden',
     borderWidth: 1,
     borderColor: '#e5e7eb',
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    marginTop: 16,
   },
-  switchLabel: { fontSize: 14, fontWeight: '700', color: '#111827' },
-  primaryBtn: {
-    backgroundColor: colors.gearupGreen,
-    paddingVertical: 14,
-    borderRadius: 10,
-    alignItems: 'center',
+  preview: { width: '100%', height: 200, backgroundColor: '#f3f4f6' },
+  actions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 12,
     marginTop: 24,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#e5e7eb',
   },
-  primaryBtnText: { color: '#fff', fontWeight: '800', fontSize: 15 },
+  cancelBtn: { paddingHorizontal: 20, paddingVertical: 12 },
+  cancelBtnText: { fontSize: 14, fontWeight: '600', color: '#6b7280' },
+  submitBtn: {
+    backgroundColor: '#15803d',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  submitBtnText: { fontSize: 14, fontWeight: '700', color: '#fff' },
 });
