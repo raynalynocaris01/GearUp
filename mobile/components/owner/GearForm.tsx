@@ -11,10 +11,12 @@ import {
   Alert,
   Image,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { owner } from '../../lib/api';
 import { imgSrc } from '../../lib/images';
+import { OwnerHeader } from './OwnerHeader';
 
 interface GearItem {
   id?: number;
@@ -166,131 +168,134 @@ export function GearForm({ mode, initial }: Props) {
   };
 
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={{ padding: 16, paddingBottom: 140 }}
-      keyboardShouldPersistTaps="handled"
-      keyboardDismissMode="interactive"
-      automaticallyAdjustKeyboardInsets
-    >
-      <Text style={styles.label}>Gear name</Text>
-      <TextInput
-        style={styles.input}
-        value={form.name}
-        onChangeText={(v) => update('name', v)}
-        placeholder="e.g. 4-Person Camping Tent"
-        placeholderTextColor="#9ca3af"
-      />
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
+      <OwnerHeader title={mode === 'create' ? 'Add Gear' : 'Edit Gear'} />
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={{ padding: 16, paddingBottom: 140 }}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="interactive"
+        automaticallyAdjustKeyboardInsets
+      >
+        <Text style={styles.label}>Gear name</Text>
+        <TextInput
+          style={styles.input}
+          value={form.name}
+          onChangeText={(v) => update('name', v)}
+          placeholder="e.g. 4-Person Camping Tent"
+          placeholderTextColor="#9ca3af"
+        />
 
-      <Text style={styles.label}>Description</Text>
-      <TextInput
-        style={[styles.input, styles.textarea]}
-        value={form.description ?? ''}
-        onChangeText={(v) => update('description', v)}
-        placeholder="Describe the gear, condition, what's included..."
-        placeholderTextColor="#9ca3af"
-        multiline
-        numberOfLines={4}
-      />
+        <Text style={styles.label}>Description</Text>
+        <TextInput
+          style={[styles.input, styles.textarea]}
+          value={form.description ?? ''}
+          onChangeText={(v) => update('description', v)}
+          placeholder="Describe the gear, condition, what's included..."
+          placeholderTextColor="#9ca3af"
+          multiline
+          numberOfLines={4}
+        />
 
-      <View style={styles.row}>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.label}>Category</Text>
-          <TextInput
-            style={styles.input}
-            value={form.category}
-            onChangeText={(v) => update('category', v)}
-            placeholder="e.g. Tent"
-            placeholderTextColor="#9ca3af"
-          />
+        <View style={styles.row}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.label}>Category</Text>
+            <TextInput
+              style={styles.input}
+              value={form.category}
+              onChangeText={(v) => update('category', v)}
+              placeholder="e.g. Tent"
+              placeholderTextColor="#9ca3af"
+            />
+          </View>
+          <View style={{ width: 12 }} />
+          <View style={{ flex: 1 }}>
+            <Text style={styles.label}>Price per day (₱)</Text>
+            <TextInput
+              style={styles.input}
+              value={form.price_per_day}
+              onChangeText={(v) => update('price_per_day', v)}
+              placeholder="150"
+              placeholderTextColor="#9ca3af"
+              keyboardType="numeric"
+            />
+          </View>
         </View>
-        <View style={{ width: 12 }} />
-        <View style={{ flex: 1 }}>
-          <Text style={styles.label}>Price per day (₱)</Text>
-          <TextInput
-            style={styles.input}
-            value={form.price_per_day}
-            onChangeText={(v) => update('price_per_day', v)}
-            placeholder="150"
-            placeholderTextColor="#9ca3af"
-            keyboardType="numeric"
-          />
-        </View>
-      </View>
 
-      <View style={styles.row}>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.label}>Stock (units)</Text>
-          <TextInput
-            style={styles.input}
-            value={String(form.stock)}
-            onChangeText={(v) => update('stock', Number(v) || 0)}
-            placeholder="1"
-            placeholderTextColor="#9ca3af"
-            keyboardType="numeric"
-          />
+        <View style={styles.row}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.label}>Stock (units)</Text>
+            <TextInput
+              style={styles.input}
+              value={String(form.stock)}
+              onChangeText={(v) => update('stock', Number(v) || 0)}
+              placeholder="1"
+              placeholderTextColor="#9ca3af"
+              keyboardType="numeric"
+            />
+          </View>
+          <View style={{ width: 12 }} />
+          <View style={{ flex: 1 }}>
+            <Text style={styles.label}>Availability</Text>
+            <TouchableOpacity
+              onPress={() => update('is_available', !form.is_available)}
+              style={styles.checkboxRow}
+            >
+              <View style={[styles.checkbox, form.is_available && styles.checkboxOn]}>
+                {form.is_available && (
+                  <Ionicons name="checkmark" size={16} color="#fff" />
+                )}
+              </View>
+              <Text style={styles.checkboxLabel}>Available</Text>
+            </TouchableOpacity>
+          </View>
         </View>
-        <View style={{ width: 12 }} />
-        <View style={{ flex: 1 }}>
-          <Text style={styles.label}>Availability</Text>
+
+        <Text style={styles.label}>Gear image</Text>
+        <TouchableOpacity onPress={pickImage} style={styles.pickBtn}>
+          <Ionicons name="image-outline" size={20} color="#15803d" />
+          <Text style={styles.pickBtnText}>
+            {imageUri ? 'Change image' : 'Pick an image'}
+          </Text>
+        </TouchableOpacity>
+
+        {imageUri && (
+          <View style={styles.previewWrap}>
+            <Image
+              source={{ uri: imgSrc(imageUri) }}
+              style={styles.preview}
+              resizeMode="cover"
+            />
+          </View>
+        )}
+
+        <View style={styles.actions}>
           <TouchableOpacity
-            onPress={() => update('is_available', !form.is_available)}
-            style={styles.checkboxRow}
+            onPress={() => router.back()}
+            style={styles.cancelBtn}
           >
-            <View style={[styles.checkbox, form.is_available && styles.checkboxOn]}>
-              {form.is_available && (
-                <Ionicons name="checkmark" size={16} color="#fff" />
-              )}
-            </View>
-            <Text style={styles.checkboxLabel}>Available</Text>
+            <Text style={styles.cancelBtnText}>Cancel</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={handleSubmit}
+            disabled={submitting}
+            style={[styles.submitBtn, submitting && { opacity: 0.6 }]}
+          >
+            {submitting ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.submitBtnText}>
+                {mode === 'create' ? 'Add Gear' : 'Save Changes'}
+              </Text>
+            )}
           </TouchableOpacity>
         </View>
-      </View>
-
-      <Text style={styles.label}>Gear image</Text>
-      <TouchableOpacity onPress={pickImage} style={styles.pickBtn}>
-        <Ionicons name="image-outline" size={20} color="#15803d" />
-        <Text style={styles.pickBtnText}>
-          {imageUri ? 'Change image' : 'Pick an image'}
-        </Text>
-      </TouchableOpacity>
-
-      {imageUri && (
-        <View style={styles.previewWrap}>
-          <Image
-            source={{ uri: imgSrc(imageUri) }}
-            style={styles.preview}
-            resizeMode="cover"
-          />
-        </View>
-      )}
-
-      <View style={styles.actions}>
-        <TouchableOpacity
-          onPress={() => router.back()}
-          style={styles.cancelBtn}
-        >
-          <Text style={styles.cancelBtnText}>Cancel</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={handleSubmit}
-          disabled={submitting}
-          style={[styles.submitBtn, submitting && { opacity: 0.6 }]}
-        >
-          {submitting ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.submitBtnText}>
-              {mode === 'create' ? 'Add Gear' : 'Save Changes'}
-            </Text>
-          )}
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
-
 const styles = StyleSheet.create({
+  safeArea: { flex: 1, backgroundColor: '#f9fafb' },
   container: { flex: 1, backgroundColor: '#f9fafb' },
   label: {
     fontSize: 13,
@@ -311,7 +316,12 @@ const styles = StyleSheet.create({
   },
   textarea: { minHeight: 100, textAlignVertical: 'top' },
   row: { flexDirection: 'row', alignItems: 'flex-end' },
-  checkboxRow: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 12 },
+  checkboxRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 12,
+  },
   checkbox: {
     width: 22,
     height: 22,
