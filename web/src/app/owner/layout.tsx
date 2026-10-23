@@ -39,7 +39,7 @@ export default async function OwnerLayout({
   // Owner but not approved → pending page
   if (!user.is_approved) {
     return (
-      <div className="min-h-screen bg-slate-100">
+      <div className="min-h-screen bg-slate-200">
         <div className="max-w-2xl mx-auto px-6 py-24 text-center">
           <div className="text-6xl mb-6">⏳</div>
           <h1 className="text-3xl font-black text-gray-900 mb-3">
@@ -65,10 +65,10 @@ export default async function OwnerLayout({
   }
 
     return (
-    <div className="min-h-screen bg-slate-100 flex">
+    <div className="min-h-screen bg-slate-200 flex">
       <OwnerSidebar ownerName={user.name} ownerEmail={user.email} />
-      <main className="flex-1 min-w-0 px-6 py-10 lg:px-10 bg-slate-100">
-        <div className="max-w-6xl mx-auto bg-slate-100">{children}</div>
+      <main className="flex-1 min-w-0 px-6 py-10 lg:px-10 bg-slate-200">
+        <div className="max-w-6xl mx-auto bg-slate-200">{children}</div>
       </main>
     </div>
   );
