@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   View,
   StyleSheet,
@@ -23,7 +22,6 @@ interface GearItem {
 }
 
 export default function EditGearScreen() {
-  const insets = useSafeAreaInsets();
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const [item, setItem] = useState<GearItem | null>(null);
@@ -43,7 +41,7 @@ export default function EditGearScreen() {
   }, [id]);
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View style={styles.container}>
       <OwnerHeader title="Edit Gear" />
       <View style={{ flex: 1 }}>
         {loading ? (
