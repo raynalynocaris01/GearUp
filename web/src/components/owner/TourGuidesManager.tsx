@@ -65,6 +65,34 @@ export function TourGuidesManager({ campsiteId, initialGuides }: Props) {
       setError('Email is required.');
       return;
     }
+
+    // NEW: if the user picked an existing guide from the dropdown, ATTACH it by ID.
+    // This reuses the existing account — no duplicate user is created.
+    if (selectedGuideId) {
+      setLoading(true);
+      try {
+        const attachRes = await fetch('/api/owner/campsites/' + campsiteId + '/attach-guide', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ guide_id: Number(selectedGuideId) }),
+        });
+        const attachData = await attachRes.json();
+        if (!attachRes.ok) {
+          throw new Error(attachData.message || 'Could not attach guide.');
+        }
+        router.refresh();
+        setAdding(false);
+        setSelectedGuideId('');
+        resetForm();
+        return;
+      } catch (err: any) {
+        setError(err.message || 'Could not attach guide.');
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
     setLoading(true);
 
     try {
