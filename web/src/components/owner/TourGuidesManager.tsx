@@ -80,6 +80,18 @@ export function TourGuidesManager({ campsiteId, initialGuides }: Props) {
         if (!attachRes.ok) {
           throw new Error(attachData.message || 'Could not attach guide.');
         }
+
+        // Optimistically update local list so UI reflects the attach immediately
+        const attachedGuide = attachData.guide ?? null;
+        if (attachedGuide) {
+          setGuides((prev) => {
+            const exists = prev.some((g) => g.id === attachedGuide.id);
+            return exists
+              ? prev.map((g) => (g.id === attachedGuide.id ? attachedGuide : g))
+              : [...prev, attachedGuide];
+          });
+        }
+
         router.refresh();
         setAdding(false);
         setSelectedGuideId('');
