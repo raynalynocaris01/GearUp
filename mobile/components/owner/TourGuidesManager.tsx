@@ -116,7 +116,7 @@ export function TourGuidesManager({ campsiteId, initialGuides, onRefresh }: Prop
         });
         resetForm();
         setAdding(false);
-        if (onRefresh) onRefresh();
+        // (no onRefresh — optimistic state is enough)
         return;
       } catch (err: any) {
         Alert.alert(
@@ -179,6 +179,11 @@ export function TourGuidesManager({ campsiteId, initialGuides, onRefresh }: Prop
     );
   };
 
+  // Dedupe by id to prevent React duplicate-key warnings.
+  const uniqueGuides = Array.from(
+    new Map(guides.map((g) => [g.id, g])).values(),
+  );
+
   return (
     <View style={styles.container}>
       {tempPassword && (
@@ -200,14 +205,14 @@ export function TourGuidesManager({ campsiteId, initialGuides, onRefresh }: Prop
       )}
 
       <View style={styles.list}>
-        {guides.length === 0 ? (
+        {uniqueGuides.length === 0 ? (
           <View style={styles.emptyState}>
             <Text style={styles.emptyText}>
               No tour guides yet. Add one below so customers know who can guide their trip.
             </Text>
           </View>
         ) : (
-          guides.map((g) => (
+          uniqueGuides.map((g) => (
             <View key={g.id} style={styles.guideCard}>
               <View style={styles.guideInfo}>
                 <Text style={styles.guideName}>{g.name}</Text>
