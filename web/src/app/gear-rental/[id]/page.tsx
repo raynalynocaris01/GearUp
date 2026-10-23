@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { cookies } from 'next/headers';
 import { Navbar } from '@/components/Navbar';
+import { appImageSrc } from '@/components/AppImage';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL!;
 
@@ -92,7 +93,7 @@ export default async function GearDetailPage({
         <div className="relative h-[420px] rounded-2xl overflow-hidden mb-8 bg-gray-100">
           {gear.image_url ? (
             <Image
-              src={gear.image_url}
+              src={appImageSrc(gear.image_url)}
               alt={gear.name}
               fill
               priority
