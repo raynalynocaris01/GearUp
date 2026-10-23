@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { GearForm } from '../../../../components/owner/GearForm';
+import { OwnerHeader } from '../../../../components/owner/OwnerHeader';
 import { owner } from '../../../../lib/api';
 
 interface GearItem {
@@ -42,6 +43,7 @@ export default function EditGearScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
+      <OwnerHeader title="Edit Gear" />
       <View style={{ flex: 1 }}>
         {loading ? (
           <View style={styles.center}>

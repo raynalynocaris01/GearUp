@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'expo-router';
 import { Drawer } from 'expo-router/drawer';
 import {
@@ -137,6 +137,14 @@ export default function OwnerLayout() {
       <Drawer.Screen
         name="notifications"
         options={{ title: 'Notifications', drawerItemStyle: { display: 'none' } }}
+      />
+      <Drawer.Screen
+        name="gear/new"
+        options={{ headerShown: false, drawerItemStyle: { display: 'none' } }}
+      />
+      <Drawer.Screen
+        name="gear/[id]/edit"
+        options={{ headerShown: false, drawerItemStyle: { display: 'none' } }}
       />
     </Drawer>
   );
