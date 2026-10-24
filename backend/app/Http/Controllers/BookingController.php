@@ -648,4 +648,137 @@ class BookingController extends Controller
             }
         }
     }
+
+    /**
+     * POST /api/bookings/{booking}/pay
+     * Creates a PayMongo Checkout Session and returns the checkout URL.
+     */
+    public function pay(Request $request, Booking $booking)
+    {
+        if ($booking->user_id !== $request->user()->id) {
+            abort(403, 'This booking does not belong to you.');
+        }
+
+        if ($booking->payment_status === 'paid') {
+            return response()->json(['message' => 'Booking already paid.'], 400);
+        }
+
+        $secret = config('services.paymongo.secret_key') ?? env('PAYMONGO_SECRET_KEY');
+        if (!$secret) {
+            return response()->json(['message' => 'PayMongo not configured.'], 500);
+        }
+
+        $amountCentavos = (int) round($booking->total_price * 100);
+
+        $payload = [
+            'data' => [
+                'attributes' => [
+                    'line_items' => [[
+                        'name' => "Booking #{$booking->id}",
+                        'amount' => $amountCentavos,
+                        'currency' => 'PHP',
+                        'quantity' => 1,
+                    ]],
+                    'payment_method_types' => ['card', 'gcash', 'paymaya', 'grab_pay'],
+                    'success_url' => 'http://192.168.0.102:3000/bookings/' . $booking->id . '/confirmed?paid=1',
+                    'cancel_url' => 'http://192.168.0.102:3000/bookings/' . $booking->id . '/confirmed?cancelled=1',
+                    'reference_number' => (string) $booking->id,
+                    'description' => "GearUp booking #{$booking->id}",
+                ],
+            ],
+        ];
+
+        $response = \Illuminate\Support\Facades\Http::withBasicAuth($secret, '')
+            ->acceptJson()
+            ->post('https://api.paymongo.com/v2/checkout_sessions', $payload);
+
+        if (!$response->successful()) {
+            \Log::error('PayMongo checkout failed', ['response' => $response->body()]);
+            return response()->json(['message' => 'Could not create payment session.'], 500);
+        }
+
+        $data = $response->json();
+        $checkoutId = $data['data']['id'] ?? null;
+        $checkoutUrl = $data['data']['attributes']['checkout_url'] ?? null;
+
+        if (!$checkoutId || !$checkoutUrl) {
+            return response()->json(['message' => 'Invalid PayMongo response.'], 500);
+        }
+
+        $booking->update([
+            'paymongo_checkout_id' => $checkoutId,
+            'payment_status' => 'pending',
+        ]);
+
+        return response()->json([
+            'checkout_url' => $checkoutUrl,
+            'checkout_id' => $checkoutId,
+        ]);
+    }
+
+    /**
+     * POST /api/webhooks/paymongo
+     * Handles PayMongo webhook events. Always returns 200 for valid signatures.
+     */
+    public function paymongoWebhook(Request $request)
+    {
+        $payload = $request->getContent();
+        $signatureHeader = $request->header('Paymongo-Signature');
+        $webhookSecret = env('PAYMONGO_WEBHOOK_SECRET');
+
+        if (!$signatureHeader || !$webhookSecret) {
+            \Log::warning('PayMongo webhook: missing signature or secret');
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        // Verify HMAC signature
+        $parts = [];
+        foreach (explode(',', $signatureHeader) as $part) {
+            [$key, $value] = explode('=', $part, 2);
+            $parts[$key] = $value;
+        }
+
+        $timestamp = $parts['t'] ?? null;
+        $testSig = $parts['te'] ?? null;
+        $liveSig = $parts['li'] ?? null;
+
+        if (!$timestamp) {
+            return response()->json(['message' => 'Invalid signature format'], 401);
+        }
+
+        $signedPayload = $timestamp . '.' . $payload;
+        $expected = hash_hmac('sha256', $signedPayload, $webhookSecret);
+
+        $provided = $testSig ?? $liveSig;
+        if (!$provided || !hash_equals($expected, $provided)) {
+            \Log::warning('PayMongo webhook: signature mismatch');
+            return response()->json(['message' => 'Invalid signature'], 401);
+        }
+
+        $event = json_decode($payload, true);
+        $type = $event['data']['attributes']['type'] ?? null;
+
+        if ($type === 'checkout_session.payment.paid') {
+            $sessionId = $event['data']['attributes']['data']['id'] ?? null;
+            $bookingId = $event['data']['attributes']['data']['attributes']['reference_number'] ?? null;
+
+            if ($bookingId) {
+                $booking = Booking::find($bookingId);
+                if ($booking && $booking->payment_status !== 'paid') {
+                    \Log::info('Webhook payload: ', ['booking_id' => $bookingId, 'payload' => $event]);
+                    $paymentMethod = $event['data']['attributes']['data']['attributes']['payments'][0]['attributes']['source']['type'] ?? 'unknown';
+                    $booking->update([
+                        'payment_status' => 'paid', 'status' => 'confirmed',
+                        'paid_at' => now(),
+                        'payment_method' => $paymentMethod,
+                        'status' => 'confirmed',
+                    ]);
+                    \Log::info("PayMongo: booking #{$bookingId} marked paid");
+                }
+            }
+        }
+
+        // Always return 200 for valid signatures
+        return response()->json(['message' => 'Received']);
+    }
 }

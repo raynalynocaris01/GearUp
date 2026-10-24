@@ -47,6 +47,7 @@ Route::get('/events/{event}', [\App\Http\Controllers\EventController::class, 'sh
 Route::get('/home/recommended', [\App\Http\Controllers\HomeController::class, 'recommended']);
 
 // ─── Authenticated (any role) ────────────────────────────
+Route::post('/webhooks/paymongo', [\App\Http\Controllers\BookingController::class, 'paymongoWebhook']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user',   [AuthController::class, 'user']);
     Route::post('/user/change-password', [AuthController::class, 'changePassword']);
@@ -87,6 +88,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/bookings',                  [BookingController::class, 'store']);
     Route::get('/bookings/{booking}',         [BookingController::class, 'show']);
     Route::post('/bookings/{booking}/cancel', [BookingController::class, 'cancel']);
+    Route::post('/bookings/{booking}/pay', [BookingController::class, 'pay']);
 
     // Reviews
     Route::post('/campsites/{campsite}/reviews', [ReviewController::class, 'store']);
