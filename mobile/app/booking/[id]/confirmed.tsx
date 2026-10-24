@@ -1,92 +1,66 @@
-import { useCallback, useEffect, useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  ActivityIndicator,
-  TouchableOpacity,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity, Alert } from 'react-native';
+import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
+import * as WebBrowser from 'expo-web-browser';
+import * as SecureStore from 'expo-secure-store';
 import { bookings } from '../../../lib/api';
 import type { Booking } from '@gearup/shared';
 import { colors } from '../../../theme';
-import { BookingStatusTracker } from '../../../components/BookingStatusTracker';
 
-function fmtDate(iso: string | null): string {
-  if (!iso) return '-';
-  try {
-    return new Date(iso).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    });
-  } catch {
-    return '-';
-  }
-}
-
-function statusPill(status: Booking['status']) {
-  switch (status) {
-    case 'cancelled':
-      return { bg: '#fee2e2', fg: '#b91c1c', label: 'CANCELLED' };
-    case 'completed':
-      return { bg: '#dbeafe', fg: '#1e40af', label: 'COMPLETED' };
-    case 'pending':
-      return { bg: '#fef3c7', fg: '#92400e', label: 'PENDING' };
-    default:
-      return { bg: '#dcfce7', fg: '#15803d', label: 'CONFIRMED' };
-  }
-}
-
-const REDIRECT_SECONDS = 5;
-
-export default function BookingConfirmedScreen() {
-  const router = useRouter();
+export default function ConfirmedBookingScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-
+  const router = useRouter();
   const [booking, setBooking] = useState<Booking | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [remaining, setRemaining] = useState(REDIRECT_SECONDS);
+  const [paying, setPaying] = useState(false);
 
-  const load = useCallback(async () => {
-    setError('');
+  const fetchBooking = async () => {
     try {
-      const res = await bookings.get(id);
-      setBooking(res.data);
-    } catch (err: any) {
-      setError(
-        err.response?.data?.message ??
-          err.message ??
-          'Could not load booking.',
-      );
+      const data = await bookings.get(id);
+      setBooking(data.data);
+    } catch (e) {
+      console.error(e);
     } finally {
       setLoading(false);
     }
-  }, [id]);
+  };
 
-  useFocusEffect(
-    useCallback(() => {
-      load();
-    }, [load]),
-  );
+  useFocusEffect(() => {
+    fetchBooking();
+  });
 
-  // Countdown + auto-redirect
-  useEffect(() => {
-    if (loading) return;
-    const interval = setInterval(() => {
-      setRemaining((r) => (r > 0 ? r - 1 : 0));
-    }, 1000);
-    const timeout = setTimeout(() => {
-      router.replace(`/booking/${id}` as any);
-    }, REDIRECT_SECONDS * 1000);
-    return () => {
-      clearInterval(interval);
-      clearTimeout(timeout);
-    };
-  }, [loading, id, router]);
+  const handlePay = async () => {
+    if (!booking) return;
+    setPaying(true);
+    try {
+      const token = await SecureStore.getItemAsync('auth_token');
+      const url = 'http://192.168.0.102:8000/api/bookings/' + booking.id + '/pay';
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': 'Bearer ' + token
+        },
+        body: JSON.stringify({
+          redirect_url: 'exp://192.168.0.102:8081/--/booking/' + booking.id + '/confirmed'
+        })
+      });
+      const data = await res.json(); console.log('PAY_RESPONSE:', data);
+      if (data.checkout_url) {
+        await WebBrowser.openBrowserAsync(data.checkout_url);
+        // Re-fetch when browser closes in case webhook updated it
+        fetchBooking();
+      } else {
+        
+      }
+    } catch (e) {
+      
+    } finally {
+      setPaying(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -96,245 +70,47 @@ export default function BookingConfirmedScreen() {
     );
   }
 
-  if (error || !booking) {
+  if (!booking) {
     return (
       <View style={styles.center}>
-        <Ionicons name="warning-outline" size={56} color={colors.textMuted} />
-        <Text style={styles.errorText}>{error || 'Booking not found.'}</Text>
-        <TouchableOpacity
-          style={styles.backBtn}
-          onPress={() => router.replace('/(tabs)/bookings' as any)}
-        >
-          <Text style={styles.backBtnText}>Back to Bookings</Text>
-        </TouchableOpacity>
+        <Text>Booking not found.</Text>
       </View>
     );
   }
 
-  const isGearOnly = !booking.campsite && booking.gear_item;
-  const startDate =
-    isGearOnly && booking.gear_start_date
-      ? booking.gear_start_date
-      : booking.check_in;
-  const endDate =
-    isGearOnly && booking.gear_end_date
-      ? booking.gear_end_date
-      : booking.check_out;
-  const title =
-    booking.campsite?.name ?? booking.gear_item?.name ?? 'your booking';
-  const pill = statusPill(booking.status);
-
   return (
-    <View style={styles.container}>
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Celebration */}
-        <View style={styles.celebration}>
-          <View style={styles.checkCircle}>
-            <Ionicons name="checkmark" size={40} color="#15803d" />
+    <ScrollView style={styles.container} contentContainerStyle={[styles.content, { paddingBottom: 40 }]}>
+      <View style={styles.card}>
+        <Text style={styles.title}>Booking #{booking.id}</Text>
+        
+        {booking.payment_status === 'paid' ? (
+          <View style={styles.paidBox}>
+            <Text style={styles.paidText}>Payment Received!</Text>
           </View>
-          <Text style={styles.heading}>Booking confirmed!</Text>
-          <Text style={styles.subheading}>
-            Your reservation at{' '}
-            <Text style={styles.subheadingBold}>{title}</Text> has been
-            placed.
-          </Text>
-        </View>
-
-        {/* Tracker */}
-        <BookingStatusTracker
-          status={booking.status}
-          createdAt={booking.created_at ?? null}
-          confirmedAt={booking.confirmed_at ?? null}
-          completedAt={booking.completed_at ?? null}
-          cancelledAt={booking.cancelled_at ?? null}
-        />
-
-        {/* Summary card */}
-        <View style={styles.summaryCard}>
-          <View style={styles.summaryHeader}>
-            <Text style={styles.summaryId}>Booking #{booking.id}</Text>
-            <View style={[styles.pill, { backgroundColor: pill.bg }]}>
-              <Text style={[styles.pillText, { color: pill.fg }]}>
-                {pill.label}
-              </Text>
-            </View>
-          </View>
-
-          {startDate && endDate && (
-            <Text style={styles.summaryDates}>
-              {fmtDate(startDate)} - {fmtDate(endDate)}
+        ) : (
+          <TouchableOpacity 
+            onPress={handlePay} 
+            disabled={paying}
+            style={[styles.payButton, { marginHorizontal: 20 }]}
+          >
+            <Text style={styles.payButtonText}>
+              {paying ? 'Processing...' : 'Pay Now - ₱' + booking.total_price}
             </Text>
-          )}
-          {booking.campsite?.location && (
-            <Text style={styles.summaryLocation}>
-              {booking.campsite.location}
-            </Text>
-          )}
-        </View>
-
-        {/* Actions */}
-        <TouchableOpacity
-          style={styles.primaryBtn}
-          onPress={() => router.replace(`/booking/${id}` as any)}
-          activeOpacity={0.85}
-        >
-          <Text style={styles.primaryBtnText}>View booking details</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.secondaryBtn}
-          onPress={() => router.replace('/(tabs)' as any)}
-          activeOpacity={0.85}
-        >
-          <Text style={styles.secondaryBtnText}>Back to home</Text>
-        </TouchableOpacity>
-
-        {/* Countdown */}
-        <Text style={styles.countdown}>
-          Redirecting to your booking details in {remaining}s...
-        </Text>
-
-        <View style={{ height: 40 }} />
-      </ScrollView>
-    </View>
+          </TouchableOpacity>
+        )}
+      </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f9fafb' },
-  center: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 24,
-    gap: 12,
-    backgroundColor: '#f9fafb',
-  },
-  errorText: {
-    fontSize: 14,
-    color: colors.textMuted,
-    textAlign: 'center',
-  },
-  backBtn: {
-    marginTop: 12,
-    borderWidth: 1,
-    borderColor: colors.gearupGreen,
-    paddingHorizontal: 24,
-    paddingVertical: 10,
-    borderRadius: 10,
-  },
-  backBtnText: {
-    color: colors.gearupGreen,
-    fontSize: 14,
-    fontWeight: '700',
-  },
-
-  scrollContent: {
-    padding: 24,
-    paddingTop: 70,
-    gap: 20,
-  },
-
-  celebration: {
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  checkCircle: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: colors.gearup50,
-    borderWidth: 2,
-    borderColor: colors.gearupGreen,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 20,
-  },
-  heading: {
-    fontSize: 26,
-    fontWeight: '900',
-    color: '#111827',
-    textAlign: 'center',
-    letterSpacing: -0.5,
-    marginBottom: 8,
-  },
-  subheading: {
-    fontSize: 13,
-    color: colors.textMuted,
-    textAlign: 'center',
-    lineHeight: 19,
-    paddingHorizontal: 12,
-  },
-  subheadingBold: {
-    fontWeight: '800',
-    color: '#111827',
-  },
-
-  summaryCard: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#f1f5f9',
-    padding: 16,
-  },
-  summaryHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 10,
-  },
-  summaryId: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: '#6b7280',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  pill: {
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
-  },
-  pillText: { fontSize: 10, fontWeight: '800', letterSpacing: 0.5 },
-  summaryDates: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#111827',
-  },
-  summaryLocation: {
-    fontSize: 12,
-    color: colors.textMuted,
-    marginTop: 3,
-  },
-
-  primaryBtn: {
-    backgroundColor: colors.gearupGreen,
-    paddingVertical: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  primaryBtnText: { color: '#fff', fontSize: 15, fontWeight: '800' },
-  secondaryBtn: {
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    backgroundColor: '#fff',
-    paddingVertical: 14,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  secondaryBtnText: {
-    color: '#374151',
-    fontSize: 14,
-    fontWeight: '700',
-  },
-
-  countdown: {
-    fontSize: 12,
-    color: '#9ca3af',
-    textAlign: 'center',
-    marginTop: 8,
-  },
+  container: { flex: 1, backgroundColor: '#f5f5f5' },
+  content: { padding: 20 },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  card: { backgroundColor: 'white', borderRadius: 12, padding: 20, elevation: 2 },
+  title: { fontSize: 24, fontWeight: 'bold', marginBottom: 20 },
+  paidBox: { backgroundColor: '#d1fae5', padding: 15, borderRadius: 8, alignItems: 'center' },
+  paidText: { color: '#065f46', fontWeight: 'bold', fontSize: 16 },
+  payButton: { backgroundColor: colors.gearupGreen, padding: 15, borderRadius: 8, alignItems: 'center' },
+  payButtonText: { color: 'white', fontWeight: 'bold', fontSize: 16 }
 });

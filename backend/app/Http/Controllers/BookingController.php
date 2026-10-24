@@ -655,6 +655,7 @@ class BookingController extends Controller
      */
     public function pay(Request $request, Booking $booking)
     {
+        $request->validate(['redirect_url' => 'nullable|string']);
         if ($booking->user_id !== $request->user()->id) {
             abort(403, 'This booking does not belong to you.');
         }
@@ -680,8 +681,8 @@ class BookingController extends Controller
                         'quantity' => 1,
                     ]],
                     'payment_method_types' => ['card', 'gcash', 'paymaya', 'grab_pay'],
-                    'success_url' => 'http://192.168.0.102:3000/bookings/' . $booking->id . '/confirmed?paid=1',
-                    'cancel_url' => 'http://192.168.0.102:3000/bookings/' . $booking->id . '/confirmed?cancelled=1',
+                    'success_url' => $request->input('redirect_url', 'http://localhost:3000/bookings/' . $booking->id . '/confirmed') . '?paid=1&booking_id=' . $booking->id . '&session_id={CHECKOUT_SESSION_ID}',
+                    'cancel_url' => $request->input('redirect_url', 'http://localhost:3000/bookings/' . $booking->id . '/confirmed') . '?cancelled=1',
                     'reference_number' => (string) $booking->id,
                     'description' => "GearUp booking #{$booking->id}",
                 ],

@@ -437,6 +437,14 @@ export default function BookingDetailScreen() {
               </TouchableOpacity>
             )}
         </View>
+        {booking && booking.status === 'pending' && booking.payment_status !== 'paid' && (
+          <TouchableOpacity
+            onPress={() => router.push('/booking/' + booking.id + '/confirmed' as any)}
+            style={{ backgroundColor: colors.gearupGreen, padding: 15, borderRadius: 8, marginTop: 20, alignItems: 'center' }}
+          >
+            <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 16 }}>Complete Payment</Text>
+          </TouchableOpacity>
+        )}
       </ScrollView>
     </View>
   );

@@ -251,6 +251,10 @@ export interface Booking {
     name: string;
     email: string;
   };
+  payment_status?: 'unpaid' | 'pending' | 'paid';
+  payment_method?: string;
+  paid_at?: string;
+  paymongo_checkout_id?: string;
 }
 
 export interface CreateBookingGearLine {
