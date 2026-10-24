@@ -51,7 +51,7 @@ export function PayNowButton({ bookingId, amount, paymentStatus }: Props) {
         disabled={loading}
         className="w-full bg-gearup-600 hover:bg-gearup-700 disabled:opacity-60 text-white font-bold py-4 rounded-xl transition text-lg"
       >
-        {loading ? 'Opening payment...' : `Pay Now ��� ₱${amount.toFixed(2)}`}
+        {loading ? 'Opening payment...' : `Pay Now - ₱${amount.toFixed(2)}`}
       </button>
       {error && (
         <p className="text-sm text-red-600 text-center">{error}</p>
