@@ -440,7 +440,7 @@ export default function BookingDetailScreen() {
         {booking && booking.status === 'pending' && booking.payment_status !== 'paid' && (
           <TouchableOpacity
             onPress={() => router.push('/booking/' + booking.id + '/confirmed' as any)}
-            style={{ backgroundColor: colors.gearupGreen, padding: 15, borderRadius: 8, marginTop: 20, alignItems: 'center' }}
+            style={{ backgroundColor: colors.gearupGreen, padding: 16, borderRadius: 12, marginTop: 20, marginBottom: 40, marginHorizontal: 20, alignItems: 'center' }}
           >
             <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 16 }}>Complete Payment</Text>
           </TouchableOpacity>
