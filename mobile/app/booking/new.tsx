@@ -416,9 +416,7 @@ export default function NewBookingScreen() {
     } catch (err: any) {
       const data = err.response?.data;
       const message =
-        data?.errors?.check_in?.[0] ??
-        data?.errors?.guests?.[0] ??
-        data?.errors?.check_out?.[0] ??
+        Object.values(data?.errors || {}).flat()[0] as string ??
         data?.message ??
         err.message ??
         'Could not create booking.';

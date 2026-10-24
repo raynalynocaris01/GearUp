@@ -477,8 +477,15 @@ export function BookingForm({
     setSubmitting(false);
 
     if (!res.ok) {
-      if (data.errors) setErrors(data.errors);
-      else setGeneralError(data.message ?? 'Booking failed');
+      if (data.errors) {
+        setErrors(data.errors);
+        // Show the first field error as a general error too, so users see it
+        // even if the field has no UI slot (e.g., room_campsite_id)
+        const firstError = Object.values(data.errors).flat()[0];
+        if (firstError) setGeneralError(firstError as string);
+      } else {
+        setGeneralError(data.message ?? 'Booking failed');
+      }
       return;
     }
 
