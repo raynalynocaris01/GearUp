@@ -54,7 +54,7 @@ export default async function MyGearBookingsPage() {
               Gear Rentals
             </h1>
             <p className="text-gray-500 mt-2 text-sm">
-              Bookings on your own gear listings.
+              Rentals of your own gear listings.
             </p>
           </div>
           <Link
