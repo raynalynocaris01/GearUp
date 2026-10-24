@@ -3,6 +3,7 @@ import { notFound, redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
 import { Navbar } from '@/components/Navbar';
 import { BookingStatusTracker } from '@/components/BookingStatusTracker';
+import { PayNowButton } from '@/components/PayNowButton';
 import { AutoRedirect } from './AutoRedirect';
 
 export const dynamic = 'force-dynamic';
@@ -15,6 +16,8 @@ interface Booking {
   gear_start_date: string | null;
   gear_end_date: string | null;
   status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
+  total_price: number | string;
+  payment_status: string;
   created_at: string;
   confirmed_at: string | null;
   completed_at: string | null;
@@ -183,6 +186,26 @@ export default async function BookingConfirmedPage({
             <p className="text-xs text-gray-500 mt-1">
               {booking.campsite.location}
             </p>
+          )}
+
+          {/* Pay Now button */}
+          {booking.payment_status !== 'paid' && (
+            <div className="mt-5 pt-5 border-t border-gray-100">
+              <PayNowButton
+                bookingId={booking.id}
+                amount={Number(booking.total_price)}
+                paymentStatus={booking.payment_status}
+              />
+            </div>
+          )}
+          {booking.payment_status === 'paid' && (
+            <div className="mt-5 pt-5 border-t border-gray-100">
+              <PayNowButton
+                bookingId={booking.id}
+                amount={Number(booking.total_price)}
+                paymentStatus="paid"
+              />
+            </div>
           )}
         </div>
 
