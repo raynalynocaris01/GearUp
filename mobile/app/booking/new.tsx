@@ -75,7 +75,7 @@ export default function NewBookingScreen() {
   const [seniors, setSeniors] = useState(0);
   const [pwd, setPwd] = useState(0);
   const [notes, setNotes] = useState('');
-  const [preferredArrival, setPreferredArrival] = useState('Afternoon');
+  const [preferredArrival, setPreferredArrival] = useState<"Morning" | "Afternoon" | "Evening">("Afternoon");
   const [availableGuides, setAvailableGuides] = useState<
   {
     id: number;
@@ -377,6 +377,7 @@ export default function NewBookingScreen() {
         check_out: checkOut,
         guests: effectiveGuests,
         notes: notes.trim() || undefined,
+        preferred_arrival: selectedRoomId !== null ? preferredArrival : undefined,
       };
 
       if (isDetailed) {
@@ -932,7 +933,7 @@ export default function NewBookingScreen() {
           <>
             <Text style={styles.sectionTitle}>Preferred Arrival Time</Text>
             <View style={[styles.fieldCard, { flexDirection: "row", gap: 8 }]}>
-              {["Morning", "Afternoon", "Evening"].map((slot) => (
+              {(["Morning", "Afternoon", "Evening"] as const).map((slot) => (
                 <TouchableOpacity
                   key={slot}
                   style={{

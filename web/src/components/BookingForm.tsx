@@ -103,7 +103,7 @@ export function BookingForm({
   const [seniors, setSeniors] = useState(0);
   const [pwd, setPwd] = useState(0);
   const [notes, setNotes] = useState('');
-  const [preferredArrival, setPreferredArrival] = useState('Afternoon');
+  const [preferredArrival, setPreferredArrival] = useState<"Morning" | "Afternoon" | "Evening">("Afternoon");
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string[]>>({});
   const [generalError, setGeneralError] = useState('');
@@ -422,6 +422,7 @@ export function BookingForm({
       check_in: checkIn,
       check_out: checkOut,
       notes: notes.trim() || null,
+      preferred_arrival: preferredArrival,
     };
 
     if (campsite && isDetailed) {
@@ -738,7 +739,7 @@ export function BookingForm({
         <label className="block text-sm font-semibold text-gray-700 mb-2">Preferred Arrival Time</label>
         <select
           value={preferredArrival}
-          onChange={(e) => setPreferredArrival(e.target.value)}
+          onChange={(e) => setPreferredArrival(e.target.value as "Morning" | "Afternoon" | "Evening")}
           className="w-full border border-gray-300 rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-gearup-500"
         >
           <option value="Morning">Morning (8:00 AM - 12:00 PM)</option>

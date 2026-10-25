@@ -360,11 +360,16 @@ export default async function BookingDetailPage({
                   <span className="font-semibold text-amber-900">Check-in / Check-out Policy</span>
                 </div>
                 <div className="flex flex-col gap-1 pl-7">
-                  <span>Check-in: <strong>after 2:00 PM</strong></span>
+                  {booking.preferred_arrival === "Morning" ? (
+                    <span>Check-in: <strong>8:00 AM - 12:00 PM</strong> (Requested)</span>
+                  ) : booking.preferred_arrival === "Evening" ? (
+                    <span>Check-in: <strong>5:00 PM - 9:00 PM</strong> (Requested)</span>
+                  ) : (
+                    <span>Check-in: <strong>after 2:00 PM</strong></span>
+                  )}
                   <span>Check-out: <strong>before 12:00 PM</strong></span>
-                                  <span className='mt-2 text-xs italic text-amber-700'>Need an early check-in? Contact the host.</span>
-                  {booking.preferred_arrival && (<span className='mt-1 text-xs font-semibold text-amber-800'>Your preferred arrival: {booking.preferred_arrival}</span>)}
-</div>
+                  <span className="mt-2 block text-xs italic text-amber-700">Need an early check-in? Contact the host.</span>
+                </div>
               </div>
               {booking.tour_guide && (
                 <div>

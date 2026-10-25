@@ -286,6 +286,7 @@ export interface CreateBookingPayload {
   seniors?: number;
   pwd?: number;
   notes?: string;
+  preferred_arrival?: "Morning" | "Afternoon" | "Evening" | null;
 }
 
 export const bookingApi = (client: ApiClient) => ({
