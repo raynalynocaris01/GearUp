@@ -55,6 +55,7 @@ class BookingController extends Controller
             'pricing_lines.*.pricing_line_id' => ['required', 'integer', 'exists:pricing_lines,id'],
             'pricing_lines.*.quantity' => ['required', 'integer', 'min:1'],
             'notes' => ['nullable', 'string', 'max:500'],
+            'preferred_arrival' => ['nullable', 'string', 'in:Morning,Afternoon,Evening'],
         ]);
 
         $hasMultiGear = !empty($data['gear_items']);
@@ -402,6 +403,7 @@ class BookingController extends Controller
                 'status' => 'pending',
                 'guide_status' => $tourGuide ? 'pending' : null,
                 'notes' => $data['notes'] ?? null,
+                'preferred_arrival' => $data['preferred_arrival'] ?? null,
             ]);
 
             foreach ($gearLines as $line) {

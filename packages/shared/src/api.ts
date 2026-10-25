@@ -234,6 +234,7 @@ export interface Booking {
   total_price: string;
   status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
   notes: string | null;
+  preferred_arrival?: string | null;
   created_at: string;
   updated_at: string;
   confirmed_at: string | null;

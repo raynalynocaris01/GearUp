@@ -18,6 +18,7 @@ interface Booking {
   status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
   total_price: number | string;
   payment_status: string;
+  preferred_arrival?: string | null;
   created_at: string;
   confirmed_at: string | null;
   completed_at: string | null;

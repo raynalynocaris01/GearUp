@@ -38,7 +38,10 @@ export default function ConfirmedBookingScreen() {
 
   useFocusEffect(
     React.useCallback(() => {
-      fetchBooking();
+      const timer = setTimeout(() => {
+        fetchBooking();
+      }, 50);
+      return () => clearTimeout(timer);
     }, [])
   );
 
@@ -154,12 +157,17 @@ export default function ConfirmedBookingScreen() {
           <View style={{ marginTop: 16, backgroundColor: "#fffbeb", padding: 16, borderRadius: 12, borderWidth: 1, borderColor: "#fde68a" }}>
             <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 8 }}>
               <Ionicons name="time-outline" size={18} color="#d97706" style={{ marginRight: 6 }} />
-              <Text style={{ fontSize: 13, fontWeight: "700", color: "#92400e" }}>Check-in / Check-out Policy</Text>
+              <Text style={{ fontSize: 13, fontWeight: "700", color: "#92400e" }}>Check-in / Check-out Policy TEST123</Text>
             </View>
             <View style={{ paddingLeft: 24 }}>
               <Text style={{ fontSize: 13, color: "#92400e", marginBottom: 4 }}>Check-in: <Text style={{ fontWeight: "700" }}>after 2:00 PM</Text></Text>
               <Text style={{ fontSize: 13, color: "#92400e" }}>Check-out: <Text style={{ fontWeight: "700" }}>before 12:00 PM</Text></Text>
               <Text style={{ fontSize: 11, fontStyle: 'italic', color: '#b45309', marginTop: 6 }}>Need an early check-in? Contact the host.</Text>
+              {booking.preferred_arrival && (
+                <Text style={{ fontSize: 12, fontWeight: "600", color: "#92400e", marginTop: 8 }}>
+                  Your preferred arrival: {booking.preferred_arrival}
+                </Text>
+              )}
             </View>
           </View>
           <View style={styles.divider} />

@@ -56,6 +56,7 @@ interface Booking {
   total_price: string;
   status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
   notes: string | null;
+  preferred_arrival?: string | null;
   created_at?: string;
   confirmed_at?: string | null;
   completed_at?: string | null;
@@ -362,6 +363,7 @@ export default async function BookingDetailPage({
                   <span>Check-in: <strong>after 2:00 PM</strong></span>
                   <span>Check-out: <strong>before 12:00 PM</strong></span>
                                   <span className='mt-2 text-xs italic text-amber-700'>Need an early check-in? Contact the host.</span>
+                  {booking.preferred_arrival && (<span className='mt-1 text-xs font-semibold text-amber-800'>Your preferred arrival: {booking.preferred_arrival}</span>)}
 </div>
               </div>
               {booking.tour_guide && (

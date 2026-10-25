@@ -295,6 +295,11 @@ export default function BookingDetailScreen() {
                 <Text style={{ fontSize: 13, color: "#92400e", marginBottom: 4 }}>Check-in: <Text style={{ fontWeight: "700" }}>after 2:00 PM</Text></Text>
                 <Text style={{ fontSize: 13, color: "#92400e" }}>Check-out: <Text style={{ fontWeight: "700" }}>before 12:00 PM</Text></Text>
                 <Text style={{ fontSize: 11, fontStyle: "italic", color: "#b45309", marginTop: 6 }}>Need an early check-in? Contact the host.</Text>
+                {booking.preferred_arrival && (
+                  <Text style={{ fontSize: 12, fontWeight: "600", color: "#92400e", marginTop: 8 }}>
+                    Your preferred arrival: {booking.preferred_arrival}
+                  </Text>
+                )}
               </View>
             </View>
             {booking.tour_guide && (
