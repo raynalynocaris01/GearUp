@@ -103,6 +103,7 @@ export function BookingForm({
   const [seniors, setSeniors] = useState(0);
   const [pwd, setPwd] = useState(0);
   const [notes, setNotes] = useState('');
+  const [preferredArrival, setPreferredArrival] = useState('Afternoon');
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string[]>>({});
   const [generalError, setGeneralError] = useState('');
@@ -728,6 +729,24 @@ export function BookingForm({
             <p className="text-red-600 text-xs mt-1">{errors.guests[0]}</p>
           )}
         </div>
+      )}
+
+      {selectedRoomId !== null && (
+        <>
+          {/* Preferred Arrival Time */}
+      <div className="mt-4">
+        <label className="block text-sm font-semibold text-gray-700 mb-2">Preferred Arrival Time</label>
+        <select
+          value={preferredArrival}
+          onChange={(e) => setPreferredArrival(e.target.value)}
+          className="w-full border border-gray-300 rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-gearup-500"
+        >
+          <option value="Morning">Morning (8:00 AM - 12:00 PM)</option>
+          <option value="Afternoon">Afternoon (12:00 PM - 5:00 PM)</option>
+          <option value="Evening">Evening (5:00 PM - 9:00 PM)</option>
+        </select>
+      </div>
+        </>
       )}
 
       {/* Notes */}

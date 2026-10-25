@@ -75,6 +75,7 @@ export default function NewBookingScreen() {
   const [seniors, setSeniors] = useState(0);
   const [pwd, setPwd] = useState(0);
   const [notes, setNotes] = useState('');
+  const [preferredArrival, setPreferredArrival] = useState('Afternoon');
   const [availableGuides, setAvailableGuides] = useState<
   {
     id: number;
@@ -926,6 +927,34 @@ export default function NewBookingScreen() {
           )}
 
         {/* Notes */}
+        {/* Preferred Arrival Time — only for rooms */}
+        {selectedRoomId !== null && (
+          <>
+            <Text style={styles.sectionTitle}>Preferred Arrival Time</Text>
+            <View style={[styles.fieldCard, { flexDirection: "row", gap: 8 }]}>
+              {["Morning", "Afternoon", "Evening"].map((slot) => (
+                <TouchableOpacity
+                  key={slot}
+                  style={{
+                    flex: 1,
+                    paddingVertical: 10,
+                    borderRadius: 8,
+                    borderWidth: 1.5,
+                    borderColor: preferredArrival === slot ? colors.gearupGreen : "#e5e7eb",
+                    backgroundColor: preferredArrival === slot ? colors.gearup50 : "#fff",
+                    alignItems: "center",
+                  }}
+                  onPress={() => setPreferredArrival(slot)}
+                >
+                  <Text style={{ fontSize: 12, fontWeight: "600", color: preferredArrival === slot ? colors.gearupGreen : "#6b7280" }}>
+                    {slot}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </>
+        )}
+
         <Text style={styles.sectionTitle}>Notes (optional)</Text>
         <View style={styles.fieldCard}>
           <TextInput

@@ -183,6 +183,22 @@ class BookingController extends Controller
                     ]);
                 }
 
+                // Prevent the SAME user from double-booking the SAME room
+                $userHasSameRoom = Booking::where('user_id', $request->user()->id)
+                    ->where('room_campsite_id', $roomCampsite->id)
+                    ->whereNotIn('status', ['cancelled'])
+                    ->where(function ($q) use ($data) {
+                        $q->where('check_in', '<', $data['check_out'])
+                          ->where('check_out', '>', $data['check_in']);
+                    })
+                    ->exists();
+
+                if ($userHasSameRoom) {
+                    throw ValidationException::withMessages([
+                        'room_campsite_id' => ['You already have a booking for this room on these dates.'],
+                    ]);
+                }
+
                 // Room pricing: per-room per-night. Guests is a limit,
                 // not a multiplier.
                 $campsitePrice = (float) $roomCampsite->price_per_night * $nights;

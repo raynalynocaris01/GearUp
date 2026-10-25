@@ -351,6 +351,19 @@ export default async function BookingDetailPage({
                     : `${booking.guests} ${booking.guests === 1 ? 'guest' : 'guests'}`}
                 </div>
               )}
+              <div className="mt-4 flex flex-col gap-2 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 shadow-sm">
+                <div className="flex items-center gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-amber-600" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                  </svg>
+                  <span className="font-semibold text-amber-900">Check-in / Check-out Policy</span>
+                </div>
+                <div className="flex flex-col gap-1 pl-7">
+                  <span>Check-in: <strong>after 2:00 PM</strong></span>
+                  <span>Check-out: <strong>before 12:00 PM</strong></span>
+                                  <span className='mt-2 text-xs italic text-amber-700'>Need an early check-in? Contact the host.</span>
+</div>
+              </div>
               {booking.tour_guide && (
                 <div>
                   Tour guide:{' '}
