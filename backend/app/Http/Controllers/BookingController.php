@@ -236,6 +236,24 @@ class BookingController extends Controller
                     ]);
                 }
 
+                // Block same-user duplicate campsite spot bookings
+                $userHasSameCampsite = Booking::where('user_id', $request->user()->id)
+                    ->where('campsite_id', $campsite->id)
+                    ->whereNull('room_campsite_id')
+                    ->whereNotIn('status', ['cancelled'])
+                    ->where(function ($q) use ($data) {
+                        $q->where('check_in', '<', $data['check_out'])
+                          ->where('check_out', '>', $data['check_in']);
+                    })
+                    ->exists();
+
+                if ($userHasSameCampsite) {
+                    throw ValidationException::withMessages([
+                        'campsite_id' => ['You already have a booking for this campsite on these dates.'],
+                    ]);
+                }
+
+
                 if ($campsite->pricing_mode === 'detailed') {
                     // ── Detailed mode: itemized pricing lines ─────────
                     $pricingLineSnapshots = $this->computeDetailedPricing(
