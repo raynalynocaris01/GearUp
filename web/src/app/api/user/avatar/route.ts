@@ -1,27 +1,26 @@
-import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL!;
+import { cookies } from 'next/headers';
 
 export async function POST(request: Request) {
   const cookieStore = await cookies();
   const token = cookieStore.get('auth_token')?.value;
 
   if (!token) {
-    return NextResponse.json({ message: 'Unauthenticated' }, { status: 401 });
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const formData = await request.formData();
+  const incomingFormData = await request.formData();
 
-  const res = await fetch(API_URL + '/user/avatar', {
+  const res = await fetch(process.env.NEXT_PUBLIC_API_URL + '/user/avatar', {
     method: 'POST',
     headers: {
-      Accept: 'application/json',
       Authorization: 'Bearer ' + token,
+      Accept: 'application/json',
     },
-    body: formData,
+    body: incomingFormData,
   });
 
   const data = await res.json();
+
   return NextResponse.json(data, { status: res.status });
 }

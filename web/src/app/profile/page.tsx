@@ -3,6 +3,7 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { Navbar } from '@/components/Navbar';
 import { appImageSrc } from '@/components/AppImage';
+import { AvatarUploader } from '@/components/AvatarUploader';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL!;
 
@@ -84,16 +85,7 @@ export default async function ProfilePage() {
         {/* Header */}
         <div className="flex flex-col items-center gap-3 mb-8">
           <div className="w-24 h-24 rounded-full bg-gearup-600 text-white flex items-center justify-center text-4xl font-black overflow-hidden shadow-md">
-            {user.avatar_url ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={appImageSrc(user.avatar_url)}
-                alt={user.name}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              initial
-            )}
+          <AvatarUploader currentAvatarUrl={user.avatar_url || null} userName={user.name} />
           </div>
           <div className="text-center">
             <h1 className="text-2xl font-black text-gray-900">{user.name}</h1>
