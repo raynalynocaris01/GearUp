@@ -76,7 +76,7 @@ export default function NewBookingScreen() {
   const [pwd, setPwd] = useState(0);
   const [notes, setNotes] = useState('');
   const [preferredArrival, setPreferredArrival] = useState<"Morning" | "Afternoon" | "Evening">("Afternoon");
-  const [confirmedOverride, setConfirmedOverride] = useState(false);
+
   const [availableGuides, setAvailableGuides] = useState<
   {
     id: number;
@@ -345,7 +345,7 @@ export default function NewBookingScreen() {
     selectedRoomId,
   ]);
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (override: boolean = false) => {
     if (!campsite) return;
 
     // Simple client-side validation
@@ -379,7 +379,7 @@ export default function NewBookingScreen() {
         guests: effectiveGuests,
         notes: notes.trim() || undefined,
         preferred_arrival: selectedRoomId !== null ? preferredArrival : undefined,
-        confirmed_override: confirmedOverride,
+        confirmed_override: override,
       };
 
       if (isDetailed) {
@@ -430,7 +430,7 @@ export default function NewBookingScreen() {
           `${list}\n\nContinue anyway?`,
           [
             { text: 'Cancel', style: 'cancel' },
-            { text: 'Continue', onPress: () => setConfirmedOverride(true) },
+            { text: 'Continue', onPress: () => handleSubmit(true) },
           ]
         );
         return;
@@ -534,12 +534,12 @@ export default function NewBookingScreen() {
   };
 
   // When user confirms override, re-submit automatically
-  useEffect(() => {
-    if (confirmedOverride) {
-      setConfirmedOverride(false);
-      handleSubmit();
-    }
-  }, [confirmedOverride]);
+
+
+
+
+
+
 
   return (
     <KeyboardAvoidingView
@@ -1209,7 +1209,7 @@ export default function NewBookingScreen() {
         {/* Submit */}
         <TouchableOpacity
           style={[styles.submitButton, submitting && styles.submitButtonDisabled]}
-          onPress={handleSubmit}
+          onPress={() => handleSubmit()}
           disabled={submitting}
           activeOpacity={0.85}
         >
