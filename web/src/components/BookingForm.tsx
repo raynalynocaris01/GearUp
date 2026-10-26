@@ -491,6 +491,7 @@ export function BookingForm({
 
     if (!res.ok && data.requires_confirmation) {
       setConflictBookings(data.existing_bookings || []);
+      setSubmitting(false);
       return;
     }
     setSubmitting(false);
