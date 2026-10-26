@@ -107,6 +107,8 @@ export function BookingForm({
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string[]>>({});
   const [generalError, setGeneralError] = useState('');
+  const [conflictBookings, setConflictBookings] = useState<{ id: number; campsite_name: string; check_in: string; check_out: string }[]>([]);
+  const [confirmedOverride, setConfirmedOverride] = useState(false);
 
   // Optional pricing-line selections: line_id -> quantity
   // (per_person/per_night/flat lines ignore quantity; per_tent uses it)
@@ -382,6 +384,15 @@ export function BookingForm({
     selectedRoomId,
   ]);
 
+  const handleOverride = () => {
+    setConfirmedOverride(true);
+    setConflictBookings([]);
+    setTimeout(() => {
+      const form = document.querySelector('form') as HTMLFormElement;
+      form?.requestSubmit();
+    }, 50);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
@@ -423,6 +434,7 @@ export function BookingForm({
       check_out: checkOut,
       notes: notes.trim() || null,
       preferred_arrival: preferredArrival,
+      confirmed_override: confirmedOverride,
     };
 
     if (campsite && isDetailed) {
@@ -476,6 +488,11 @@ export function BookingForm({
     });
 
     const data = await res.json();
+
+    if (!res.ok && data.requires_confirmation) {
+      setConflictBookings(data.existing_bookings || []);
+      return;
+    }
     setSubmitting(false);
 
     if (!res.ok) {
@@ -1327,6 +1344,29 @@ export function BookingForm({
 
       {generalError && (
         <p className="text-red-600 text-sm text-center">{generalError}</p>
+      )}
+
+      {conflictBookings.length > 0 && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+            <h3 className="mb-2 text-lg font-bold text-gray-900">Confirm Booking</h3>
+            <p className="mb-4 text-sm text-gray-600">You already have a booking on these dates:</p>
+            <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm">
+              {conflictBookings.map((b) => (
+                <div key={b.id} className="mb-1 text-amber-900">
+                  <span className="font-semibold">{b.campsite_name}</span>
+                  {': '}
+                  {new Date(b.check_in).toLocaleDateString()} to {new Date(b.check_out).toLocaleDateString()}
+                </div>
+              ))}
+            </div>
+            <p className="mb-6 text-sm text-gray-500">Do you want to continue anyway?</p>
+            <div className="flex gap-3">
+              <button type="button" onClick={() => setConflictBookings([])} className="flex-1 rounded-lg border border-gray-300 px-4 py-2 font-semibold text-gray-700 hover:bg-gray-50">Cancel</button>
+              <button type="button" onClick={handleOverride} className="flex-1 rounded-lg bg-gearup-600 px-4 py-2 font-semibold text-white hover:bg-gearup-700">Continue</button>
+            </div>
+          </div>
+        </div>
       )}
 
       <button

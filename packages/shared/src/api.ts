@@ -235,6 +235,7 @@ export interface Booking {
   status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
   notes: string | null;
   preferred_arrival?: string | null;
+  confirmed_override?: boolean | null;
   created_at: string;
   updated_at: string;
   confirmed_at: string | null;
@@ -287,6 +288,7 @@ export interface CreateBookingPayload {
   pwd?: number;
   notes?: string;
   preferred_arrival?: "Morning" | "Afternoon" | "Evening" | null;
+  confirmed_override?: boolean | null;
 }
 
 export const bookingApi = (client: ApiClient) => ({

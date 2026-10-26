@@ -56,7 +56,53 @@ class BookingController extends Controller
             'pricing_lines.*.quantity' => ['required', 'integer', 'min:1'],
             'notes' => ['nullable', 'string', 'max:500'],
             'preferred_arrival' => ['nullable', 'string', 'in:Morning,Afternoon,Evening'],
+            'confirmed_override' => ['nullable', 'boolean'],
         ]);
+
+        // Cross-property overlap warning
+        if (empty($data['confirmed_override']) && !empty($data['check_in']) && !empty($data['check_out'])) {
+            $newCampsiteId = $data['campsite_id'] ?? null;
+            $newRoomId = $data['room_campsite_id'] ?? null;
+
+            $conflictingBookings = Booking::where('user_id', $request->user()->id)
+                ->whereNotIn('status', ['cancelled'])
+                ->where(function ($q) use ($data) {
+                    $q->where('check_in', '<', $data['check_out'])
+                      ->where('check_out', '>', $data['check_in']);
+                })
+                ->where(function ($q) use ($newCampsiteId, $newRoomId) {
+                    $q->where(function ($q2) use ($newCampsiteId) {
+                        if ($newCampsiteId !== null) {
+                            $q2->where('campsite_id', '!=', $newCampsiteId)
+                               ->orWhereNull('campsite_id');
+                        }
+                    })
+                    ->orWhere(function ($q2) use ($newRoomId) {
+                        if ($newRoomId !== null) {
+                            $q2->where('room_campsite_id', '!=', $newRoomId)
+                               ->orWhereNull('room_campsite_id');
+                        }
+                    });
+                })
+                ->with('campsite')
+                ->get();
+
+            if ($conflictingBookings->isNotEmpty()) {
+                return response()->json([
+                    'requires_confirmation' => true,
+                    'message' => 'You already have a booking on these dates. Continue anyway?',
+                    'existing_bookings' => $conflictingBookings->map(function ($b) {
+                        return [
+                            'id' => $b->id,
+                            'campsite_name' => $b->campsite ? $b->campsite->name : 'Campsite',
+                            'check_in' => $b->check_in,
+                            'check_out' => $b->check_out,
+                        ];
+                    })->values(),
+                ], 422);
+            }
+        }
+
 
         $hasMultiGear = !empty($data['gear_items']);
         // ── Own-listing guard ──────────────────────────────────────
@@ -422,6 +468,7 @@ class BookingController extends Controller
                 'guide_status' => $tourGuide ? 'pending' : null,
                 'notes' => $data['notes'] ?? null,
                 'preferred_arrival' => $data['preferred_arrival'] ?? null,
+                'confirmed_override' => !empty($data['confirmed_override']),
             ]);
 
             foreach ($gearLines as $line) {

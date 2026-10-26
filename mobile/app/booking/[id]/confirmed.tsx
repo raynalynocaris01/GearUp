@@ -157,7 +157,7 @@ export default function ConfirmedBookingScreen() {
           <View style={{ marginTop: 16, backgroundColor: "#fffbeb", padding: 16, borderRadius: 12, borderWidth: 1, borderColor: "#fde68a" }}>
             <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 8 }}>
               <Ionicons name="time-outline" size={18} color="#d97706" style={{ marginRight: 6 }} />
-              <Text style={{ fontSize: 13, fontWeight: "700", color: "#92400e" }}>Check-in / Check-out Policy TEST123</Text>
+              <Text style={{ fontSize: 13, fontWeight: "700", color: "#92400e" }}>Check-in / Check-out Policy</Text>
             </View>
             <View style={{ paddingLeft: 24 }}>
               <Text style={{ fontSize: 13, color: "#92400e", marginBottom: 4 }}>Check-in: <Text style={{ fontWeight: "700" }}>after 2:00 PM</Text></Text>

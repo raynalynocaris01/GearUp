@@ -76,6 +76,7 @@ export default function NewBookingScreen() {
   const [pwd, setPwd] = useState(0);
   const [notes, setNotes] = useState('');
   const [preferredArrival, setPreferredArrival] = useState<"Morning" | "Afternoon" | "Evening">("Afternoon");
+  const [confirmedOverride, setConfirmedOverride] = useState(false);
   const [availableGuides, setAvailableGuides] = useState<
   {
     id: number;
@@ -378,6 +379,7 @@ export default function NewBookingScreen() {
         guests: effectiveGuests,
         notes: notes.trim() || undefined,
         preferred_arrival: selectedRoomId !== null ? preferredArrival : undefined,
+        confirmed_override: confirmedOverride,
       };
 
       if (isDetailed) {
@@ -417,6 +419,23 @@ export default function NewBookingScreen() {
       router.replace(`/booking/${newBookingId}/confirmed` as any);
     } catch (err: any) {
       const data = err.response?.data;
+
+      // Cross-property conflict: user must confirm
+      if (data?.requires_confirmation) {
+        const list = (data.existing_bookings || [])
+          .map((b: any) => `• ${b.campsite_name} — ${new Date(b.check_in).toLocaleDateString()} to ${new Date(b.check_out).toLocaleDateString()}`)
+          .join('\n');
+        Alert.alert(
+          'You have a booking on these dates',
+          `${list}\n\nContinue anyway?`,
+          [
+            { text: 'Cancel', style: 'cancel' },
+            { text: 'Continue', onPress: () => setConfirmedOverride(true) },
+          ]
+        );
+        return;
+      }
+
       const message =
         Object.values(data?.errors || {}).flat()[0] as string ??
         data?.message ??
@@ -513,6 +532,14 @@ export default function NewBookingScreen() {
       </View>
     );
   };
+
+  // When user confirms override, re-submit automatically
+  useEffect(() => {
+    if (confirmedOverride) {
+      setConfirmedOverride(false);
+      handleSubmit();
+    }
+  }, [confirmedOverride]);
 
   return (
     <KeyboardAvoidingView
