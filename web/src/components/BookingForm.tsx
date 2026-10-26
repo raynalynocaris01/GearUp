@@ -1323,8 +1323,8 @@ export function BookingForm({
             >
               <span>
                 {line.name}: ₱{line.unit.toFixed(2)} ×{' '}
-                {Math.max(nights, 1)}{' '}
-                {Math.max(nights, 1) === 1 ? 'day' : 'days'} × {line.qty}
+                {Math.max(nightsBetween(checkIn, checkOut), 1)}{' '}
+                {Math.max(nightsBetween(checkIn, checkOut), 1) === 1 ? 'day' : 'days'} × {line.qty}
               </span>
               <span className="font-semibold">
                 ₱{line.subtotal.toFixed(2)}
