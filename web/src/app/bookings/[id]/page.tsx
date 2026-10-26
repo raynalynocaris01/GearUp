@@ -55,6 +55,7 @@ interface Booking {
   guide_status?: 'pending' | 'accepted' | 'declined' | null;
   total_price: string;
   status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
+  payment_status?: 'unpaid' | 'pending' | 'paid';
   notes: string | null;
   preferred_arrival?: string | null;
   created_at?: string;
@@ -511,6 +512,16 @@ export default async function BookingDetailPage({
                   <CancelBookingButton bookingId={booking.id} />
                 ) : null}
               </div>
+
+              {booking.payment_status !== 'paid' &&
+                (booking.status === 'pending' || booking.status === 'confirmed') && (
+                  <Link
+                    href={`/bookings/${booking.id}/confirmed`}
+                    className="inline-block text-sm font-semibold text-white bg-gearup-600 hover:bg-gearup-700 px-5 py-2.5 rounded-lg transition"
+                  >
+                    Complete Payment
+                  </Link>
+                )}
 
               {booking.status === 'completed' &&
                 booking.campsite &&
