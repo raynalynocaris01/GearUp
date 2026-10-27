@@ -14,8 +14,8 @@ import {
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { campsites, bookings, hasToken } from '../../lib/api';
-import type { Campsite } from '@gearup/shared';
+import { campsites, bookings, hasToken, gear } from '../../lib/api';
+import type { Campsite, GearItem } from '@gearup/shared';
 import { colors } from '../../theme';
 import { ReviewsSection } from '../../components/ReviewsSection';
 import { imgSrc } from '../../lib/images';
@@ -25,6 +25,7 @@ export default function CampsiteDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
 
   const [campsite, setCampsite] = useState<Campsite | null>(null);
+  const [providedGear, setProvidedGear] = useState<GearItem[]>([]);
   const [eligibleBookingId, setEligibleBookingId] = useState<number | null>(
     null,
   );
@@ -59,6 +60,16 @@ export default function CampsiteDetailScreen() {
       try {
         const res = await campsites.get(id);
         setCampsite(res.data);
+        
+        // Fetch provided gear for this campsite's owner
+        if (res.data.owner_id) {
+          try {
+            const gearRes = await gear.list({ owner_id: res.data.owner_id });
+            setProvidedGear(gearRes.data);
+          } catch (gearErr) {
+            console.warn('Failed to load gear', gearErr);
+          }
+        }
       } catch (err: any) {
         setError(
           err.response?.data?.message ??
@@ -293,6 +304,39 @@ export default function CampsiteDetailScreen() {
           <Text style={styles.sectionTitle}>Region</Text>
           <Text style={styles.description}>{campsite.region}</Text>
 
+          {/* Provided Gear */}
+          {providedGear.length > 0 && (
+            <>
+              <View style={styles.divider} />
+              <Text style={styles.sectionTitle}>Gear Provided by this Campsite</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 8 }}>
+                {providedGear.map((item) => {
+                  const isFree = parseFloat(item.price_per_day) === 0;
+                  return (
+                    <View key={item.id} style={styles.gearCard}>
+                      <View style={styles.gearImageWrap}>
+                        {item.image_url ? (
+                          <Image source={{ uri: imgSrc(item.image_url) }} style={styles.gearImage} />
+                        ) : (
+                          <View style={styles.gearImageFallback}>
+                            <Ionicons name="image-outline" size={24} color="#9ca3af" />
+                          </View>
+                        )}
+                      </View>
+                      <View style={styles.gearInfo}>
+                        <Text style={styles.gearCategory} numberOfLines={1}>{item.category}</Text>
+                        <Text style={styles.gearName} numberOfLines={1}>{item.name}</Text>
+                        <Text style={styles.gearPrice}>
+                          {isFree ? 'Free' : `₱${item.price_per_day}/day`}
+                        </Text>
+                      </View>
+                    </View>
+                  );
+                })}
+              </ScrollView>
+            </>
+          )}
+
           {/* Reviews */}
           <ReviewsSection
             reviews={campsite.reviews ?? []}
@@ -501,6 +545,53 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#374151',
     lineHeight: 22,
+  },
+
+  gearCard: {
+    width: 140,
+    marginRight: 12,
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  gearImageWrap: {
+    width: '100%',
+    height: 100,
+    backgroundColor: '#f3f4f6',
+  },
+  gearImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+  gearImageFallback: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  gearInfo: {
+    padding: 10,
+  },
+  gearCategory: {
+    fontSize: 9,
+    fontWeight: '700',
+    color: colors.gearupGreen,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 2,
+  },
+  gearName: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#111827',
+    marginBottom: 4,
+  },
+  gearPrice: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#111827',
   },
 
   reviewCta: {
