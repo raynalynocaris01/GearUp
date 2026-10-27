@@ -205,11 +205,8 @@ export function BookingForm({
     [availableGear, campsite?.owner_id],
   );
 
-  const individualGear = useMemo(
-    () =>
-      availableGear.filter(
-        (g) => g.owner_id !== campsite?.owner_id && g.is_available && g.stock > 0,
-      ),
+  const individualGear = useMemo<GearItem[]>(
+    () => [], // Disabled: Don't show gear from other individuals
     [availableGear, campsite?.owner_id],
   );
 
