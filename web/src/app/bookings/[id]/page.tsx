@@ -56,6 +56,7 @@ interface Booking {
   total_price: string;
   status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
   payment_status?: 'unpaid' | 'pending' | 'paid';
+  payment_method?: string | null;
   notes: string | null;
   preferred_arrival?: string | null;
   created_at?: string;
@@ -512,6 +513,15 @@ export default async function BookingDetailPage({
                   <CancelBookingButton bookingId={booking.id} />
                 ) : null}
               </div>
+
+              {booking.payment_status !== 'paid' && booking.payment_method === 'cash' && (
+                <div className="mb-4 rounded-xl bg-amber-50 border border-amber-200 p-4 text-center">
+                  <p className="text-sm font-bold text-amber-900">Pay on Arrival</p>
+                  <p className="text-xs text-amber-700 mt-1">
+                    Please pay ₱{Number(booking.total_price).toFixed(2)} to the host when you arrive.
+                  </p>
+                </div>
+              )}
 
               {booking.payment_status !== 'paid' &&
                 (booking.status === 'pending' || booking.status === 'confirmed') && (
