@@ -182,9 +182,8 @@ export default function NewBookingScreen() {
     [availableGear, campsite?.owner_id],
   );
 
-  const individualGear = useMemo(
-    () =>
-      availableGear.filter((g) => g.owner_id !== campsite?.owner_id),
+  const individualGear = useMemo<GearItem[]>(
+    () => [], // Disabled: Don't show gear from other individuals
     [availableGear, campsite?.owner_id],
   );
 
@@ -1112,7 +1111,7 @@ export default function NewBookingScreen() {
               </View>
             )}
 
-            {individualGear.length > 0 && (
+            {false && (
               <View>
                 <Text style={styles.gearSectionLabel}>
                   From individuals
