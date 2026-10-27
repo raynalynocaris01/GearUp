@@ -26,8 +26,29 @@ export function PayNowButton({ bookingId, amount, paymentStatus }: Props) {
         setLoading(false);
         return;
       }
-      // Redirect to PayMongo hosted checkout
       window.location.href = data.checkout_url;
+    } catch {
+      setError('Network error. Please try again.');
+      setLoading(false);
+    }
+  };
+
+  const handleCashPay = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const res = await fetch(`/api/bookings/${bookingId}/pay`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ payment_method: 'cash' }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(data?.message || 'Could not confirm cash payment.');
+        setLoading(false);
+        return;
+      }
+      window.location.href = `/bookings/${bookingId}`;
     } catch {
       setError('Network error. Please try again.');
       setLoading(false);
@@ -44,7 +65,7 @@ export function PayNowButton({ bookingId, amount, paymentStatus }: Props) {
   }
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-3">
       <button
         type="button"
         onClick={handlePay}
@@ -53,11 +74,19 @@ export function PayNowButton({ bookingId, amount, paymentStatus }: Props) {
       >
         {loading ? 'Opening payment...' : `Pay Now - ₱${amount.toFixed(2)}`}
       </button>
+      <button
+        type="button"
+        onClick={handleCashPay}
+        disabled={loading}
+        className="w-full bg-white hover:bg-gray-50 disabled:opacity-60 text-gearup-700 border-2 border-gearup-600 font-bold py-3 rounded-xl transition text-base"
+      >
+        {loading ? 'Processing...' : 'Pay with Cash (Pay on Arrival)'}
+      </button>
       {error && (
         <p className="text-sm text-red-600 text-center">{error}</p>
       )}
       <p className="text-xs text-gray-500 text-center">
-        Secure payment via PayMongo. Accepts card, GCash, Maya, and GrabPay.
+        Choose cash if you will pay upon arrival. Your booking will be confirmed immediately.
       </p>
     </div>
   );

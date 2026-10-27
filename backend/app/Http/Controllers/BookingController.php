@@ -735,6 +735,16 @@ class BookingController extends Controller
             abort(403, 'This booking does not belong to you.');
         }
 
+        // Handle Cash on Arrival
+        if ($request->input('payment_method') === 'cash') {
+            $booking->update([
+                'payment_method' => 'cash',
+                'status' => 'confirmed',
+            ]);
+            return response()->json(['message' => 'Cash payment confirmed.']);
+        }
+
+
         if ($booking->payment_status === 'paid') {
             return response()->json(['message' => 'Booking already paid.'], 400);
         }
