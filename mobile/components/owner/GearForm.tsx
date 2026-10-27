@@ -15,6 +15,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { owner } from '../../lib/api';
 import { imgSrc } from '../../lib/images';
+
 interface GearItem {
   id?: number;
   name: string;
@@ -49,6 +50,7 @@ const CATEGORIES = [
   'Cooking',
   'Lighting',
   'Furniture',
+  'Free',
   'Other',
 ];
 
@@ -67,6 +69,16 @@ export function GearForm({ mode, initial }: Props) {
     key: K,
     value: GearItem[K],
   ) => setForm((f) => ({ ...f, [key]: value }));
+
+  const isFree = form.category === 'Free';
+
+  const handleCategorySelect = (category: string) => {
+    setForm((f) => ({
+      ...f,
+      category,
+      price_per_day: category === 'Free' ? '0' : f.price_per_day,
+    }));
+  };
 
   const pickImage = async () => {
     const { status } =
@@ -114,7 +126,7 @@ export function GearForm({ mode, initial }: Props) {
         name: form.name.trim(),
         description: (form.description ?? '').trim(),
         category: form.category,
-        price_per_day: Number(form.price_per_day) || 0,
+        price_per_day: isFree ? 0 : (Number(form.price_per_day) || 0),
         stock: Number(form.stock) || 1,
         is_available: form.is_available,
         ...(willUploadNewImage ? {} : { image_url: form.image_url || '' }),
@@ -194,32 +206,51 @@ export function GearForm({ mode, initial }: Props) {
           numberOfLines={4}
         />
 
-        <View style={styles.row}>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.label}>Category</Text>
-            <TextInput
-              style={styles.input}
-              value={form.category}
-              onChangeText={(v) => update('category', v)}
-              placeholder="e.g. Tent"
-              placeholderTextColor="#9ca3af"
-            />
-          </View>
-          <View style={{ width: 12 }} />
-          <View style={{ flex: 1 }}>
-            <Text style={styles.label}>Price per day (₱)</Text>
-            <TextInput
-              style={styles.input}
-              value={form.price_per_day}
-              onChangeText={(v) => update('price_per_day', v)}
-              placeholder="150"
-              placeholderTextColor="#9ca3af"
-              keyboardType="numeric"
-            />
-          </View>
-        </View>
+        <Text style={styles.label}>Category</Text>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.categoryScroll}
+          contentContainerStyle={{ gap: 8 }}
+        >
+          {CATEGORIES.map((c) => {
+            const isSelected = form.category === c;
+            return (
+              <TouchableOpacity
+                key={c}
+                style={[styles.chip, isSelected && styles.chipActive]}
+                onPress={() => handleCategorySelect(c)}
+                activeOpacity={0.8}
+              >
+                <Text
+                  style={[styles.chipText, isSelected && styles.chipTextActive]}
+                >
+                  {c}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
 
         <View style={styles.row}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.label}>Price per day (₱)</Text>
+            {isFree ? (
+              <View style={[styles.input, styles.freeBadge]}>
+                <Text style={styles.freeBadgeText}>Free</Text>
+              </View>
+            ) : (
+              <TextInput
+                style={styles.input}
+                value={form.price_per_day}
+                onChangeText={(v) => update('price_per_day', v)}
+                placeholder="150"
+                placeholderTextColor="#9ca3af"
+                keyboardType="numeric"
+              />
+            )}
+          </View>
+          <View style={{ width: 12 }} />
           <View style={{ flex: 1 }}>
             <Text style={styles.label}>Stock (units)</Text>
             <TextInput
@@ -231,8 +262,10 @@ export function GearForm({ mode, initial }: Props) {
               keyboardType="numeric"
             />
           </View>
-          <View style={{ width: 12 }} />
-          <View style={{ flex: 1 }}>
+        </View>
+
+        <View style={styles.row}>
+          <View style={{ flex: 1, marginTop: 12 }}>
             <Text style={styles.label}>Availability</Text>
             <TouchableOpacity
               onPress={() => update('is_available', !form.is_available)}
@@ -291,8 +324,8 @@ export function GearForm({ mode, initial }: Props) {
     </View>
   );
 }
-const styles = StyleSheet.create({
 
+const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f9fafb' },
   label: {
     fontSize: 13,
@@ -313,6 +346,42 @@ const styles = StyleSheet.create({
   },
   textarea: { minHeight: 100, textAlignVertical: 'top' },
   row: { flexDirection: 'row', alignItems: 'flex-end' },
+  
+  categoryScroll: {
+    flexGrow: 0,
+    marginBottom: 4,
+  },
+  chip: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+  },
+  chipActive: {
+    backgroundColor: '#15803d',
+    borderColor: '#15803d',
+  },
+  chipText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#6b7280',
+  },
+  chipTextActive: {
+    color: '#fff',
+  },
+  freeBadge: {
+    backgroundColor: '#f0fdf4',
+    borderColor: '#86efac',
+    justifyContent: 'center',
+  },
+  freeBadgeText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#15803d',
+  },
+
   checkboxRow: {
     flexDirection: 'row',
     alignItems: 'center',
