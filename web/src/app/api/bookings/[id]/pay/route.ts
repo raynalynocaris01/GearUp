@@ -15,12 +15,16 @@ export async function POST(
     return NextResponse.json({ message: 'Unauthenticated' }, { status: 401 });
   }
 
+  const bodyText = await request.text();
+
   const res = await fetch(`${API_URL}/bookings/${id}/pay`, {
     method: 'POST',
     headers: {
       Accept: 'application/json',
+      'Content-Type': 'application/json',
       Authorization: `Bearer ${token}`,
     },
+    body: bodyText,
   });
 
   const data = await res.json();
