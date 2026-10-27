@@ -60,7 +60,7 @@ class BookingController extends Controller
         ]);
 
         // Cross-property overlap warning
-        if (empty($data['confirmed_override']) && !empty($data['check_in']) && !empty($data['check_out'])) {
+        if (empty($data['confirmed_override']) && !empty($data['check_in']) && !empty($data['check_out']) && empty($data['gear_item_id']) && empty($data['gear_items'])) {
             $newCampsiteId = $data['campsite_id'] ?? null;
             $newRoomId = $data['room_campsite_id'] ?? null;
 
