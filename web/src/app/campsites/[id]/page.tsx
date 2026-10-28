@@ -7,6 +7,7 @@ import { ReviewsSection } from '@/components/ReviewsSection';
 import { ReviewForm } from '@/components/ReviewForm';
 import { appImageSrc } from '@/components/AppImage';
 import { CampsiteGallery } from '@/components/CampsiteGallery';
+import { CampsiteProvidedGear } from '@/components/CampsiteProvidedGear';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL!;
 
@@ -314,52 +315,7 @@ export default async function CampsiteDetailPage({
             </div>
 
             {/* Provided Gear */}
-            {gear.length > 0 && (
-              <div className="mt-8">
-                <h2 className="text-xl font-bold text-gray-900 mb-3">
-                  Gear Provided by this Campsite
-                </h2>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  {gear.map((item) => {
-                    const isFree = parseFloat(item.price_per_day) === 0;
-                    return (
-                      <div
-                        key={item.id}
-                        className="bg-white border border-gray-100 rounded-xl overflow-hidden shadow-sm flex flex-col"
-                      >
-                        <div className="relative w-full h-32 bg-gray-100 shrink-0">
-                          {item.image_url ? (
-                            <Image
-                              src={appImageSrc(item.image_url)}
-                              alt={item.name}
-                              fill
-                              sizes="(max-width: 768px) 50vw, 33vw"
-                              className="object-cover"
-                              unoptimized
-                            />
-                          ) : (
-                            <div className="flex items-center justify-center h-full text-gray-400 text-xs">
-                              No Image
-                            </div>
-                          )}
-                        </div>
-                        <div className="p-3 flex-1 flex flex-col">
-                          <p className="text-xs font-semibold text-gearup-600 mb-1 uppercase tracking-wider">
-                            {item.category}
-                          </p>
-                          <p className="font-bold text-gray-900 text-sm truncate mb-1">
-                            {item.name}
-                          </p>
-                          <p className="text-sm font-black text-gray-900 mt-auto">
-                            {isFree ? 'Free' : `₱${item.price_per_day}/day`}
-                          </p>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
+            <CampsiteProvidedGear gear={gear} />
 
             {/* Reviews */}
             <ReviewsSection
