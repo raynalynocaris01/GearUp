@@ -65,27 +65,29 @@ export function GearRentalGrid({ gear, campsites }: Props) {
   }, [searchMatches, filter]);
 
   const groupedGear = useMemo(() => {
-    const groups: Record<string, GearItem[]> = {};
+    // Build "From Individuals" first so it's always at the top
+    const individualGear = visible.filter((g) => g.owner?.role !== 'owner');
+    const ownerGear = visible.filter((g) => g.owner?.role === 'owner');
 
-    visible.forEach((g) => {
-      const isOwner = g.owner?.role === 'owner';
-      
-      if (isOwner) {
-        const ownerCampsites = campsites.filter((c) => c.owner_id === g.owner_id && !c.parent_campsite_id);
-        
-        if (ownerCampsites.length > 0) {
-          ownerCampsites.forEach((c) => {
-            const groupName = `Gear from ${c.name}`;
-            if (!groups[groupName]) groups[groupName] = [];
-            groups[groupName].push(g);
-          });
-        } else {
-          const groupName = `Gear from ${g.owner?.name ?? 'Owner'}`;
+    const groups: Record<string, GearItem[]> = {};
+    if (individualGear.length > 0) {
+      groups['From Individuals'] = individualGear;
+    }
+
+    // Then owner-provided gear grouped by campsite name
+    ownerGear.forEach((g) => {
+      const ownerCampsites = campsites.filter(
+        (c) => c.owner_id === g.owner_id && !c.parent_campsite_id,
+      );
+
+      if (ownerCampsites.length > 0) {
+        ownerCampsites.forEach((c) => {
+          const groupName = `Gear from ${c.name}`;
           if (!groups[groupName]) groups[groupName] = [];
           groups[groupName].push(g);
-        }
+        });
       } else {
-        const groupName = 'From Individuals';
+        const groupName = `Gear from ${g.owner?.name ?? 'Owner'}`;
         if (!groups[groupName]) groups[groupName] = [];
         groups[groupName].push(g);
       }
