@@ -8,17 +8,19 @@ import {
   ActivityIndicator,
   RefreshControl,
   TouchableOpacity,
+  Image,
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { gear } from '../../lib/api';
-import type { GearItem } from '@gearup/shared';
-import { GearCard } from '../../components/GearCard';
+import { gear, campsites } from '../../lib/api';
+import type { GearItem, Campsite } from '@gearup/shared';
 import { colors } from '../../theme';
+import { imgSrc } from '../../lib/images';
 
 export default function GearRentalScreen() {
   const router = useRouter();
   const [items, setItems] = useState<GearItem[]>([]);
+  const [allCampsites, setAllCampsites] = useState<Campsite[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
@@ -29,8 +31,12 @@ export default function GearRentalScreen() {
     if (showSpinner) setLoading(true);
     setError('');
     try {
-      const res = await gear.list();
-      setItems(res.data);
+      const [gearRes, campsiteRes] = await Promise.all([
+        gear.list(),
+        campsites.list(),
+      ]);
+      setItems(gearRes.data);
+      setAllCampsites(campsiteRes.data);
     } catch (err: any) {
       setError(
         err.response?.data?.message ??
@@ -83,6 +89,39 @@ export default function GearRentalScreen() {
     return searchMatches;
   }, [searchMatches, filter]);
 
+  // Group by Campsite Name
+  const groupedGear = useMemo(() => {
+    const groups: Record<string, GearItem[]> = {};
+
+    visible.forEach((g) => {
+      const isOwner = g.owner?.role === 'owner';
+      
+      if (isOwner) {
+        const ownerCampsites = allCampsites.filter(
+          (c) => c.owner_id === g.owner_id && !c.parent_campsite_id
+        );
+        
+        if (ownerCampsites.length > 0) {
+          ownerCampsites.forEach((c) => {
+            const groupName = `Gear from ${c.name}`;
+            if (!groups[groupName]) groups[groupName] = [];
+            groups[groupName].push(g);
+          });
+        } else {
+          const groupName = `Gear from ${g.owner?.name ?? 'Owner'}`;
+          if (!groups[groupName]) groups[groupName] = [];
+          groups[groupName].push(g);
+        }
+      } else {
+        const groupName = 'From Individuals';
+        if (!groups[groupName]) groups[groupName] = [];
+        groups[groupName].push(g);
+      }
+    });
+
+    return groups;
+  }, [visible, allCampsites]);
+
   const hasSearch = search.trim().length > 0;
 
   return (
@@ -99,15 +138,11 @@ export default function GearRentalScreen() {
         <View style={{ width: 40 }} />
       </View>
 
-      {/* Hero */}
+      {/* Hero (Slightly condensed) */}
       <View style={styles.hero}>
         <Text style={styles.heroPill}>CAMPING GEAR</Text>
         <Text style={styles.heroTitle}>
           Rent gear for your next adventure.
-        </Text>
-        <Text style={styles.heroSubtitle}>
-          Tents, backpacks, sleeping bags, and more — from trusted owners
-          across the Philippines.
         </Text>
       </View>
 
@@ -154,7 +189,7 @@ export default function GearRentalScreen() {
               style={styles.searchInput}
               value={search}
               onChangeText={setSearch}
-              placeholder="Search gear by name, category, or description..."
+              placeholder="Search gear..."
               placeholderTextColor="#9ca3af"
               autoCapitalize="none"
               autoCorrect={false}
@@ -215,13 +250,39 @@ export default function GearRentalScreen() {
               </Text>
             </View>
           ) : (
-            <View style={styles.list}>
-              {visible.map((g) => (
-                <GearCard
-                  key={g.id}
-                  gear={g}
-                  onPress={() => router.push(`/gear-rental/${g.id}`)}
-                />
+            <View style={{ gap: 24 }}>
+              {Object.entries(groupedGear).map(([groupName, items]) => (
+                <View key={groupName}>
+                  <Text style={styles.groupTitle}>{groupName}</Text>
+                  <View style={styles.grid}>
+                    {items.map((g) => (
+                      <TouchableOpacity
+                        key={g.id}
+                        style={styles.card}
+                        onPress={() => router.push(`/gear-rental/${g.id}`)}
+                        activeOpacity={0.85}
+                      >
+                        <View style={styles.cardImageWrap}>
+                          {g.image_url ? (
+                            <Image
+                              source={{ uri: imgSrc(g.image_url) }}
+                              style={styles.cardImage}
+                            />
+                          ) : (
+                            <View style={styles.cardImageFallback}>
+                              <Ionicons name="image-outline" size={24} color="#9ca3af" />
+                            </View>
+                          )}
+                        </View>
+                        <View style={styles.cardInfo}>
+                          <Text style={styles.cardCategory} numberOfLines={1}>{g.category}</Text>
+                          <Text style={styles.cardName} numberOfLines={1}>{g.name}</Text>
+                          <Text style={styles.cardPrice}>₱{g.price_per_day}/day</Text>
+                        </View>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
               ))}
             </View>
           )}
@@ -253,28 +314,22 @@ const styles = StyleSheet.create({
   hero: {
     backgroundColor: '#0f3d20',
     padding: 20,
-    paddingTop: 24,
-    paddingBottom: 28,
+    paddingTop: 16,
+    paddingBottom: 20,
   },
   heroPill: {
     fontSize: 9,
     fontWeight: '800',
     letterSpacing: 1,
     color: '#a7f3d0',
-    marginBottom: 10,
+    marginBottom: 6,
   },
   heroTitle: {
     color: '#fff',
-    fontSize: 26,
+    fontSize: 22,
     fontWeight: '900',
-    lineHeight: 30,
+    lineHeight: 28,
     letterSpacing: -0.5,
-  },
-  heroSubtitle: {
-    color: 'rgba(255,255,255,0.85)',
-    fontSize: 13,
-    marginTop: 10,
-    lineHeight: 18,
   },
 
   centerBox: {
@@ -290,7 +345,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     paddingHorizontal: 24,
   },
-  emptyEmoji: { fontSize: 48, marginBottom: 6 },
   retryButton: {
     marginTop: 6,
     borderWidth: 1,
@@ -305,8 +359,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
 
-  scrollContent: { padding: 16 },
-  list: { gap: 14 },
+  scrollContent: { padding: 16, paddingBottom: 40 },
 
   searchWrap: {
     position: 'relative',
@@ -360,4 +413,62 @@ const styles = StyleSheet.create({
   chipTextActive: { color: '#fff' },
   chipCount: { fontSize: 11, fontWeight: '800', color: '#9ca3af' },
   chipCountActive: { color: 'rgba(255,255,255,0.8)' },
+
+  groupTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#111827',
+    marginBottom: 12,
+    marginLeft: 4,
+  },
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  card: {
+    width: '48%', // Fits 2 columns
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    overflow: 'hidden',
+  },
+  cardImageWrap: {
+    width: '100%',
+    height: 120,
+    backgroundColor: '#f3f4f6',
+  },
+  cardImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+  cardImageFallback: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cardInfo: {
+    padding: 10,
+  },
+  cardCategory: {
+    fontSize: 9,
+    fontWeight: '700',
+    color: colors.gearupGreen,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 2,
+  },
+  cardName: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#111827',
+    marginBottom: 4,
+  },
+  cardPrice: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#111827',
+  },
 });
