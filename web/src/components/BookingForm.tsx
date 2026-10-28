@@ -184,7 +184,7 @@ export function BookingForm({
     if (!campsite) return;
     (async () => {
       try {
-        const res = await fetch(`/api/gear`);
+        const res = await fetch(`/api/gear?owner_id=${campsite.owner_id}`);
         if (!res.ok) return;
         const data: GearItem[] = await res.json();
         setAvailableGear(data);

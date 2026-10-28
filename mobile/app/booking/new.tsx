@@ -1111,16 +1111,7 @@ export default function NewBookingScreen() {
               </View>
             )}
 
-            {false && (
-              <View>
-                <Text style={styles.gearSectionLabel}>
-                  From individuals
-                </Text>
-                <View style={{ gap: 8 }}>
-                  {individualGear.map((g) => renderGearRow(g))}
-                </View>
-              </View>
-            )}
+ 
           </View>
         )}
 
