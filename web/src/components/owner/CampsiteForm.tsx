@@ -382,17 +382,27 @@ export function CampsiteForm({ mode, initial }: Props) {
           One item per line. E.g. Firewood, Basic toiletries, Drinking water, Parking, etc.
         </p>
         <textarea
-          rows={4}
+          rows={5}
           value={(form.free_items ?? []).join('\n')}
-          onChange={(e) =>
-            update(
-              'free_items',
-              e.target.value
-                .split('\n')
-                .map((s) => s.trim())
-                .filter(Boolean),
-            )
-          }
+          onChange={(e) => {
+            // Allow new lines to be typed
+            const lines = e.target.value.split('\n');
+            update('free_items', lines);
+          }}
+          onBlur={(e) => {
+            // Clean up empty lines when the user clicks away
+            const cleaned = e.target.value
+              .split('\n')
+              .map((s) => s.trim())
+              .filter(Boolean);
+            update('free_items', cleaned);
+          }}
+          onKeyDown={(e) => {
+            // Stop Enter from submitting the form
+            if (e.key === 'Enter') {
+              e.stopPropagation();
+            }
+          }}
           placeholder="Firewood&#10;Basic toiletries&#10;Drinking water&#10;Parking"
           className={`${inputClass} resize-none`}
         />
