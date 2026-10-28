@@ -488,9 +488,9 @@ class BookingController extends Controller
                 'seniors' => $seniors,
                 'pwd' => $pwd,
                 'total_price' => $total,
-                'status' => ($data['payment_method'] ?? null) === 'cash' ? 'confirmed' : 'pending',
+                'status' => 'pending',
                 'payment_method' => $data['payment_method'] ?? null,
-                'payment_status' => 'pending', // Always default to pending
+                'payment_status' => 'pending',
                 'guide_status' => $tourGuide ? 'pending' : null,
                 'notes' => $data['notes'] ?? null,
                 'preferred_arrival' => $data['preferred_arrival'] ?? null,
@@ -765,9 +765,9 @@ class BookingController extends Controller
         if ($request->input('payment_method') === 'cash') {
             $booking->update([
                 'payment_method' => 'cash',
-                'status' => 'confirmed',
+                // Status remains pending — owner must confirm manually
             ]);
-            return response()->json(['message' => 'Cash payment confirmed.']);
+            return response()->json(['message' => 'Cash payment selected. Awaiting owner confirmation.']);
         }
 
 
