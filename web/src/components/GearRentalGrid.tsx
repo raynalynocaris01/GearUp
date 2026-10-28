@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import type { GearItem } from '@gearup/shared';
+import type { GearItem, Campsite } from '@gearup/shared';
 import { appImageSrc } from '@/components/AppImage';
 
 type FilterKey = 'all' | 'owner' | 'individual';
@@ -16,9 +16,10 @@ const FILTERS: { key: FilterKey; label: string }[] = [
 
 interface Props {
   gear: GearItem[];
+  campsites: Campsite[];
 }
 
-export function GearRentalGrid({ gear }: Props) {
+export function GearRentalGrid({ gear, campsites }: Props) {
   const [filter, setFilter] = useState<FilterKey>('all');
   const [search, setSearch] = useState('');
 
@@ -49,6 +50,41 @@ export function GearRentalGrid({ gear }: Props) {
       return searchMatches.filter((g) => g.owner?.role !== 'owner');
     return searchMatches;
   }, [searchMatches, filter]);
+
+  // Group gear by Campsite Name instead of Owner Name
+  const groupedGear = useMemo(() => {
+    const groups: Record<string, GearItem[]> = {};
+
+    visible.forEach((g) => {
+      const isOwner = g.owner?.role === 'owner';
+      
+      if (isOwner) {
+        // Find the campsites owned by this gear's owner
+        const ownerCampsites = campsites.filter((c) => c.owner_id === g.owner_id && !c.parent_campsite_id);
+        
+        if (ownerCampsites.length > 0) {
+          // If the owner has campsites, add the gear to each campsite group
+          ownerCampsites.forEach((c) => {
+            const groupName = `Gear from ${c.name}`;
+            if (!groups[groupName]) groups[groupName] = [];
+            groups[groupName].push(g);
+          });
+        } else {
+          // Fallback if no campsite is found for some reason
+          const groupName = `Gear from ${g.owner?.name ?? 'Owner'}`;
+          if (!groups[groupName]) groups[groupName] = [];
+          groups[groupName].push(g);
+        }
+      } else {
+        // Individual gear
+        const groupName = 'From Individuals';
+        if (!groups[groupName]) groups[groupName] = [];
+        groups[groupName].push(g);
+      }
+    });
+
+    return groups;
+  }, [visible, campsites]);
 
   const hasSearch = search.trim().length > 0;
 
@@ -145,70 +181,79 @@ export function GearRentalGrid({ gear }: Props) {
           <p className="text-sm text-gray-500">{emptyBody}</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {visible.map((g) => (
-            <Link
-              key={g.id}
-              href={`/gear-rental/${g.id}`}
-              className="group bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-lg transition"
-            >
-              <div className="relative h-48 bg-gray-100">
-                {g.image_url ? (
-                  <Image
-                    src={appImageSrc(g.image_url)}
-                    alt={g.name}
-                    fill
-                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                    className="object-cover group-hover:scale-105 transition"
-                    unoptimized
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-5xl">
-                    🎒
-                  </div>
-                )}
-                {!g.is_available && (
-                  <div className="absolute top-3 right-3 bg-red-600 text-white text-xs font-bold px-3 py-1.5 rounded-full">
-                    Unavailable
-                  </div>
-                )}
+        <div className="space-y-10">
+          {Object.entries(groupedGear).map(([groupName, items]) => (
+            <div key={groupName}>
+              <h2 className="text-xl font-bold text-gray-900 mb-4 border-b border-gray-200 pb-2">
+                {groupName}
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {items.map((g) => (
+                  <Link
+                    key={g.id}
+                    href={`/gear-rental/${g.id}`}
+                    className="group bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-lg transition"
+                  >
+                    <div className="relative h-48 bg-gray-100">
+                      {g.image_url ? (
+                        <Image
+                          src={appImageSrc(g.image_url)}
+                          alt={g.name}
+                          fill
+                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                          className="object-cover group-hover:scale-105 transition"
+                          unoptimized
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-5xl">
+                          🎒
+                        </div>
+                      )}
+                      {!g.is_available && (
+                        <div className="absolute top-3 right-3 bg-red-600 text-white text-xs font-bold px-3 py-1.5 rounded-full">
+                          Unavailable
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="p-5">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs font-semibold text-gearup-600 bg-gearup-50 px-2 py-1 rounded">
+                          {g.category}
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          Stock: {g.stock}
+                        </span>
+                      </div>
+
+                      <h3 className="text-base font-bold text-gray-900 line-clamp-1">
+                        {g.name}
+                      </h3>
+
+                      {g.description && (
+                        <p className="text-xs text-gray-500 mt-1 line-clamp-2">
+                          {g.description}
+                        </p>
+                      )}
+
+                      <div className="flex items-end justify-between mt-4">
+                        <div>
+                          <p className="text-lg font-black text-gearup-600">
+                            ₱{g.price_per_day}
+                          </p>
+                          <p className="text-xs text-gray-500">per day</p>
+                        </div>
+                        {g.owner && (
+                          <p className="text-xs text-gray-500 truncate max-w-[100px]">
+                            by {g.owner.name}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </Link>
+                ))}
               </div>
-
-              <div className="p-5">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-semibold text-gearup-600 bg-gearup-50 px-2 py-1 rounded">
-                    {g.category}
-                  </span>
-                  <span className="text-xs text-gray-500">
-                    Stock: {g.stock}
-                  </span>
-                </div>
-
-                <h3 className="text-base font-bold text-gray-900 line-clamp-1">
-                  {g.name}
-                </h3>
-
-                {g.description && (
-                  <p className="text-xs text-gray-500 mt-1 line-clamp-2">
-                    {g.description}
-                  </p>
-                )}
-
-                <div className="flex items-end justify-between mt-4">
-                  <div>
-                    <p className="text-lg font-black text-gearup-600">
-                      ₱{g.price_per_day}
-                    </p>
-                    <p className="text-xs text-gray-500">per day</p>
-                  </div>
-                  {g.owner && (
-                    <p className="text-xs text-gray-500 truncate max-w-[100px]">
-                      by {g.owner.name}
-                    </p>
-                  )}
-                </div>
-              </div>
-            </Link>
+            </div>
           ))}
         </div>
       )}

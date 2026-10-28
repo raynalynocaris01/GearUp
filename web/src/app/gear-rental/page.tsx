@@ -1,7 +1,7 @@
 ﻿import { cookies } from 'next/headers';
 import { Navbar } from '@/components/Navbar';
 import { GearRentalGrid } from '@/components/GearRentalGrid';
-import type { GearItem } from '@gearup/shared';
+import type { GearItem, Campsite } from '@gearup/shared';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL!;
 
@@ -37,8 +37,25 @@ async function getAllGear(): Promise<GearItem[]> {
   }
 }
 
+async function getAllCampsites(): Promise<Campsite[]> {
+  try {
+    const res = await fetch(`${API_URL}/campsites`, {
+      headers: { Accept: 'application/json' },
+      next: { revalidate: 60 },
+    });
+    if (!res.ok) return [];
+    return await res.json();
+  } catch {
+    return [];
+  }
+}
+
 export default async function GearRentalPage() {
-  const [user, gear] = await Promise.all([getCurrentUser(), getAllGear()]);
+  const [user, gear, campsites] = await Promise.all([
+    getCurrentUser(),
+    getAllGear(),
+    getAllCampsites(),
+  ]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -52,7 +69,7 @@ export default async function GearRentalPage() {
           </p>
         </div>
 
-        <GearRentalGrid gear={gear} />
+        <GearRentalGrid gear={gear} campsites={campsites} />
       </div>
     </div>
   );
