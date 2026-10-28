@@ -26,6 +26,21 @@ export default function GearRentalScreen() {
   const [error, setError] = useState('');
   const [filter, setFilter] = useState<'all' | 'owner' | 'individual'>('all');
   const [search, setSearch] = useState('');
+  
+  // Track expanded groups
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
+
+  const toggleGroup = (groupName: string) => {
+    setExpandedGroups((prev) => {
+      const next = new Set(prev);
+      if (next.has(groupName)) {
+        next.delete(groupName);
+      } else {
+        next.add(groupName);
+      }
+      return next;
+    });
+  };
 
   const load = async (showSpinner = false) => {
     if (showSpinner) setLoading(true);
@@ -251,39 +266,62 @@ export default function GearRentalScreen() {
             </View>
           ) : (
             <View style={{ gap: 24 }}>
-              {Object.entries(groupedGear).map(([groupName, items]) => (
-                <View key={groupName}>
-                  <Text style={styles.groupTitle}>{groupName}</Text>
-                  <View style={styles.grid}>
-                    {items.map((g) => (
+              {Object.entries(groupedGear).map(([groupName, items]) => {
+                const isExpanded = expandedGroups.has(groupName);
+                const displayItems = isExpanded ? items : items.slice(0, 4);
+                const hasMore = items.length > 4;
+
+                return (
+                  <View key={groupName}>
+                    <Text style={styles.groupTitle}>{groupName}</Text>
+                    <View style={styles.grid}>
+                      {displayItems.map((g) => (
+                        <TouchableOpacity
+                          key={g.id}
+                          style={styles.card}
+                          onPress={() => router.push(`/gear-rental/${g.id}`)}
+                          activeOpacity={0.85}
+                        >
+                          <View style={styles.cardImageWrap}>
+                            {g.image_url ? (
+                              <Image
+                                source={{ uri: imgSrc(g.image_url) }}
+                                style={styles.cardImage}
+                              />
+                            ) : (
+                              <View style={styles.cardImageFallback}>
+                                <Ionicons name="image-outline" size={24} color="#9ca3af" />
+                              </View>
+                            )}
+                          </View>
+                          <View style={styles.cardInfo}>
+                            <Text style={styles.cardCategory} numberOfLines={1}>{g.category}</Text>
+                            <Text style={styles.cardName} numberOfLines={1}>{g.name}</Text>
+                            <Text style={styles.cardPrice}>₱{g.price_per_day}/day</Text>
+                          </View>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+
+                    {hasMore && (
                       <TouchableOpacity
-                        key={g.id}
-                        style={styles.card}
-                        onPress={() => router.push(`/gear-rental/${g.id}`)}
-                        activeOpacity={0.85}
+                        style={styles.showMoreBtn}
+                        onPress={() => toggleGroup(groupName)}
+                        activeOpacity={0.7}
                       >
-                        <View style={styles.cardImageWrap}>
-                          {g.image_url ? (
-                            <Image
-                              source={{ uri: imgSrc(g.image_url) }}
-                              style={styles.cardImage}
-                            />
-                          ) : (
-                            <View style={styles.cardImageFallback}>
-                              <Ionicons name="image-outline" size={24} color="#9ca3af" />
-                            </View>
-                          )}
-                        </View>
-                        <View style={styles.cardInfo}>
-                          <Text style={styles.cardCategory} numberOfLines={1}>{g.category}</Text>
-                          <Text style={styles.cardName} numberOfLines={1}>{g.name}</Text>
-                          <Text style={styles.cardPrice}>₱{g.price_per_day}/day</Text>
-                        </View>
+                        <Text style={styles.showMoreText}>
+                          {isExpanded ? 'Show Less' : `Show More (${items.length - 4} remaining)`}
+                        </Text>
+                        <Ionicons
+                          name={isExpanded ? 'chevron-up' : 'chevron-down'}
+                          size={16}
+                          color={colors.gearupGreen}
+                        />
                       </TouchableOpacity>
-                    ))}
+                    )}
                   </View>
-                </View>
-              ))}
+                );
+              })}
             </View>
           )}
 
@@ -470,5 +508,23 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '800',
     color: '#111827',
+  },
+  showMoreBtn: {
+    marginTop: 16,
+    alignSelf: 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: colors.gearupGreen,
+    backgroundColor: '#fff',
+  },
+  showMoreText: {
+    color: colors.gearupGreen,
+    fontWeight: '700',
+    fontSize: 13,
   },
 });
