@@ -17,6 +17,7 @@ interface Campsite {
   capacity: number;
   is_available: boolean;
   payment_mode?: 'online' | 'pay_at_campsite';
+  free_items?: string[];
   pricing_mode?: 'simple' | 'detailed';
   children?: Array<{
     id: number;
@@ -46,6 +47,7 @@ const EMPTY: Campsite = {
   is_available: true,
   pricing_mode: 'simple',
   payment_mode: 'online',
+  free_items: [],
 };
 
 export function CampsiteForm({ mode, initial }: Props) {
@@ -84,6 +86,7 @@ export function CampsiteForm({ mode, initial }: Props) {
       is_available: form.is_available,
       pricing_mode: form.pricing_mode ?? 'simple',
       payment_mode: form.payment_mode ?? 'online',
+      free_items: form.free_items ?? [],
     };
     // Only send price_per_night in simple mode. In detailed mode it is
     // unused and sending 0 would overwrite the preserved simple-mode value.
@@ -372,6 +375,29 @@ export function CampsiteForm({ mode, initial }: Props) {
     </div>
   </Field>
       </div>
+
+            {/* Free items list */}
+      <Field label="Free items provided by this campsite">
+        <p className="text-xs text-gray-500 mb-2">
+          One item per line. E.g. Firewood, Basic toiletries, Drinking water, Parking, etc.
+        </p>
+        <textarea
+          rows={4}
+          value={(form.free_items ?? []).join('\n')}
+          onChange={(e) =>
+            update(
+              'free_items',
+              e.target.value
+                .split('\n')
+                .map((s) => s.trim())
+                .filter(Boolean),
+            )
+          }
+          placeholder="Firewood&#10;Basic toiletries&#10;Drinking water&#10;Parking"
+          className={`${inputClass} resize-none`}
+        />
+      </Field>
+
 
       {/* Payment Mode Selector */}
       <Field label="Payment Mode">

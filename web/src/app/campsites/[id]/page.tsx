@@ -26,6 +26,8 @@ interface Campsite {
   is_featured: boolean;
   is_available: boolean;
   parent_campsite_id: number | null;
+  payment_mode?: 'online' | 'pay_at_campsite';
+  free_items?: string[];
   parent?: {
     id: number;
     name: string;
@@ -144,7 +146,7 @@ export default async function CampsiteDetailPage({
 
   if (!campsite) notFound();
 
-  const gear = await getGear(campsite.owner_id);
+  const gear: any[] = [];
 
   // Find a completed booking for this campsite that hasn't been reviewed yet
   const eligibleBooking = myBookings.find(
@@ -278,6 +280,32 @@ export default async function CampsiteDetailPage({
               </div>
             )}
 
+            {/* Free items */}
+            {(campsite.free_items ?? []).length > 0 && (
+              <div className="mt-8">
+                <h2 className="text-xl font-bold text-gray-900 mb-3">
+                  What we provide for free
+                </h2>
+                <div className="flex flex-wrap gap-2">
+                  {(campsite.free_items ?? []).map((item, i) => (
+                    <span
+                      key={i}
+                      className="inline-flex items-center gap-1.5 bg-gearup-50 border border-gearup-200 text-gearup-800 text-sm font-semibold px-3 py-1.5 rounded-full"
+                    >
+                      <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                        <path
+                          fillRule="evenodd"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                      {item}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className="mt-8">
               <h2 className="text-xl font-bold text-gray-900 mb-3">
                 Region
@@ -285,8 +313,8 @@ export default async function CampsiteDetailPage({
               <p className="text-gray-700">{campsite.region}</p>
             </div>
 
-            {/* Provided Gear */}
-            {gear.length > 0 && (
+            {/* Provided Gear - removed, replaced by free_items list above */}
+            {false && gear.length > 0 && (
               <div className="mt-8">
                 <h2 className="text-xl font-bold text-gray-900 mb-3">
                   Gear Provided by this Campsite

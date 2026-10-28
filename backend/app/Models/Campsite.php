@@ -28,6 +28,7 @@ class Campsite extends Model
         'is_featured',
         'is_available',
         'payment_mode',
+        'free_items',
     ];
 
     protected $casts = [
@@ -39,7 +40,8 @@ class Campsite extends Model
     'is_featured' => 'boolean',
     'is_available' => 'boolean',
     'latitude' => 'float',    
-    'longitude' => 'float',   
+    'longitude' => 'float',  
+    'free_items' => 'array', 
     ];
 
     public function owner()

@@ -38,7 +38,6 @@ const CATEGORIES = [
   'Cooking',
   'Lighting',
   'Furniture',
-  'Free',
   'Other',
 ];
 
@@ -59,15 +58,9 @@ export function GearForm({ mode, initial }: Props) {
     value: GearItem[K],
   ) => setForm((f) => ({ ...f, [key]: value }));
 
-  const isFree = form.category === 'Free';
+  
 
-  const handleCategoryChange = (value: string) => {
-    setForm((f) => ({
-      ...f,
-      category: value,
-      price_per_day: value === 'Free' ? '0' : f.price_per_day,
-    }));
-  };
+  
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;
@@ -91,7 +84,7 @@ export function GearForm({ mode, initial }: Props) {
         name: form.name,
         description: form.description,
         category: form.category,
-        price_per_day: isFree ? 0 : Number(form.price_per_day),
+        price_per_day: Number(form.price_per_day),
         // Send the existing URL, or an empty string which we'll bypass validation for later
         image_url: form.image_url || 'https://picsum.photos/seed/newgear/600/400',
         stock: Number(form.stock),
@@ -174,7 +167,7 @@ export function GearForm({ mode, initial }: Props) {
         <Field label="Category" error={errors.category?.[0]}>
           <select
             value={form.category}
-            onChange={(e) => handleCategoryChange(e.target.value)}
+            onChange={(e) => update('category', e.target.value)}
             className={inputClass}
           >
             {CATEGORIES.map((c) => (
@@ -186,22 +179,16 @@ export function GearForm({ mode, initial }: Props) {
         </Field>
 
         <Field label="Price per day (₱)" error={errors.price_per_day?.[0]}>
-          {isFree ? (
-            <div className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-900 bg-gray-50">
-              Free
-            </div>
-          ) : (
-            <input
-              type="number"
-              min={0}
-              step="0.01"
-              value={form.price_per_day}
-              onChange={(e) => update('price_per_day', e.target.value)}
-              placeholder="150"
-              required
-              className={inputClass}
-            />
-          )}
+          <input
+            type="number"
+            min={0}
+            step="0.01"
+            value={form.price_per_day}
+            onChange={(e) => update('price_per_day', e.target.value)}
+            placeholder="150"
+            required
+            className={inputClass}
+          />
         </Field>
       </div>
 

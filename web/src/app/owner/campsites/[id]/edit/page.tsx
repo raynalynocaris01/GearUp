@@ -18,6 +18,7 @@ interface Campsite {
   capacity: number;
   is_available: boolean;
   payment_mode?: 'online' | 'pay_at_campsite';
+  free_items?: string[];
   pricing_mode?: 'simple' | 'detailed';
   children?: Array<{
     id: number;

@@ -45,6 +45,8 @@ class CampsiteController extends Controller
             'is_available' => ['sometimes', 'boolean'],
             'pricing_mode' => ['sometimes', 'in:simple,detailed'],
             'parent_campsite_id' => ['nullable', 'integer', 'exists:campsites,id'],
+            'free_items' => ['nullable', 'array'],
+            'free_items.*' => ['string', 'max:255'],
         ]);
 
         // If creating a room variant, verify the parent belongs to this owner
@@ -69,6 +71,7 @@ class CampsiteController extends Controller
             'pricing_mode' => $data['pricing_mode'] ?? 'simple',
             'payment_mode' => $data['payment_mode'] ?? 'online',
             'rating' => 0,
+            'free_items' => $data['free_items'] ?? [],
             'reviews_count' => 0,
             'is_featured' => false,
         ]);
@@ -101,6 +104,8 @@ class CampsiteController extends Controller
             'is_available' => ['sometimes', 'boolean'],
             'pricing_mode' => ['sometimes', 'in:simple,detailed'],
             'payment_mode' => ['sometimes', 'in:online,pay_at_campsite'],
+            'free_items' => ['nullable', 'array'],
+            'free_items.*' => ['string', 'max:255'],
         ]);
 
         $campsite->update($data);
