@@ -212,3 +212,9 @@ Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(functi
     Route::put('/tour-guides/{tourGuide}', [AdminTourGuideController::class, 'update']);
     Route::delete('/tour-guides/{tourGuide}', [AdminTourGuideController::class, 'destroy']);
 });
+
+// Public endpoint PayMongo redirects to after payment.
+// Mobile app polls the booking status to detect success.
+Route::get('/payment-return', function () {
+    return response()->json(['message' => 'Payment complete. You may return to the app.']);
+});

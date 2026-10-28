@@ -77,41 +77,25 @@ export default function ConfirmedBookingScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [booking?.id, booking?.payment_status]);
 
-     const handlePay = async () => {
-    console.log('===== [PAY] handlePay START =====');
-    if (!booking) {
-      console.log('[PAY] No booking — aborting');
-      return;
-    }
+      const handlePay = async () => {
+    if (!booking) return;
 
     if (redirectTimer.current) {
-      console.log('[PAY] Clearing redirect timer');
       clearTimeout(redirectTimer.current);
       redirectTimer.current = null;
     }
     if (countdownTimer.current) {
-      console.log('[PAY] Clearing countdown timer');
       clearInterval(countdownTimer.current);
       countdownTimer.current = null;
     }
 
     setPaying(true);
-    console.log('[PAY] setPaying(true)');
-
     try {
-      console.log('[PAY] Getting token from SecureStore...');
       const token = await SecureStore.getItemAsync('auth_token');
-      console.log('[PAY] Token retrieved:', token ? 'YES (length ' + token.length + ')' : 'NO TOKEN!');
-
       const baseUrl =
         process.env.EXPO_PUBLIC_API_URL ||
         'https://oppositionless-emil-inspiritingly.ngrok-free.dev/api';
-      console.log('[PAY] Base URL:', baseUrl);
-
       const url = baseUrl + '/bookings/' + booking.id + '/pay';
-      console.log('[PAY] POST URL:', url);
-
-      console.log('[PAY] Calling backend...');
       const res = await fetch(url, {
         method: 'POST',
         headers: {
@@ -124,61 +108,38 @@ export default function ConfirmedBookingScreen() {
           redirect_url: 'https://oppositionless-emil-inspiritingly.ngrok-free.dev/api/payment-return',
         }),
       });
-      console.log('[PAY] Backend responded with status:', res.status);
-
       const data = await res.json();
-      console.log('[PAY] Response data:', JSON.stringify(data));
-
       if (!data.checkout_url) {
-        console.log('[PAY] NO checkout_url in response — aborting');
         Alert.alert('Error', data.message || 'Could not create checkout');
         return;
       }
 
-      console.log('[PAY] Checkout URL received:', data.checkout_url);
-
-      // Open PayMongo in browser
       const freshUrl = data.checkout_url + (data.checkout_url.includes('?') ? '&' : '?') + 't=' + Date.now();
-      console.log('[PAY] Opening browser:', freshUrl);
-
       await WebBrowser.openBrowserAsync(freshUrl);
-      console.log('[PAY] Browser closed — user returned');
 
-      // Poll for payment status
-      console.log('[PAY] Starting polling (every 2s, max 20 attempts)...');
       let attempts = 0;
       const poll = setInterval(async () => {
         attempts++;
-        console.log('[PAY] Poll attempt #' + attempts);
         try {
           const check = await bookings.get(booking.id);
-          console.log('[PAY] Poll result — payment_status:', check.data.payment_status);
           if (check.data.payment_status === 'paid') {
-            console.log('[PAY] PAID! Stopping poll.');
             clearInterval(poll);
             await fetchBooking();
             setTimeout(() => {
-              console.log('[PAY] Redirecting to booking details...');
               router.replace(`/booking/${booking.id}` as any);
             }, 3000);
           } else if (attempts >= 20) {
-            console.log('[PAY] Max attempts reached — giving up');
             clearInterval(poll);
             await fetchBooking();
           }
-        } catch (e) {
-          console.log('[PAY] Poll error:', e);
-        }
+        } catch {}
       }, 2000);
-    } catch (e: any) {
-      console.log('[PAY] FATAL ERROR:', e?.message || e);
+    } catch (e) {
       Alert.alert('Error', 'Failed to connect to payment server');
     } finally {
-      console.log('[PAY] Finally block — setPaying(false)');
       setPaying(false);
     }
   };
-
 
     const handleCashPay = async () => {
     if (!booking) return;
