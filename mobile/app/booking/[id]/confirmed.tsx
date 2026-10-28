@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -25,6 +25,9 @@ export default function ConfirmedBookingScreen() {
   const [booking, setBooking] = useState<Booking | null>(null);
   const [loading, setLoading] = useState(true);
   const [paying, setPaying] = useState(false);
+  const [countdown, setCountdown] = useState(5);
+  const redirectTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const countdownTimer = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const fetchBooking = async () => {
     try {
@@ -37,14 +40,31 @@ export default function ConfirmedBookingScreen() {
     }
   };
 
-  useFocusEffect(
-    React.useCallback(() => {
-      const timer = setTimeout(() => {
-        fetchBooking();
-      }, 50);
-      return () => clearTimeout(timer);
-    }, [])
-  );
+  // Auto-redirect to booking details after 5 seconds
+  // Only start the countdown after the booking is loaded
+  React.useEffect(() => {
+    if (!booking) return;
+
+    // Reset countdown when the page loads with a loaded booking
+    setCountdown(5);
+
+    // Countdown ticker (update every 1s)
+    countdownTimer.current = setInterval(() => {
+      setCountdown((c) => (c > 0 ? c - 1 : 0));
+    }, 1000);
+
+    // Redirect after 5 seconds
+    redirectTimer.current = setTimeout(() => {
+      router.replace(`/booking/${booking.id}` as any);
+    }, 5000);
+
+    // Cleanup on unmount
+    return () => {
+      if (redirectTimer.current) clearTimeout(redirectTimer.current);
+      if (countdownTimer.current) clearInterval(countdownTimer.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [booking?.id]);
 
   const handlePay = async () => {
     if (!booking) return;
@@ -58,6 +78,7 @@ export default function ConfirmedBookingScreen() {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
           'Authorization': 'Bearer ' + token,
+          'ngrok-skip-browser-warning': 'true',
         },
         body: JSON.stringify({
           redirect_url: 'exp://192.168.100.90:8081/--/booking/' + booking.id + '/confirmed',
@@ -90,6 +111,7 @@ export default function ConfirmedBookingScreen() {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
           'Authorization': 'Bearer ' + token,
+          'ngrok-skip-browser-warning': 'true',
         },
         body: JSON.stringify({ payment_method: 'cash' }),
       });
@@ -251,6 +273,12 @@ export default function ConfirmedBookingScreen() {
             <Text style={styles.trustText}>Secured by PayMongo</Text>
           </View>
         </View>
+      )}
+
+      {booking && (
+        <Text style={{ fontSize: 12, color: colors.textMuted, textAlign: 'center', marginTop: 16, marginBottom: 8 }}>
+          Redirecting to booking details in {countdown}s...
+        </Text>
       )}
     </ScrollView>
   );

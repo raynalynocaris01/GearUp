@@ -473,7 +473,7 @@ export default function BookingDetailScreen() {
               </TouchableOpacity>
             )}
         </View>
-        {booking && booking.status === 'pending' && booking.payment_status !== 'paid' && (
+        {booking && booking.status === 'pending' && booking.payment_status !== 'paid' && (booking.campsite as any)?.payment_mode !== 'pay_at_campsite' && (
           <TouchableOpacity
             onPress={() => router.push('/booking/' + booking.id + '/confirmed' as any)}
             style={{ backgroundColor: colors.gearupGreen, padding: 16, borderRadius: 12, marginTop: 20, marginBottom: 40, marginHorizontal: 20, alignItems: 'center' }}
