@@ -27,6 +27,7 @@ class Campsite extends Model
         'capacity',
         'is_featured',
         'is_available',
+        'payment_mode',
     ];
 
     protected $casts = [

@@ -124,6 +124,9 @@ export default function ConfirmedBookingScreen() {
 
   const isPaid = booking.payment_status === 'paid';
   const isCash = booking.payment_method === 'cash';
+  
+  // Check if the campsite owner restricted this to pay at campsite
+  const isPayAtCampsite = (booking.campsite as any)?.payment_mode === 'pay_at_campsite';
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -213,12 +216,14 @@ export default function ConfirmedBookingScreen() {
           <Text style={styles.successText}>Payment Received!</Text>
           <Text style={styles.successSubtext}>Your booking is confirmed.</Text>
         </View>
-      ) : isCash ? (
+      ) : isCash || isPayAtCampsite ? (
         <View style={styles.cashNotice}>
           <Ionicons name="cash-outline" size={36} color="#92400e" />
-          <Text style={styles.cashNoticeTitle}>Pay on Arrival</Text>
+          <Text style={styles.cashNoticeTitle}>Pay at Campsite</Text>
           <Text style={styles.cashNoticeText}>
-            Please pay ₱{Number(booking.total_price).toFixed(2)} to the host when you arrive.
+            {isPayAtCampsite 
+                            ? `This campsite requires cash payment upon arrival. Please prepare ₱${Number(booking.total_price).toFixed(2)} for your visit.`
+              : `Please pay ₱${Number(booking.total_price).toFixed(2)} to the host when you arrive.`}
           </Text>
         </View>
       ) : (

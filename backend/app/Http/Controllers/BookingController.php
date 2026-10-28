@@ -74,6 +74,15 @@ class BookingController extends Controller
             }
         }
 
+                // Business Rule: If the campsite requires pay at campsite, auto-set to cash
+        if (!empty($data['campsite_id'])) {
+            $campsiteCheck = \App\Models\Campsite::find($data['campsite_id']);
+            if ($campsiteCheck && $campsiteCheck->payment_mode === 'pay_at_campsite') {
+                $data['payment_method'] = 'cash';
+                // We will update the DB below to auto-confirm
+            }
+        }
+
         // Cross-property overlap warning
         if (empty($data['confirmed_override']) && !empty($data['check_in']) && !empty($data['check_out']) && empty($data['gear_item_id']) && empty($data['gear_items'])) {
             $newCampsiteId = $data['campsite_id'] ?? null;
@@ -479,7 +488,9 @@ class BookingController extends Controller
                 'seniors' => $seniors,
                 'pwd' => $pwd,
                 'total_price' => $total,
-                'status' => 'pending',
+                'status' => ($data['payment_method'] ?? null) === 'cash' ? 'confirmed' : 'pending',
+                'payment_method' => $data['payment_method'] ?? null,
+                'payment_status' => 'pending', // Always default to pending
                 'guide_status' => $tourGuide ? 'pending' : null,
                 'notes' => $data['notes'] ?? null,
                 'preferred_arrival' => $data['preferred_arrival'] ?? null,

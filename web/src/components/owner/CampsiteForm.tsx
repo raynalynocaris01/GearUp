@@ -16,6 +16,7 @@ interface Campsite {
   image_url: string;
   capacity: number;
   is_available: boolean;
+  payment_mode?: 'online' | 'pay_at_campsite';
   pricing_mode?: 'simple' | 'detailed';
   children?: Array<{
     id: number;
@@ -44,6 +45,7 @@ const EMPTY: Campsite = {
   capacity: 4,
   is_available: true,
   pricing_mode: 'simple',
+  payment_mode: 'online',
 };
 
 export function CampsiteForm({ mode, initial }: Props) {
@@ -81,6 +83,7 @@ export function CampsiteForm({ mode, initial }: Props) {
       capacity: Number(form.capacity),
       is_available: form.is_available,
       pricing_mode: form.pricing_mode ?? 'simple',
+      payment_mode: form.payment_mode ?? 'online',
     };
     // Only send price_per_night in simple mode. In detailed mode it is
     // unused and sending 0 would overwrite the preserved simple-mode value.
@@ -369,6 +372,63 @@ export function CampsiteForm({ mode, initial }: Props) {
     </div>
   </Field>
       </div>
+
+      {/* Payment Mode Selector */}
+      <Field label="Payment Mode">
+        <div className="space-y-2">
+          <label
+            className={`block border rounded-lg p-4 cursor-pointer transition ${
+              (form.payment_mode ?? 'online') === 'online'
+                ? 'border-gearup-600 bg-gearup-50'
+                : 'border-gray-200 hover:border-gray-300'
+            }`}
+          >
+            <div className="flex items-start gap-3">
+              <input
+                type="radio"
+                name="payment_mode"
+                checked={(form.payment_mode ?? 'online') === 'online'}
+                onChange={() => update('payment_mode', 'online')}
+                className="mt-1 h-4 w-4 accent-gearup-600"
+              />
+              <div className="flex-1">
+                <p className="font-semibold text-gray-900 text-sm">
+                  Online Payment
+                </p>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  Guests can pay online (card/GCash) or choose to pay cash on arrival.
+                </p>
+              </div>
+            </div>
+          </label>
+
+          <label
+            className={`block border rounded-lg p-4 cursor-pointer transition ${
+              form.payment_mode === 'pay_at_campsite'
+                ? 'border-gearup-600 bg-gearup-50'
+                : 'border-gray-200 hover:border-gray-300'
+            }`}
+          >
+            <div className="flex items-start gap-3">
+              <input
+                type="radio"
+                name="payment_mode"
+                checked={form.payment_mode === 'pay_at_campsite'}
+                onChange={() => update('payment_mode', 'pay_at_campsite')}
+                className="mt-1 h-4 w-4 accent-gearup-600"
+              />
+              <div className="flex-1">
+                <p className="font-semibold text-gray-900 text-sm">
+                  Pay at Campsite (Cash Only)
+                </p>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  Guests must pay cash upon arrival. Online payment options will be hidden during booking.
+                </p>
+              </div>
+            </div>
+          </label>
+        </div>
+      </Field>
 
       {/* Availability toggle */}
       <div className="border-t border-gray-100 pt-6">

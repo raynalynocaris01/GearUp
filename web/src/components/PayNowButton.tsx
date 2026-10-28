@@ -6,9 +6,10 @@ interface Props {
   bookingId: number;
   amount: number;
   paymentStatus: string;
+  paymentMode?: 'online' | 'pay_at_campsite';
 }
 
-export function PayNowButton({ bookingId, amount, paymentStatus }: Props) {
+export function PayNowButton({ bookingId, amount, paymentStatus, paymentMode }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -60,6 +61,18 @@ export function PayNowButton({ bookingId, amount, paymentStatus }: Props) {
       <div className="rounded-xl bg-green-50 border border-green-200 p-4 text-center">
         <p className="text-sm font-bold text-green-900">Payment received</p>
         <p className="text-xs text-green-700 mt-1">This booking has been paid.</p>
+      </div>
+    );
+  }
+
+  // New: If owner restricted to cash only
+  if (paymentMode === 'pay_at_campsite') {
+    return (
+      <div className="rounded-xl bg-amber-50 border border-amber-200 p-4 text-center">
+        <p className="text-sm font-bold text-amber-900">Pay at Campsite</p>
+        <p className="text-xs text-amber-700 mt-1">
+          This campsite requires cash payment upon arrival. Please prepare ₱{amount.toFixed(2)} for your visit. Your booking is confirmed.
+        </p>
       </div>
     );
   }

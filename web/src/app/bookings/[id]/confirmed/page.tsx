@@ -27,6 +27,7 @@ interface Booking {
     id: number;
     name: string;
     location: string;
+    payment_mode?: 'online' | 'pay_at_campsite';
   } | null;
   gear_item?: {
     id: number;
@@ -196,6 +197,7 @@ export default async function BookingConfirmedPage({
                 bookingId={booking.id}
                 amount={Number(booking.total_price)}
                 paymentStatus={booking.payment_status}
+                paymentMode={booking.campsite?.payment_mode}
               />
             </div>
           )}
