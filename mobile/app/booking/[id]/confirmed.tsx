@@ -259,6 +259,11 @@ export default function ConfirmedBookingScreen() {
               {paying ? 'Processing...' : `Pay Now - ₱${Number(booking.total_price).toFixed(2)}`}
             </Text>
           </TouchableOpacity>
+          {paying && (
+            <Text style={{ fontSize: 12, color: colors.textMuted, textAlign: 'center', marginTop: 8 }}>
+              Connecting to PayMongo... This may take a few seconds.
+            </Text>
+          )}
           <TouchableOpacity
             onPress={handleCashPay}
             disabled={paying}

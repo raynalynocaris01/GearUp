@@ -87,6 +87,11 @@ export function PayNowButton({ bookingId, amount, paymentStatus, paymentMode }: 
       >
         {loading ? 'Opening payment...' : `Pay Now - ₱${amount.toFixed(2)}`}
       </button>
+      {loading && (
+        <p className="text-xs text-gray-500 text-center -mt-1">
+          Connecting to PayMongo... This may take a few seconds.
+        </p>
+      )}
       <button
         type="button"
         onClick={handleCashPay}

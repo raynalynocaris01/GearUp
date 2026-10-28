@@ -800,9 +800,16 @@ class BookingController extends Controller
             ],
         ];
 
+        $startTime = microtime(true);
+
         $response = \Illuminate\Support\Facades\Http::withBasicAuth($secret, '')
             ->acceptJson()
             ->post('https://api.paymongo.com/v2/checkout_sessions', $payload);
+
+        $duration = round((microtime(true) - $startTime) * 1000);
+        \Log::info("PayMongo checkout session creation took {$duration}ms", [
+            'booking_id' => $booking->id,
+        ]);
 
         if (!$response->successful()) {
             \Log::error('PayMongo checkout failed', ['response' => $response->body()]);
