@@ -49,6 +49,11 @@ export const api = createApiClient({
   onUnauthorized: handleUnauthorized,
 });
 
+// Bypass ngrok's free-tier browser warning page on every API call.
+// Without this, requests to the ngrok tunnel return an HTML warning
+// page instead of JSON, causing the app to hang.
+api.defaults.headers.common['ngrok-skip-browser-warning'] = 'true';
+
 export const auth = authApi(api);
 export const campsites = campsiteApi(api);
 export const bookings = bookingApi(api);

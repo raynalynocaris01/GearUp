@@ -25,6 +25,7 @@ interface Campsite {
   capacity: number;
   pricing_mode?: 'simple' | 'detailed';
   pricing_lines?: PricingLine[];
+  payment_mode?: 'online' | 'pay_at_campsite';
   children?: {
     id: number;
     name: string;
