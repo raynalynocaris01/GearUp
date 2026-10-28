@@ -22,7 +22,14 @@ interface GearItem {
     id: number;
     name: string;
     email: string;
+    role?: string; // Added to check if they are an owner
   };
+}
+
+interface Campsite {
+  id: number;
+  name: string;
+  owner_id: number;
 }
 
 async function getCurrentUser() {
@@ -57,13 +64,30 @@ async function getGear(id: string): Promise<GearItem | null> {
   }
 }
 
+async function getAllCampsites(): Promise<Campsite[]> {
+  try {
+    const res = await fetch(`${API_URL}/campsites`, {
+      headers: { Accept: 'application/json' },
+      cache: 'no-store',
+    });
+    if (!res.ok) return [];
+    return await res.json();
+  } catch {
+    return [];
+  }
+}
+
 export default async function BookGearPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const [user, gear] = await Promise.all([getCurrentUser(), getGear(id)]);
+  const [user, gear, campsites] = await Promise.all([
+    getCurrentUser(), 
+    getGear(id),
+    getAllCampsites(),
+  ]);
 
   if (!gear) notFound();
   if (!user) redirect('/login');
@@ -71,6 +95,12 @@ export default async function BookGearPage({
   if (!gear.is_available || gear.stock < 1) {
     redirect(`/gear-rental/${gear.id}`);
   }
+
+  // Check if this gear is owner-provided and find the associated campsite
+  const isOwnerGear = gear.owner?.role === 'owner';
+  const ownerCampsite = isOwnerGear 
+    ? campsites.find((c) => c.owner_id === gear.owner_id) 
+    : null;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -94,7 +124,7 @@ export default async function BookGearPage({
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-          {/* Left: form */}
+          {/* Left: form or notice */}
           <div className="lg:col-span-2">
             <h1 className="text-3xl font-black text-gray-900 mb-2">
               Complete your rental
@@ -104,9 +134,36 @@ export default async function BookGearPage({
               confirming.
             </p>
 
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
-              <BookingForm presetGearItem={gear} />
-            </div>
+            {isOwnerGear ? (
+              <div className="bg-amber-50 border border-amber-200 rounded-2xl p-8 text-center">
+                <h2 className="text-xl font-bold text-amber-900 mb-2">
+                  Campsite Booking Required
+                </h2>
+                <p className="text-amber-800 text-sm mb-6 max-w-md mx-auto">
+                  This gear is provided by <strong>{gear.owner?.name}</strong>. 
+                  To rent this gear, you must book a stay at their campsite.
+                </p>
+                {ownerCampsite ? (
+                  <Link
+                    href={`/campsites/${ownerCampsite.id}/book`}
+                    className="inline-block bg-gearup-600 hover:bg-gearup-700 text-white font-semibold py-3 px-8 rounded-lg transition"
+                  >
+                    Book {ownerCampsite.name} & Add Gear
+                  </Link>
+                ) : (
+                  <Link
+                    href="/campsites"
+                    className="inline-block bg-gearup-600 hover:bg-gearup-700 text-white font-semibold py-3 px-8 rounded-lg transition"
+                  >
+                    Browse Campsites
+                  </Link>
+                )}
+              </div>
+            ) : (
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
+                <BookingForm presetGearItem={gear} />
+              </div>
+            )}
           </div>
 
           {/* Right: gear summary */}

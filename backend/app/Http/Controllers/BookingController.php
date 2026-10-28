@@ -30,6 +30,8 @@ class BookingController extends Controller
                 ->get()
         );
     }
+ 
+
 
     public function store(Request $request)
     {
@@ -58,6 +60,19 @@ class BookingController extends Controller
             'preferred_arrival' => ['nullable', 'string', 'in:Morning,Afternoon,Evening'],
             'confirmed_override' => ['nullable', 'boolean'],
         ]);
+
+        // Business Rule: Campsite owners' gear can only be rented if booking the campsite
+        if ($request->filled('gear_item_id') && !$request->filled('campsite_id')) {
+            $gear = \App\Models\GearItem::with('owner')->find($request->gear_item_id);
+            if ($gear && $gear->owner && $gear->owner->role === 'owner') {
+                return response()->json([
+                    'message' => 'This gear is provided by a campsite owner. You must book a campsite stay to rent this gear.',
+                    'errors' => [
+                        'gear_item_id' => ['Requires a campsite booking.']
+                    ]
+                ], 422);
+            }
+        }
 
         // Cross-property overlap warning
         if (empty($data['confirmed_override']) && !empty($data['check_in']) && !empty($data['check_out']) && empty($data['gear_item_id']) && empty($data['gear_items'])) {

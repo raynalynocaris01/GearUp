@@ -14,8 +14,8 @@ import {
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { gear, bookings } from '../../../lib/api';
-import type { GearItem } from '@gearup/shared';
+import { gear, bookings, campsites } from '../../../lib/api';
+import type { GearItem, Campsite } from '@gearup/shared';
 import { colors } from '../../../theme';
 import { imgSrc } from '../../../lib/images';
 
@@ -37,6 +37,7 @@ export default function NewGearBookingScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
 
   const [item, setItem] = useState<GearItem | null>(null);
+  const [allCampsites, setAllCampsites] = useState<Campsite[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
@@ -51,8 +52,12 @@ export default function NewGearBookingScreen() {
   useEffect(() => {
     (async () => {
       try {
-        const res = await gear.get(id);
-        setItem(res.data);
+        const [gearRes, campsiteRes] = await Promise.all([
+          gear.get(id),
+          campsites.list(),
+        ]);
+        setItem(gearRes.data);
+        setAllCampsites(campsiteRes.data);
       } catch {
         Alert.alert('Error', 'Could not load gear details.');
         router.back();
@@ -61,6 +66,11 @@ export default function NewGearBookingScreen() {
       }
     })();
   }, [id]);
+
+  const isOwnerGear = item?.owner?.role === 'owner';
+  const ownerCampsite = isOwnerGear 
+    ? allCampsites.find((c) => c.owner_id === item.owner_id) 
+    : null;
 
   const { days, gearPrice, totalPrice } = useMemo(() => {
     if (!item) {
@@ -182,126 +192,156 @@ export default function NewGearBookingScreen() {
           </View>
         </View>
 
-        {/* Rental dates */}
-        <Text style={styles.sectionTitle}>Rental Dates</Text>
-        <View style={styles.fieldCard}>
-          <View style={styles.fieldRow}>
-            <Text style={styles.fieldLabel}>Pick-up</Text>
-            <TextInput
-              style={styles.dateInput}
-              value={startDate}
-              onChangeText={setStartDate}
-              placeholder="YYYY-MM-DD"
-              placeholderTextColor={colors.textMuted}
-            />
-          </View>
-          <View style={styles.divider} />
-          <View style={styles.fieldRow}>
-            <Text style={styles.fieldLabel}>Return</Text>
-            <TextInput
-              style={styles.dateInput}
-              value={endDate}
-              onChangeText={setEndDate}
-              placeholder="YYYY-MM-DD"
-              placeholderTextColor={colors.textMuted}
-            />
-          </View>
-        </View>
-        <Text style={styles.hint}>
-          Use YYYY-MM-DD format. Example: {toDateString(tomorrow)}
-        </Text>
-
-        {/* Quantity */}
-        <Text style={styles.sectionTitle}>Quantity</Text>
-        <View style={styles.fieldCard}>
-          <View style={styles.stepperRow}>
-            <View>
-              <Text style={styles.fieldLabel}>Units to rent</Text>
-              <Text style={styles.hint}>
-                Max {item.stock} available
-              </Text>
+        {isOwnerGear ? (
+          <View style={styles.ownerNotice}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+              <Ionicons name="information-circle" size={24} color="#b45309" />
+              <Text style={{ fontSize: 16, fontWeight: '800', color: '#b45309' }}>Campsite Booking Required</Text>
             </View>
-            <View style={styles.stepper}>
-              <TouchableOpacity
-                style={styles.stepperButton}
-                onPress={() => setQuantity((q) => Math.max(1, q - 1))}
-              >
-                <Ionicons
-                  name="remove"
-                  size={20}
-                  color={colors.gearupGreen}
-                />
-              </TouchableOpacity>
-              <Text style={styles.stepperValue}>{quantity}</Text>
-              <TouchableOpacity
-                style={styles.stepperButton}
-                onPress={() =>
-                  setQuantity((q) => Math.min(item.stock, q + 1))
+            <Text style={{ fontSize: 14, color: '#92400e', lineHeight: 20, marginBottom: 16 }}>
+              This gear is provided by <Text style={{ fontWeight: '700' }}>{item.owner?.name}</Text>. 
+              To rent this gear, you must book a stay at their campsite.
+            </Text>
+             <TouchableOpacity
+              style={styles.goToCampsiteBtn}
+              onPress={() => {
+                if (ownerCampsite) {
+                  router.replace(`/campsite/${ownerCampsite.id}` as any);
+                } else {
+                  router.replace('/(tabs)/explore' as any);
                 }
-              >
-                <Ionicons
-                  name="add"
-                  size={20}
-                  color={colors.gearupGreen}
+              }}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.goToCampsiteText} numberOfLines={1}>
+                {ownerCampsite ? `Book ${ownerCampsite.name}` : 'Browse Campsites'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <>
+            {/* Rental dates */}
+            <Text style={styles.sectionTitle}>Rental Dates</Text>
+            <View style={styles.fieldCard}>
+              <View style={styles.fieldRow}>
+                <Text style={styles.fieldLabel}>Pick-up</Text>
+                <TextInput
+                  style={styles.dateInput}
+                  value={startDate}
+                  onChangeText={setStartDate}
+                  placeholder="YYYY-MM-DD"
+                  placeholderTextColor={colors.textMuted}
                 />
-              </TouchableOpacity>
+              </View>
+              <View style={styles.divider} />
+              <View style={styles.fieldRow}>
+                <Text style={styles.fieldLabel}>Return</Text>
+                <TextInput
+                  style={styles.dateInput}
+                  value={endDate}
+                  onChangeText={setEndDate}
+                  placeholder="YYYY-MM-DD"
+                  placeholderTextColor={colors.textMuted}
+                />
+              </View>
             </View>
-          </View>
-        </View>
-
-        {/* Notes */}
-        <Text style={styles.sectionTitle}>Notes (optional)</Text>
-        <View style={styles.fieldCard}>
-          <TextInput
-            style={styles.notesInput}
-            value={notes}
-            onChangeText={setNotes}
-            placeholder="Anything the owner should know?"
-            placeholderTextColor={colors.textMuted}
-            multiline
-            numberOfLines={3}
-            maxLength={500}
-          />
-        </View>
-
-        {/* Price summary */}
-        <View style={styles.summary}>
-          <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>
-              {item.name}: ₱{item.price_per_day} × {days}{' '}
-              {days === 1 ? 'day' : 'days'} × {quantity}
+            <Text style={styles.hint}>
+              Use YYYY-MM-DD format. Example: {toDateString(tomorrow)}
             </Text>
-            <Text style={styles.summaryValue}>
-              ₱{gearPrice.toFixed(2)}
-            </Text>
-          </View>
 
-          <View style={styles.summaryDivider} />
+            {/* Quantity */}
+            <Text style={styles.sectionTitle}>Quantity</Text>
+            <View style={styles.fieldCard}>
+              <View style={styles.stepperRow}>
+                <View>
+                  <Text style={styles.fieldLabel}>Units to rent</Text>
+                  <Text style={styles.hint}>
+                    Max {item.stock} available
+                  </Text>
+                </View>
+                <View style={styles.stepper}>
+                  <TouchableOpacity
+                    style={styles.stepperButton}
+                    onPress={() => setQuantity((q) => Math.max(1, q - 1))}
+                  >
+                    <Ionicons
+                      name="remove"
+                      size={20}
+                      color={colors.gearupGreen}
+                    />
+                  </TouchableOpacity>
+                  <Text style={styles.stepperValue}>{quantity}</Text>
+                  <TouchableOpacity
+                    style={styles.stepperButton}
+                    onPress={() =>
+                      setQuantity((q) => Math.min(item.stock, q + 1))
+                    }
+                  >
+                    <Ionicons
+                      name="add"
+                      size={20}
+                      color={colors.gearupGreen}
+                    />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
 
-          <View style={styles.summaryRow}>
-            <Text style={styles.summaryTotal}>Total</Text>
-            <Text style={styles.summaryTotalValue}>
-              ₱{totalPrice.toFixed(2)}
-            </Text>
-          </View>
-        </View>
+            {/* Notes */}
+            <Text style={styles.sectionTitle}>Notes (optional)</Text>
+            <View style={styles.fieldCard}>
+              <TextInput
+                style={styles.notesInput}
+                value={notes}
+                onChangeText={setNotes}
+                placeholder="Anything the owner should know?"
+                placeholderTextColor={colors.textMuted}
+                multiline
+                numberOfLines={3}
+                maxLength={500}
+              />
+            </View>
 
-        {/* Submit */}
-        <TouchableOpacity
-          style={[
-            styles.submitButton,
-            submitting && styles.submitButtonDisabled,
-          ]}
-          onPress={handleSubmit}
-          disabled={submitting}
-          activeOpacity={0.85}
-        >
-          {submitting ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.submitButtonText}>Confirm Rental</Text>
-          )}
-        </TouchableOpacity>
+            {/* Price summary */}
+            <View style={styles.summary}>
+              <View style={styles.summaryRow}>
+                <Text style={styles.summaryLabel}>
+                  {item.name}: ₱{item.price_per_day} × {days}{' '}
+                  {days === 1 ? 'day' : 'days'} × {quantity}
+                </Text>
+                <Text style={styles.summaryValue}>
+                  ₱{gearPrice.toFixed(2)}
+                </Text>
+              </View>
+
+              <View style={styles.summaryDivider} />
+
+              <View style={styles.summaryRow}>
+                <Text style={styles.summaryTotal}>Total</Text>
+                <Text style={styles.summaryTotalValue}>
+                  ₱{totalPrice.toFixed(2)}
+                </Text>
+              </View>
+            </View>
+
+            {/* Submit */}
+            <TouchableOpacity
+              style={[
+                styles.submitButton,
+                submitting && styles.submitButtonDisabled,
+              ]}
+              onPress={handleSubmit}
+              disabled={submitting}
+              activeOpacity={0.85}
+            >
+              {submitting ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={styles.submitButtonText}>Confirm Rental</Text>
+              )}
+            </TouchableOpacity>
+          </>
+        )}
 
         <View style={{ height: 40 }} />
       </ScrollView>
@@ -357,6 +397,28 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: colors.gearupGreen,
     marginTop: 3,
+  },
+
+  ownerNotice: {
+    backgroundColor: '#fffbeb',
+    borderWidth: 1,
+    borderColor: '#fcd34d',
+    borderRadius: 14,
+    padding: 20,
+    marginTop: 12,
+  },
+  goToCampsiteBtn: {
+    backgroundColor: colors.gearupGreen,
+    borderRadius: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+    flexShrink: 1,
+  },
+  goToCampsiteText: {
+    color: '#fff',
+    fontWeight: '800',
+    fontSize: 14,
   },
 
   sectionTitle: {
