@@ -146,7 +146,7 @@ export default async function CampsiteDetailPage({
 
   if (!campsite) notFound();
 
-  const gear: any[] = [];
+  const gear = await getGear(campsite.owner_id);
 
   // Find a completed booking for this campsite that hasn't been reviewed yet
   const eligibleBooking = myBookings.find(
@@ -290,9 +290,9 @@ export default async function CampsiteDetailPage({
                   {(campsite.free_items ?? []).map((item, i) => (
                     <span
                       key={i}
-                      className="inline-flex items-center gap-1.5 bg-gearup-50 border border-gearup-200 text-gearup-800 text-sm font-semibold px-3 py-1.5 rounded-full"
+                      className="inline-flex items-center gap-1.5 bg-gearup-50 border border-gearup-100 text-gearup-700 text-sm font-semibold px-3 py-1.5 rounded-full"
                     >
-                      <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                      <svg className="w-3 h-3 text-gearup-600" fill="currentColor" viewBox="0 0 20 20">
                         <path
                           fillRule="evenodd"
                           d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
@@ -313,8 +313,8 @@ export default async function CampsiteDetailPage({
               <p className="text-gray-700">{campsite.region}</p>
             </div>
 
-            {/* Provided Gear - removed, replaced by free_items list above */}
-            {false && gear.length > 0 && (
+            {/* Provided Gear */}
+            {gear.length > 0 && (
               <div className="mt-8">
                 <h2 className="text-xl font-bold text-gray-900 mb-3">
                   Gear Provided by this Campsite
