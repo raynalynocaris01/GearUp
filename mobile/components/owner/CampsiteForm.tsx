@@ -37,6 +37,8 @@ const EMPTY = {
   capacity: 4,
   is_available: true,
   pricing_mode: 'simple' as 'simple' | 'detailed',
+  payment_mode: 'online' as 'online' | 'pay_at_campsite',
+  free_items: [] as string[],
 };
 
 export function CampsiteForm({ mode, initial }: Props) {
@@ -55,6 +57,9 @@ export function CampsiteForm({ mode, initial }: Props) {
     is_available: initial?.is_available ?? EMPTY.is_available,
     pricing_mode:
       (initial?.pricing_mode as 'simple' | 'detailed') ?? EMPTY.pricing_mode,
+    payment_mode:
+      (initial?.payment_mode as 'online' | 'pay_at_campsite') ?? EMPTY.payment_mode,
+    free_items: initial?.free_items ?? EMPTY.free_items,
   });
 
   // Expo Router reuses the same mounted component when navigating between
@@ -76,6 +81,9 @@ export function CampsiteForm({ mode, initial }: Props) {
       is_available: initial.is_available ?? EMPTY.is_available,
       pricing_mode:
         (initial.pricing_mode as 'simple' | 'detailed') ?? EMPTY.pricing_mode,
+      payment_mode:
+        (initial.payment_mode as 'online' | 'pay_at_campsite') ?? EMPTY.payment_mode,
+      free_items: initial.free_items ?? EMPTY.free_items,
     });
   }, [initial?.id]);
 
@@ -136,6 +144,8 @@ export function CampsiteForm({ mode, initial }: Props) {
         capacity: number;
         is_available: boolean;
         pricing_mode: 'simple' | 'detailed';
+        payment_mode?: 'online' | 'pay_at_campsite';
+        free_items?: string[];
         image_url?: string;
       } = {
         name: form.name.trim(),
@@ -146,6 +156,8 @@ export function CampsiteForm({ mode, initial }: Props) {
         capacity: Number(form.capacity),
         is_available: form.is_available,
         pricing_mode: form.pricing_mode,
+        payment_mode: form.payment_mode,
+        free_items: form.free_items,
         ...(willUploadNewImage ? {} : { image_url: form.image_url }),
       };
       // Only send price_per_night in simple mode. In detailed mode it is
@@ -420,6 +432,32 @@ export function CampsiteForm({ mode, initial }: Props) {
           </Text>
         </Field>
 
+        <Field label="Free items provided by this campsite">
+          <Text style={{ fontSize: 11, color: colors.textMuted, marginBottom: 6 }}>
+            One item per line. E.g. Firewood, Basic toiletries, Parking, Drinking water, etc.
+          </Text>
+          <TextInput
+            style={[styles.input, styles.textarea]}
+            value={form.free_items.join('\n')}
+            onChangeText={(text) => {
+              const lines = text.split('\n');
+              setForm((f) => ({ ...f, free_items: lines }));
+            }}
+            onBlur={() => {
+              setForm((f) => {
+                const cleaned = f.free_items
+                  .map((s) => s.trim())
+                  .filter((s) => s.length > 0);
+                return { ...f, free_items: cleaned };
+              });
+            }}
+            placeholder={'Firewood\nBasic toiletries\nParking'}
+            placeholderTextColor={colors.textMuted}
+            multiline
+            numberOfLines={5}
+          />
+        </Field>
+
         {/* Availability toggle */}
         <View style={styles.availabilityCard}>
           <View style={{ flex: 1 }}>
@@ -528,6 +566,8 @@ interface RoomVariant {
   price_unit: string;
   capacity: number;
   is_available: boolean;
+  payment_mode?: 'online' | 'pay_at_campsite';
+  free_items?: string[];
 }
 
 interface RoomVariantsProps {

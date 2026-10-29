@@ -299,6 +299,53 @@ export default function CampsiteDetailScreen() {
             </>
           )}
 
+          {(campsite.free_items ?? []).length > 0 && (
+            <>
+              <View style={styles.divider} />
+              <Text style={styles.sectionTitle}>What we provide for free</Text>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  flexWrap: 'wrap',
+                  gap: 8,
+                  marginTop: 8,
+                }}
+              >
+                {(campsite.free_items ?? []).map((item, i) => (
+                  <View
+                    key={i}
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: 6,
+                      backgroundColor: colors.gearup50,
+                      borderWidth: 1,
+                      borderColor: colors.gearupGreen,
+                      paddingHorizontal: 12,
+                      paddingVertical: 6,
+                      borderRadius: 20,
+                    }}
+                  >
+                    <Ionicons
+                      name="checkmark"
+                      size={14}
+                      color={colors.gearupGreen}
+                    />
+                    <Text
+                      style={{
+                        fontSize: 12,
+                        fontWeight: '700',
+                        color: colors.gearupGreen,
+                      }}
+                    >
+                      {item}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            </>
+          )}
+
           <View style={styles.divider} />
 
           <Text style={styles.sectionTitle}>Region</Text>
@@ -310,7 +357,7 @@ export default function CampsiteDetailScreen() {
               <View style={styles.divider} />
               <Text style={styles.sectionTitle}>Gear Provided by this Campsite</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 8 }}>
-                {providedGear.map((item) => {
+                {(providedGear.length > 3 ? providedGear.slice(0, 3) : providedGear).map((item) => {
                   const isFree = parseFloat(item.price_per_day) === 0;
                   return (
                     <View key={item.id} style={styles.gearCard}>
@@ -334,6 +381,32 @@ export default function CampsiteDetailScreen() {
                   );
                 })}
               </ScrollView>
+
+              {providedGear.length > 3 && (
+                <TouchableOpacity
+                  onPress={() => router.push(`/gear-rental`)}
+                  style={{
+                    alignSelf: 'center',
+                    marginTop: 12,
+                    paddingVertical: 8,
+                    paddingHorizontal: 20,
+                    borderRadius: 20,
+                    borderWidth: 1,
+                    borderColor: colors.gearupGreen,
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <Text
+                    style={{
+                      color: colors.gearupGreen,
+                      fontWeight: '700',
+                      fontSize: 13,
+                    }}
+                  >
+                    See all {providedGear.length} gear items →
+                  </Text>
+                </TouchableOpacity>
+              )}
             </>
           )}
 
