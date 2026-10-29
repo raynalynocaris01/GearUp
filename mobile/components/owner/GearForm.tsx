@@ -50,7 +50,6 @@ const CATEGORIES = [
   'Cooking',
   'Lighting',
   'Furniture',
-  'Free',
   'Other',
 ];
 
@@ -70,14 +69,8 @@ export function GearForm({ mode, initial }: Props) {
     value: GearItem[K],
   ) => setForm((f) => ({ ...f, [key]: value }));
 
-  const isFree = form.category === 'Free';
-
   const handleCategorySelect = (category: string) => {
-    setForm((f) => ({
-      ...f,
-      category,
-      price_per_day: category === 'Free' ? '0' : f.price_per_day,
-    }));
+    setForm((f) => ({ ...f, category }));
   };
 
   const pickImage = async () => {
@@ -126,7 +119,7 @@ export function GearForm({ mode, initial }: Props) {
         name: form.name.trim(),
         description: (form.description ?? '').trim(),
         category: form.category,
-        price_per_day: isFree ? 0 : (Number(form.price_per_day) || 0),
+        price_per_day: Number(form.price_per_day) || 0,
         stock: Number(form.stock) || 1,
         is_available: form.is_available,
         ...(willUploadNewImage ? {} : { image_url: form.image_url || '' }),
@@ -235,20 +228,14 @@ export function GearForm({ mode, initial }: Props) {
         <View style={styles.row}>
           <View style={{ flex: 1 }}>
             <Text style={styles.label}>Price per day (₱)</Text>
-            {isFree ? (
-              <View style={[styles.input, styles.freeBadge]}>
-                <Text style={styles.freeBadgeText}>Free</Text>
-              </View>
-            ) : (
-              <TextInput
-                style={styles.input}
-                value={form.price_per_day}
-                onChangeText={(v) => update('price_per_day', v)}
-                placeholder="150"
-                placeholderTextColor="#9ca3af"
-                keyboardType="numeric"
-              />
-            )}
+            <TextInput
+              style={styles.input}
+              value={form.price_per_day}
+              onChangeText={(v) => update('price_per_day', v)}
+              placeholder="150"
+              placeholderTextColor="#9ca3af"
+              keyboardType="numeric"
+            />
           </View>
           <View style={{ width: 12 }} />
           <View style={{ flex: 1 }}>
@@ -371,16 +358,7 @@ const styles = StyleSheet.create({
   chipTextActive: {
     color: '#fff',
   },
-  freeBadge: {
-    backgroundColor: '#f0fdf4',
-    borderColor: '#86efac',
-    justifyContent: 'center',
-  },
-  freeBadgeText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#15803d',
-  },
+
 
   checkboxRow: {
     flexDirection: 'row',

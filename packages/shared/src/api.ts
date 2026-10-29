@@ -163,6 +163,8 @@ export interface Campsite {
   capacity: number;
   is_featured: boolean;
   is_available: boolean;
+  payment_mode?: 'online' | 'pay_at_campsite';
+  free_items?: string[];
   created_at: string;
   updated_at: string;
   tour_guides?: TourGuide[];
@@ -364,6 +366,8 @@ export interface CreateCampsitePayload {
   capacity: number;
   is_available?: boolean;
   pricing_mode?: 'simple' | 'detailed';
+  payment_mode?: 'online' | 'pay_at_campsite';
+  free_items?: string[];
 }
 
 export interface CreateTourGuidePayload {
