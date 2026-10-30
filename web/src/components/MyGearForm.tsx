@@ -35,6 +35,26 @@ export function MyGearForm({ mode, initial }: Props) {
     initial?.is_available ?? true,
   );
 
+  // Pickup fields
+  const [pickupMethod, setPickupMethod] = useState<
+    'meetup' | 'pickup' | 'deliver' | 'all'
+  >((initial?.pickup_method as any) ?? 'meetup');
+  const [pickupAddress, setPickupAddress] = useState(
+    initial?.pickup_address ?? '',
+  );
+  const [pickupLandmark, setPickupLandmark] = useState(
+    initial?.pickup_landmark ?? '',
+  );
+  const [pickupHours, setPickupHours] = useState(
+    initial?.pickup_hours ?? '',
+  );
+  const [pickupInstructions, setPickupInstructions] = useState(
+    initial?.pickup_instructions ?? '',
+  );
+  const [contactNumber, setContactNumber] = useState(
+    initial?.contact_number ?? '',
+  );
+
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(
     initial?.image_url ?? null,
@@ -69,6 +89,12 @@ export function MyGearForm({ mode, initial }: Props) {
       stock: number;
       is_available: boolean;
       image_url?: string;
+      pickup_method: 'meetup' | 'pickup' | 'deliver' | 'all';
+      pickup_address: string | null;
+      pickup_landmark: string | null;
+      pickup_hours: string | null;
+      pickup_instructions: string | null;
+      contact_number: string | null;
     } = {
       name: name.trim(),
       description: description.trim(),
@@ -77,6 +103,12 @@ export function MyGearForm({ mode, initial }: Props) {
       stock: Number(stock) || 1,
       is_available: isAvailable,
       ...(willUploadNewImage ? {} : { image_url: initial?.image_url ?? '' }),
+      pickup_method: pickupMethod,
+      pickup_address: pickupAddress.trim() || null,
+      pickup_landmark: pickupLandmark.trim() || null,
+      pickup_hours: pickupHours.trim() || null,
+      pickup_instructions: pickupInstructions.trim() || null,
+      contact_number: contactNumber.trim() || null,
     };
 
     try {
@@ -217,6 +249,122 @@ export function MyGearForm({ mode, initial }: Props) {
         />
         <span className="text-sm text-gray-700">Available for rent</span>
       </label>
+
+      {/* Pickup Information */}
+      <div className="border-t border-gray-200 pt-6">
+        <h3 className="text-base font-bold text-gray-900 mb-1">
+          Pickup Information
+        </h3>
+        <p className="text-xs text-gray-500 mb-4">
+          Tell renters how they'll get the gear. This is only shown after a
+          booking is confirmed.
+        </p>
+
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          How should renters get the gear?
+        </label>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-4">
+          {(
+            [
+              { value: 'meetup', label: 'Meet-up at a place' },
+              { value: 'pickup', label: 'Pick up at my place' },
+              { value: 'deliver', label: 'Deliver to them' },
+              { value: 'all', label: 'All three options' },
+            ] as const
+          ).map((opt) => (
+            <label
+              key={opt.value}
+              className={`flex items-center gap-2 border rounded-lg px-3 py-2.5 cursor-pointer text-sm transition ${
+                pickupMethod === opt.value
+                  ? 'border-green-600 bg-green-50 text-green-800 font-semibold'
+                  : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              <input
+                type="radio"
+                name="pickup_method"
+                value={opt.value}
+                checked={pickupMethod === opt.value}
+                onChange={() => setPickupMethod(opt.value)}
+                className="w-4 h-4 accent-green-600"
+              />
+              {opt.label}
+            </label>
+          ))}
+        </div>
+
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              {pickupMethod === 'meetup' ? 'Meet-up location' : 'Pickup address'}
+              {['pickup', 'all'].includes(pickupMethod) && (
+                <span className="text-red-600"> *</span>
+              )}
+            </label>
+            <textarea
+              rows={2}
+              value={pickupAddress}
+              onChange={(e) => setPickupAddress(e.target.value)}
+              placeholder="e.g. Purok 3, Brgy. San Jose, Valencia City, Bukidnon"
+              className={`${inputClass} resize-none`}
+            />
+          </div>
+
+          {['meetup', 'all'].includes(pickupMethod) && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                Landmark (optional but helpful)
+              </label>
+              <input
+                type="text"
+                value={pickupLandmark}
+                onChange={(e) => setPickupLandmark(e.target.value)}
+                placeholder="e.g. Near the barangay hall, blue gate"
+                className={inputClass}
+              />
+            </div>
+          )}
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              Pickup hours (optional)
+            </label>
+            <input
+              type="text"
+              value={pickupHours}
+              onChange={(e) => setPickupHours(e.target.value)}
+              placeholder="e.g. Mon–Sat 9AM–6PM, Sun by appointment"
+              className={inputClass}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              Instructions (optional)
+            </label>
+            <textarea
+              rows={2}
+              value={pickupInstructions}
+              onChange={(e) => setPickupInstructions(e.target.value)}
+              placeholder="e.g. Text me 30 minutes before arriving."
+              className={`${inputClass} resize-none`}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              Contact number (optional)
+            </label>
+            <input
+              type="tel"
+              value={contactNumber}
+              onChange={(e) => setContactNumber(e.target.value)}
+              placeholder="e.g. 0917 123 4567"
+              className={inputClass}
+            />
+          </div>
+        </div>
+      </div>
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1.5">

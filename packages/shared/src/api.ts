@@ -704,9 +704,9 @@ export const reviewApi = (client: ApiClient) => ({
     client.delete(`/reviews/${reviewId}`),
 });
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// 
 // GEAR ITEMS (PUBLIC)
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// 
 
 export interface GearItem {
   id: number;
@@ -720,6 +720,12 @@ export interface GearItem {
   is_available: boolean;
   created_at: string;
   updated_at: string;
+  pickup_method?: 'meetup' | 'pickup' | 'deliver' | 'all';
+  pickup_address?: string | null;
+  pickup_landmark?: string | null;
+  pickup_hours?: string | null;
+  pickup_instructions?: string | null;
+  contact_number?: string | null;
   owner?: {
     id: number;
     name: string;
