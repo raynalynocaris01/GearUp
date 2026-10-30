@@ -110,6 +110,12 @@ class GearItemController extends Controller
             'image_url' => ['nullable', 'string', 'max:255'],
             'stock' => [$partial ? 'sometimes' : 'required', 'integer', 'min:0'],
             'is_available' => ['sometimes', 'boolean'],
+            'pickup_method' => ['sometimes', 'in:meetup,pickup,deliver,all'],
+            'pickup_address' => ['nullable', 'string', 'max:1000'],
+            'pickup_landmark' => ['nullable', 'string', 'max:255'],
+            'pickup_hours' => ['nullable', 'string', 'max:255'],
+            'pickup_instructions' => ['nullable', 'string', 'max:1000'],
+            'contact_number' => ['nullable', 'string', 'max:30'],
         ];
 
         return $request->validate($rules);

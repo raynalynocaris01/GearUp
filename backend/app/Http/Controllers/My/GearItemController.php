@@ -34,7 +34,23 @@ class GearItemController extends Controller
             'image_url' => ['nullable', 'string', 'max:2048'],
             'stock' => ['required', 'integer', 'min:1'],
             'is_available' => ['sometimes', 'boolean'],
+            'pickup_method' => ['sometimes', 'in:meetup,pickup,deliver,all'],
+            'pickup_address' => ['nullable', 'string', 'max:1000'],
+            'pickup_landmark' => ['nullable', 'string', 'max:255'],
+            'pickup_hours' => ['nullable', 'string', 'max:255'],
+            'pickup_instructions' => ['nullable', 'string', 'max:1000'],
+            'contact_number' => ['nullable', 'string', 'max:30'],
         ]);
+
+        $method = $data['pickup_method'] ?? 'meetup';
+        // Only require an address when the customer must travel to the owner's place.
+        // Meet-up without a location is allowed — the card will say
+        // "Contact the owner to arrange a meet-up".
+        if (in_array($method, ['pickup', 'all'], true) && empty($data['pickup_address'])) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'pickup_address' => 'Please enter the pickup address so renters can find you.',
+            ]);
+        }
 
         $item = GearItem::create([
             'owner_id' => $request->user()->id,
@@ -45,6 +61,12 @@ class GearItemController extends Controller
             'image_url' => $data['image_url'] ?? '',
             'stock' => $data['stock'],
             'is_available' => $data['is_available'] ?? true,
+            'pickup_method' => $method,
+            'pickup_address' => $data['pickup_address'] ?? null,
+            'pickup_landmark' => $data['pickup_landmark'] ?? null,
+            'pickup_hours' => $data['pickup_hours'] ?? null,
+            'pickup_instructions' => $data['pickup_instructions'] ?? null,
+            'contact_number' => $data['contact_number'] ?? null,
         ]);
 
         return response()->json($item, 201);
@@ -75,6 +97,12 @@ class GearItemController extends Controller
             'image_url' => ['nullable', 'string', 'max:2048'],
             'stock' => ['sometimes', 'integer', 'min:1'],
             'is_available' => ['sometimes', 'boolean'],
+            'pickup_method' => ['sometimes', 'in:meetup,pickup,deliver,all'],
+            'pickup_address' => ['nullable', 'string', 'max:1000'],
+            'pickup_landmark' => ['nullable', 'string', 'max:255'],
+            'pickup_hours' => ['nullable', 'string', 'max:255'],
+            'pickup_instructions' => ['nullable', 'string', 'max:1000'],
+            'contact_number' => ['nullable', 'string', 'max:30'],
         ]);
 
         // Coerce nullable fields to empty strings to satisfy NOT NULL columns
