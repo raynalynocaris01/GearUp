@@ -234,7 +234,8 @@ export default async function BookingConfirmedPage({
                 <div className="mt-5 pt-5 border-t border-gray-100">
                   <PayNowButton
                     bookingId={booking.id}
-                    amount={Number(booking.amount_paid)}
+                    amount={Number(booking.total_price)}
+                    paidAmount={Number(booking.amount_paid)}
                     balanceDue={0}
                     paymentStatus="paid"
                   />
@@ -249,6 +250,7 @@ export default async function BookingConfirmedPage({
                   <PayNowButton
                     bookingId={booking.id}
                     amount={Number(booking.balance_due)}
+                    paidAmount={Number(booking.amount_paid)}
                     balanceDue={Number(booking.balance_due)}
                     paymentStatus="paid"
                     paymentMode={booking.campsite?.payment_mode}

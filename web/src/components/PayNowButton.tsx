@@ -5,12 +5,13 @@ import { useState } from 'react';
 interface Props {
   bookingId: number;
   amount: number;
+  paidAmount?: number;
   balanceDue?: number;
   paymentStatus: string;
   paymentMode?: 'online' | 'pay_at_campsite';
 }
 
-export function PayNowButton({ bookingId, amount, balanceDue = 0, paymentStatus, paymentMode }: Props) {
+export function PayNowButton({ bookingId, amount, paidAmount, balanceDue = 0, paymentStatus, paymentMode }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -60,23 +61,25 @@ export function PayNowButton({ bookingId, amount, balanceDue = 0, paymentStatus,
   if (paymentStatus === 'paid') {
     // Fully paid — no more balance
     if (balanceDue === 0) {
+      const displayPaid = paidAmount !== undefined ? paidAmount : amount;
       return (
         <div className="rounded-xl bg-green-50 border border-green-200 p-4 text-center space-y-1">
           <p className="text-sm font-bold text-green-900">Payment received</p>
           <p className="text-xs text-green-700">
-            ₱{amount.toFixed(2)} has been paid in full.
+            ₱{displayPaid.toFixed(2)} has been paid in full.
           </p>
         </div>
       );
     }
 
     // Down payment paid — show "Pay Balance" panel
+    const displayPaid = paidAmount !== undefined ? paidAmount : amount;
     return (
       <div className="space-y-3">
         <div className="rounded-xl bg-green-50 border border-green-200 p-4 text-center space-y-1">
           <p className="text-sm font-bold text-green-900">Down payment received</p>
           <p className="text-xs text-green-700">
-            ₱{amount.toFixed(2)} has been paid.
+            ₱{displayPaid.toFixed(2)} has been paid.
           </p>
           <p className="text-xs font-semibold text-amber-700 mt-2 pt-2 border-t border-green-200">
             Balance due: ₱{balanceDue.toFixed(2)}
