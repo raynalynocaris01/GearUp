@@ -18,6 +18,7 @@ interface Campsite {
   is_available: boolean;
   payment_mode?: 'online' | 'pay_at_campsite';
   free_items?: string[];
+  down_payment_percent?: number;
   pricing_mode?: 'simple' | 'detailed';
   children?: Array<{
     id: number;
@@ -48,6 +49,7 @@ const EMPTY: Campsite = {
   pricing_mode: 'simple',
   payment_mode: 'online',
   free_items: [],
+  down_payment_percent: 0,
 };
 
 export function CampsiteForm({ mode, initial }: Props) {
@@ -87,6 +89,7 @@ export function CampsiteForm({ mode, initial }: Props) {
       pricing_mode: form.pricing_mode ?? 'simple',
       payment_mode: form.payment_mode ?? 'online',
       free_items: form.free_items ?? [],
+      down_payment_percent: Number(form.down_payment_percent ?? 0),
     };
     // Only send price_per_night in simple mode. In detailed mode it is
     // unused and sending 0 would overwrite the preserved simple-mode value.
@@ -465,6 +468,32 @@ export function CampsiteForm({ mode, initial }: Props) {
           </label>
         </div>
       </Field>
+
+      {/* Down payment — only meaningful for online mode */}
+      {(form.payment_mode ?? 'online') === 'online' && (
+        <Field
+          label="Down payment (%)"
+          error={errors.down_payment_percent?.[0]}
+        >
+          <p className="text-xs text-gray-500 mb-2">
+            How much of the total does the guest pay online to lock in their
+            dates? The rest is due on arrival. Set to <strong>0</strong> for
+            full online payment.
+          </p>
+          <input
+            type="number"
+            min={0}
+            max={100}
+            step={1}
+            value={form.down_payment_percent ?? 0}
+            onChange={(e) =>
+              update('down_payment_percent', Number(e.target.value) || 0)
+            }
+            placeholder="20"
+            className={inputClass}
+          />
+        </Field>
+      )}
 
       {/* Availability toggle */}
       <div className="border-t border-gray-100 pt-6">
