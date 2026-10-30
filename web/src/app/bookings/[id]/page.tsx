@@ -520,25 +520,24 @@ export default async function BookingDetailPage({
                 <div className="mt-3 pt-3 border-t border-green-200 space-y-2">
                   <div className="flex justify-between items-center">
                     <span className="text-sm font-semibold text-green-800">
-                      Down payment
-                      {booking.payment_status === 'paid' && (
-                        <span className="ml-1.5 inline-block text-[10px] font-extrabold text-green-700 bg-green-200 px-1.5 py-0.5 rounded">
-                          PAID
-                        </span>
-                      )}
+                      {Number(booking.balance_due ?? 0) > 0
+                        ? 'Down payment'
+                        : 'Paid in full'}
                     </span>
                     <span className="text-sm font-bold text-green-800">
                       ₱{Number(booking.amount_paid).toFixed(2)}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm font-semibold text-amber-700">
-                      Balance due on arrival
-                    </span>
-                    <span className="text-sm font-bold text-amber-700">
-                      ₱{Number(booking.balance_due ?? 0).toFixed(2)}
-                    </span>
-                  </div>
+                  {Number(booking.balance_due ?? 0) > 0 && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-semibold text-amber-700">
+                        Balance due on arrival
+                      </span>
+                      <span className="text-sm font-bold text-amber-700">
+                        ₱{Number(booking.balance_due ?? 0).toFixed(2)}
+                      </span>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

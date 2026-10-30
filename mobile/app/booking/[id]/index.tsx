@@ -479,8 +479,9 @@ export default function BookingDetailScreen() {
                       fontWeight: '700',
                     }}
                   >
-                    Down payment
-                    {booking.payment_status === 'paid' ? ' (PAID)' : ''}
+                    {Number(booking.balance_due ?? 0) > 0
+                      ? 'Down payment'
+                      : 'Paid in full'}
                   </Text>
                   <Text
                     style={{
@@ -492,26 +493,28 @@ export default function BookingDetailScreen() {
                     PHP {Number(booking.amount_paid).toFixed(2)}
                   </Text>
                 </View>
-                <View style={styles.summaryRow}>
-                  <Text
-                    style={{
-                      fontSize: 12,
-                      color: '#b45309',
-                      fontWeight: '700',
-                    }}
-                  >
-                    Balance on arrival
-                  </Text>
-                  <Text
-                    style={{
-                      fontSize: 12,
-                      color: '#b45309',
-                      fontWeight: '700',
-                    }}
-                  >
-                    PHP {Number(booking.balance_due ?? 0).toFixed(2)}
-                  </Text>
-                </View>
+                {Number(booking.balance_due ?? 0) > 0 && (
+                  <View style={styles.summaryRow}>
+                    <Text
+                      style={{
+                        fontSize: 12,
+                        color: '#b45309',
+                        fontWeight: '700',
+                      }}
+                    >
+                      Balance on arrival
+                    </Text>
+                    <Text
+                      style={{
+                        fontSize: 12,
+                        color: '#b45309',
+                        fontWeight: '700',
+                      }}
+                    >
+                      PHP {Number(booking.balance_due ?? 0).toFixed(2)}
+                    </Text>
+                  </View>
+                )}
               </>
             )}
           </View>
