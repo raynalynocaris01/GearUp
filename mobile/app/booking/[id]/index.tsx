@@ -540,6 +540,16 @@ export default function BookingDetailScreen() {
             <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 16 }}>Complete Payment</Text>
           </TouchableOpacity>
         )}
+        {booking && booking.payment_status === 'paid' && Number(booking.balance_due ?? 0) > 0 && (
+          <TouchableOpacity
+            onPress={() => router.push('/booking/' + booking.id + '/confirmed' as any)}
+            style={{ backgroundColor: '#d97706', padding: 16, borderRadius: 12, marginTop: 20, marginBottom: 40, marginHorizontal: 20, alignItems: 'center' }}
+          >
+            <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 16 }}>
+              Pay Remaining Balance — ₱{Number(booking.balance_due).toFixed(2)}
+            </Text>
+          </TouchableOpacity>
+        )}
       </ScrollView>
     </View>
   );
