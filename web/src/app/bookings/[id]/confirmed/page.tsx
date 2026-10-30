@@ -222,42 +222,58 @@ export default async function BookingConfirmedPage({
             )}
           </div>
 
-          {/* Pay Now / Pay Balance button */}
-          {(booking.payment_status !== 'paid' ||
-            Number(booking.balance_due ?? 0) > 0) && (
-            <div className="mt-5 pt-5 border-t border-gray-100">
-              <PayNowButton
-                bookingId={booking.id}
-                amount={
-                  // If there's a balance to pay, charge the balance.
-                  // Otherwise, charge down payment (if any) or full total.
-                  Number(booking.balance_due ?? 0) > 0 &&
-                  Number(booking.amount_paid ?? 0) > 0
-                    ? Number(booking.balance_due)
-                    : Number(booking.amount_paid ?? 0) > 0
+          {/* Payment actions — only render one panel based on state */}
+          {(() => {
+            const isPaid = booking.payment_status === 'paid';
+            const hasBalance = Number(booking.balance_due ?? 0) > 0;
+            const hasDownPayment = Number(booking.amount_paid ?? 0) > 0;
+
+            // Nothing to pay: show "Payment received" green card
+            if (isPaid && !hasBalance) {
+              return (
+                <div className="mt-5 pt-5 border-t border-gray-100">
+                  <PayNowButton
+                    bookingId={booking.id}
+                    amount={Number(booking.amount_paid)}
+                    balanceDue={0}
+                    paymentStatus="paid"
+                  />
+                </div>
+              );
+            }
+
+            // Down payment paid, balance remaining: show "Pay Balance" panel
+            if (isPaid && hasBalance) {
+              return (
+                <div className="mt-5 pt-5 border-t border-gray-100">
+                  <PayNowButton
+                    bookingId={booking.id}
+                    amount={Number(booking.balance_due)}
+                    balanceDue={Number(booking.balance_due)}
+                    paymentStatus="paid"
+                    paymentMode={booking.campsite?.payment_mode}
+                  />
+                </div>
+              );
+            }
+
+            // Not paid yet: show the initial payment panel
+            return (
+              <div className="mt-5 pt-5 border-t border-gray-100">
+                <PayNowButton
+                  bookingId={booking.id}
+                  amount={
+                    hasDownPayment
                       ? Number(booking.amount_paid)
                       : Number(booking.total_price)
-                }
-                balanceDue={Number(booking.balance_due ?? 0)}
-                paymentStatus={booking.payment_status}
-                paymentMode={booking.campsite?.payment_mode}
-              />
-            </div>
-          )}
-          {booking.payment_status === 'paid' && (
-            <div className="mt-5 pt-5 border-t border-gray-100">
-              <PayNowButton
-                bookingId={booking.id}
-                amount={
-                  Number(booking.amount_paid) > 0
-                    ? Number(booking.amount_paid)
-                    : Number(booking.total_price)
-                }
-                balanceDue={Number(booking.balance_due ?? 0)}
-                paymentStatus="paid"
-              />
-            </div>
-          )}
+                  }
+                  balanceDue={Number(booking.balance_due ?? 0)}
+                  paymentStatus={booking.payment_status}
+                  paymentMode={booking.campsite?.payment_mode}
+                />
+              </div>
+            );
+          })()}
         </div>
 
         {/* Actions */}

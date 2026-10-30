@@ -58,16 +58,45 @@ export function PayNowButton({ bookingId, amount, balanceDue = 0, paymentStatus,
   };
 
   if (paymentStatus === 'paid') {
-    return (
-      <div className="rounded-xl bg-green-50 border border-green-200 p-4 text-center space-y-1">
-        <p className="text-sm font-bold text-green-900">Payment received</p>
-        <p className="text-xs text-green-700">
-          ₱{amount.toFixed(2)} has been paid.
-        </p>
-        {balanceDue > 0 && (
-          <p className="text-xs font-semibold text-amber-700 mt-2 pt-2 border-t border-green-200">
-            Balance due on arrival: ₱{balanceDue.toFixed(2)}
+    // Fully paid — no more balance
+    if (balanceDue === 0) {
+      return (
+        <div className="rounded-xl bg-green-50 border border-green-200 p-4 text-center space-y-1">
+          <p className="text-sm font-bold text-green-900">Payment received</p>
+          <p className="text-xs text-green-700">
+            ₱{amount.toFixed(2)} has been paid in full.
           </p>
+        </div>
+      );
+    }
+
+    // Down payment paid — show "Pay Balance" panel
+    return (
+      <div className="space-y-3">
+        <div className="rounded-xl bg-green-50 border border-green-200 p-4 text-center space-y-1">
+          <p className="text-sm font-bold text-green-900">Down payment received</p>
+          <p className="text-xs text-green-700">
+            ₱{amount.toFixed(2)} has been paid.
+          </p>
+          <p className="text-xs font-semibold text-amber-700 mt-2 pt-2 border-t border-green-200">
+            Balance due: ₱{balanceDue.toFixed(2)}
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={handlePay}
+          disabled={loading}
+          className="w-full bg-amber-600 hover:bg-amber-700 disabled:opacity-60 text-white font-bold py-4 rounded-xl transition text-lg"
+        >
+          {loading ? 'Opening payment...' : `Pay Balance — ₱${balanceDue.toFixed(2)}`}
+        </button>
+        {loading && (
+          <p className="text-xs text-gray-500 text-center -mt-1">
+            Connecting to PayMongo... This may take a few seconds.
+          </p>
+        )}
+        {error && (
+          <p className="text-sm text-red-600 text-center">{error}</p>
         )}
       </div>
     );
