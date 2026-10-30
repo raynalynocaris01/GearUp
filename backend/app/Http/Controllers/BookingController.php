@@ -802,9 +802,14 @@ class BookingController extends Controller
         //   3. If payment_status === 'paid' AND balance_due == 0 → nothing to pay
         $hasDownPayment = (float) $booking->amount_paid > 0;
         $hasBalance = (float) $booking->balance_due > 0;
-        $isBalancePayment = $hasDownPayment && $hasBalance;
+        $isPaid = $booking->payment_status === 'paid';
 
-        if ($booking->payment_status === 'paid' && !$hasBalance) {
+        // The user is paying the BALANCE only if:
+        //   - They already made the first payment (payment_status = 'paid')
+        //   - AND there's still a balance remaining
+        $isBalancePayment = $isPaid && $hasBalance;
+
+        if ($isPaid && !$hasBalance) {
             return response()->json(['message' => 'Booking already fully paid.'], 400);
         }
 
@@ -873,10 +878,18 @@ class BookingController extends Controller
             return response()->json(['message' => 'Invalid PayMongo response.'], 500);
         }
 
-        $booking->update([
-            'paymongo_checkout_id' => $checkoutId,
-            'payment_status' => 'pending',
-        ]);
+        if ($isBalancePayment) {
+            // Balance payment: keep payment_status = 'paid' so the webhook
+            // can distinguish this from the first down-payment charge.
+            $booking->update([
+                'paymongo_checkout_id' => $checkoutId,
+            ]);
+        } else {
+            $booking->update([
+                'paymongo_checkout_id' => $checkoutId,
+                'payment_status' => 'pending',
+            ]);
+        }
 
         return response()->json([
             'checkout_url' => $checkoutUrl,
@@ -935,8 +948,11 @@ class BookingController extends Controller
                 if ($booking) {
                     $hasDownPayment = (float) $booking->amount_paid > 0;
                     $hasBalance = (float) $booking->balance_due > 0;
-                    $isBalancePayment = $hasDownPayment && $hasBalance;
                     $alreadyPaid = $booking->payment_status === 'paid';
+
+                    // Balance payment = they already paid the down payment AND
+                    // there's still a balance remaining
+                    $isBalancePayment = $alreadyPaid && $hasBalance;
 
                     \Log::info('Webhook payload: ', [
                         'booking_id' => $bookingId,
