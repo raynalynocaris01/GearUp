@@ -806,13 +806,20 @@ class BookingController extends Controller
             return response()->json(['message' => 'PayMongo not configured.'], 500);
         }
 
-        $amountCentavos = (int) round($booking->total_price * 100);
+        // If a down payment was set, charge only that amount.
+        // Otherwise, charge the full price.
+        $chargeAmount = $booking->amount_paid > 0
+            ? $booking->amount_paid
+            : $booking->total_price;
+        $amountCentavos = (int) round($chargeAmount * 100);
 
         $payload = [
             'data' => [
                 'attributes' => [
                     'line_items' => [[
-                        'name' => "Booking #{$booking->id}",
+                        'name' => $booking->amount_paid > 0
+                            ? "Booking #{$booking->id} — Down payment"
+                            : "Booking #{$booking->id}",
                         'amount' => $amountCentavos,
                         'currency' => 'PHP',
                         'quantity' => 1,
@@ -912,12 +919,25 @@ class BookingController extends Controller
                 if ($booking && $booking->payment_status !== 'paid') {
                     \Log::info('Webhook payload: ', ['booking_id' => $bookingId, 'payload' => $event]);
                     $paymentMethod = $event['data']['attributes']['data']['attributes']['payments'][0]['attributes']['source']['type'] ?? 'unknown';
-                    $booking->update([
-                        'payment_status' => 'paid', 'status' => 'confirmed',
+                    $wasDownPayment = $booking->amount_paid > 0
+                        && $booking->balance_due > 0;
+
+                    $updates = [
+                        'payment_status' => 'paid',
                         'paid_at' => now(),
                         'payment_method' => $paymentMethod,
-                        'status' => 'confirmed',
-                    ]);
+                    ];
+
+                    // Per the design decision: if a down payment was charged,
+                    // auto-confirm the booking on successful payment.
+                    // Full-payment online bookings also auto-confirm.
+                    // Cash-on-arrival bookings stay pending for owner to confirm.
+                    if ($wasDownPayment || $booking->payment_method !== 'cash') {
+                        $updates['status'] = 'confirmed';
+                        $updates['confirmed_at'] = now();
+                    }
+
+                    $booking->update($updates);
                     \Log::info("PayMongo: booking #{$bookingId} marked paid");
                 }
             }
