@@ -39,6 +39,7 @@ const EMPTY = {
   pricing_mode: 'simple' as 'simple' | 'detailed',
   payment_mode: 'online' as 'online' | 'pay_at_campsite',
   free_items: [] as string[],
+  down_payment_percent: 0,
 };
 
 export function CampsiteForm({ mode, initial }: Props) {
@@ -60,6 +61,7 @@ export function CampsiteForm({ mode, initial }: Props) {
     payment_mode:
       (initial?.payment_mode as 'online' | 'pay_at_campsite') ?? EMPTY.payment_mode,
     free_items: initial?.free_items ?? EMPTY.free_items,
+    down_payment_percent: initial?.down_payment_percent ?? EMPTY.down_payment_percent,
   });
 
   // Expo Router reuses the same mounted component when navigating between
@@ -84,6 +86,7 @@ export function CampsiteForm({ mode, initial }: Props) {
       payment_mode:
         (initial.payment_mode as 'online' | 'pay_at_campsite') ?? EMPTY.payment_mode,
       free_items: initial.free_items ?? EMPTY.free_items,
+      down_payment_percent: initial.down_payment_percent ?? EMPTY.down_payment_percent,
     });
   }, [initial?.id]);
 
@@ -146,6 +149,7 @@ export function CampsiteForm({ mode, initial }: Props) {
         pricing_mode: 'simple' | 'detailed';
         payment_mode?: 'online' | 'pay_at_campsite';
         free_items?: string[];
+        down_payment_percent?: number;
         image_url?: string;
       } = {
         name: form.name.trim(),
@@ -158,6 +162,7 @@ export function CampsiteForm({ mode, initial }: Props) {
         pricing_mode: form.pricing_mode,
         payment_mode: form.payment_mode,
         free_items: form.free_items,
+        down_payment_percent: Number(form.down_payment_percent ?? 0),
         ...(willUploadNewImage ? {} : { image_url: form.image_url }),
       };
       // Only send price_per_night in simple mode. In detailed mode it is
@@ -457,6 +462,25 @@ export function CampsiteForm({ mode, initial }: Props) {
             numberOfLines={5}
           />
         </Field>
+
+        {form.payment_mode === 'online' && (
+          <Field label="Down payment (%)">
+            <Text style={{ fontSize: 11, color: colors.textMuted, marginBottom: 6 }}>
+              How much does the guest pay online to lock in their dates?
+              The rest is due on arrival. Set to 0 for full online payment.
+            </Text>
+            <TextInput
+              style={styles.input}
+              value={String(form.down_payment_percent ?? 0)}
+              onChangeText={(v) =>
+                setForm((f) => ({ ...f, down_payment_percent: Number(v) || 0 }))
+              }
+              placeholder="20"
+              placeholderTextColor={colors.textMuted}
+              keyboardType="numeric"
+            />
+          </Field>
+        )}
 
         {/* Availability toggle */}
         <View style={styles.availabilityCard}>
