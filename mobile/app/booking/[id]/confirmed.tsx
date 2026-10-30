@@ -260,20 +260,30 @@ export default function ConfirmedBookingScreen() {
           <View style={styles.divider} />
 
           <View style={styles.priceRow}>
-            <Text style={styles.priceLabel}>Campsite Fee</Text>
+            <Text style={styles.priceLabel}>Total</Text>
             <Text style={styles.priceValueSmall}>₱{Number(booking.total_price).toFixed(2)}</Text>
           </View>
-          <View style={styles.priceRow}>
-            <Text style={styles.priceLabel}>Service Fee</Text>
-            <Text style={[styles.priceValueSmall, { color: colors.gearupGreen }]}>Free</Text>
-          </View>
 
-          <View style={[styles.divider, { marginVertical: 12 }]} />
-
-          <View style={styles.totalRow}>
-            <Text style={styles.totalLabel}>Total</Text>
-            <Text style={styles.totalValue}>₱{Number(booking.total_price).toFixed(2)}</Text>
-          </View>
+          {Number(booking.amount_paid ?? 0) > 0 && (
+            <>
+              <View style={styles.priceRow}>
+                <Text style={[styles.priceLabel, { color: colors.gearupGreen, fontWeight: '700' }]}>
+                  Down payment {isPaid ? '(PAID)' : ''}
+                </Text>
+                <Text style={[styles.priceValueSmall, { color: colors.gearupGreen, fontWeight: '700' }]}>
+                  ₱{Number(booking.amount_paid).toFixed(2)}
+                </Text>
+              </View>
+              <View style={styles.priceRow}>
+                <Text style={[styles.priceLabel, { color: '#b45309', fontWeight: '700' }]}>
+                  Balance on arrival
+                </Text>
+                <Text style={[styles.priceValueSmall, { color: '#b45309', fontWeight: '700' }]}>
+                  ₱{Number(booking.balance_due ?? 0).toFixed(2)}
+                </Text>
+              </View>
+            </>
+          )}
         </View>
       </View>
 
@@ -301,7 +311,13 @@ export default function ConfirmedBookingScreen() {
             style={[styles.payButton, paying && { opacity: 0.7 }]}
           >
             <Text style={styles.payButtonText}>
-              {paying ? 'Processing...' : `Pay Now - ₱${Number(booking.total_price).toFixed(2)}`}
+              {paying
+                ? 'Processing...'
+                : `Pay Now - ₱${Number(
+                    Number(booking.amount_paid ?? 0) > 0
+                      ? booking.amount_paid
+                      : booking.total_price
+                  ).toFixed(2)}`}
             </Text>
           </TouchableOpacity>
           {paying && (

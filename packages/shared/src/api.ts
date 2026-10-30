@@ -235,6 +235,8 @@ export interface Booking {
   seniors?: number;
   pwd?: number;
   total_price: string;
+  amount_paid?: number | string;
+  balance_due?: number | string;
   status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
   notes: string | null;
   preferred_arrival?: string | null;
