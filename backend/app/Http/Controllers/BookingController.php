@@ -796,9 +796,16 @@ class BookingController extends Controller
             return response()->json(['message' => 'Cash payment selected. Awaiting owner confirmation.']);
         }
 
+        // Determine what's being paid:
+        //   1. If amount_paid > 0 AND balance_due > 0 → the user is paying the remaining balance
+        //   2. If amount_paid == 0 → user is paying the initial amount (down payment or full)
+        //   3. If payment_status === 'paid' AND balance_due == 0 → nothing to pay
+        $hasDownPayment = (float) $booking->amount_paid > 0;
+        $hasBalance = (float) $booking->balance_due > 0;
+        $isBalancePayment = $hasDownPayment && $hasBalance;
 
-        if ($booking->payment_status === 'paid') {
-            return response()->json(['message' => 'Booking already paid.'], 400);
+        if ($booking->payment_status === 'paid' && !$hasBalance) {
+            return response()->json(['message' => 'Booking already fully paid.'], 400);
         }
 
         $secret = config('services.paymongo.secret_key') ?? env('PAYMONGO_SECRET_KEY');
@@ -808,18 +815,27 @@ class BookingController extends Controller
 
         // If a down payment was set, charge only that amount.
         // Otherwise, charge the full price.
-        $chargeAmount = $booking->amount_paid > 0
-            ? $booking->amount_paid
-            : $booking->total_price;
+        // Charge logic:
+        //   - Balance payment → charge balance_due
+        //   - First payment (down payment or full) → charge amount_paid or total_price
+        if ($isBalancePayment) {
+            $chargeAmount = (float) $booking->balance_due;
+            $lineItemName = "Booking #{$booking->id} — Balance";
+        } elseif ($hasDownPayment) {
+            $chargeAmount = (float) $booking->amount_paid;
+            $lineItemName = "Booking #{$booking->id} — Down payment";
+        } else {
+            $chargeAmount = (float) $booking->total_price;
+            $lineItemName = "Booking #{$booking->id}";
+        }
+
         $amountCentavos = (int) round($chargeAmount * 100);
 
         $payload = [
             'data' => [
                 'attributes' => [
                     'line_items' => [[
-                        'name' => $booking->amount_paid > 0
-                            ? "Booking #{$booking->id} — Down payment"
-                            : "Booking #{$booking->id}",
+                        'name' => $lineItemName,
                         'amount' => $amountCentavos,
                         'currency' => 'PHP',
                         'quantity' => 1,
@@ -916,29 +932,52 @@ class BookingController extends Controller
 
             if ($bookingId) {
                 $booking = Booking::find($bookingId);
-                if ($booking && $booking->payment_status !== 'paid') {
-                    \Log::info('Webhook payload: ', ['booking_id' => $bookingId, 'payload' => $event]);
+                if ($booking) {
+                    $hasDownPayment = (float) $booking->amount_paid > 0;
+                    $hasBalance = (float) $booking->balance_due > 0;
+                    $isBalancePayment = $hasDownPayment && $hasBalance;
+                    $alreadyPaid = $booking->payment_status === 'paid';
+
+                    \Log::info('Webhook payload: ', [
+                        'booking_id' => $bookingId,
+                        'is_balance_payment' => $isBalancePayment,
+                        'amount_paid' => $booking->amount_paid,
+                        'balance_due' => $booking->balance_due,
+                    ]);
+
                     $paymentMethod = $event['data']['attributes']['data']['attributes']['payments'][0]['attributes']['source']['type'] ?? 'unknown';
-                    $wasDownPayment = $booking->amount_paid > 0
-                        && $booking->balance_due > 0;
 
-                    $updates = [
-                        'payment_status' => 'paid',
-                        'paid_at' => now(),
-                        'payment_method' => $paymentMethod,
-                    ];
+                    if ($isBalancePayment) {
+                        // This was the balance payment — mark fully paid
+                        $booking->update([
+                            'amount_paid' => $booking->total_price,
+                            'balance_due' => 0,
+                            'payment_status' => 'paid',
+                            'paid_at' => now(),
+                            'payment_method' => $paymentMethod,
+                            'status' => 'confirmed',
+                            'confirmed_at' => $booking->confirmed_at ?? now(),
+                        ]);
+                        \Log::info("PayMongo: booking #{$bookingId} balance paid — fully paid");
+                    } elseif (!$alreadyPaid) {
+                        // First payment (down payment or full)
+                        $wasDownPayment = $hasDownPayment && $hasBalance;
 
-                    // Per the design decision: if a down payment was charged,
-                    // auto-confirm the booking on successful payment.
-                    // Full-payment online bookings also auto-confirm.
-                    // Cash-on-arrival bookings stay pending for owner to confirm.
-                    if ($wasDownPayment || $booking->payment_method !== 'cash') {
-                        $updates['status'] = 'confirmed';
-                        $updates['confirmed_at'] = now();
+                        $updates = [
+                            'payment_status' => 'paid',
+                            'paid_at' => now(),
+                            'payment_method' => $paymentMethod,
+                        ];
+
+                        // Auto-confirm on online payment
+                        if ($wasDownPayment || $booking->payment_method !== 'cash') {
+                            $updates['status'] = 'confirmed';
+                            $updates['confirmed_at'] = now();
+                        }
+
+                        $booking->update($updates);
+                        \Log::info("PayMongo: booking #{$bookingId} marked paid (first payment)");
                     }
-
-                    $booking->update($updates);
-                    \Log::info("PayMongo: booking #{$bookingId} marked paid");
                 }
             }
         }
