@@ -976,7 +976,7 @@ class BookingController extends Controller
                         ]);
                         \Log::info("PayMongo: booking #{$bookingId} balance paid — fully paid");
                     } elseif (!$alreadyPaid) {
-                        // First payment (down payment or full)
+                        // First payment (down payment, full, or gear-only full)
                         $wasDownPayment = $hasDownPayment && $hasBalance;
 
                         $updates = [
@@ -989,6 +989,15 @@ class BookingController extends Controller
                         if ($wasDownPayment || $booking->payment_method !== 'cash') {
                             $updates['status'] = 'confirmed';
                             $updates['confirmed_at'] = now();
+                        }
+
+                        // No down payment was configured (gear-only rental, or
+                        // campsite with down_payment_percent = 0). The customer
+                        // just paid the full amount in one shot — record it so
+                        // the UI doesn't show a phantom "Pay Remaining Balance".
+                        if (!$hasDownPayment) {
+                            $updates['amount_paid'] = $booking->total_price;
+                            $updates['balance_due'] = 0;
                         }
 
                         $booking->update($updates);
