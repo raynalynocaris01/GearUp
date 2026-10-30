@@ -42,6 +42,7 @@ class CampsiteController extends Controller
             'image_url' => ['required', 'string', 'max:2048'],
             'capacity' => ['required', 'integer', 'min:1'],
             'payment_mode' => ['nullable', 'string', 'in:online,pay_at_campsite'],
+            'down_payment_percent' => ['nullable', 'integer', 'min:0', 'max:100'],
             'is_available' => ['sometimes', 'boolean'],
             'pricing_mode' => ['sometimes', 'in:simple,detailed'],
             'parent_campsite_id' => ['nullable', 'integer', 'exists:campsites,id'],
@@ -70,6 +71,7 @@ class CampsiteController extends Controller
             'capacity' => $data['capacity'],
             'pricing_mode' => $data['pricing_mode'] ?? 'simple',
             'payment_mode' => $data['payment_mode'] ?? 'online',
+            'down_payment_percent' => $data['down_payment_percent'] ?? 0,
             'rating' => 0,
             'free_items' => $data['free_items'] ?? [],
             'reviews_count' => 0,
@@ -104,6 +106,7 @@ class CampsiteController extends Controller
             'is_available' => ['sometimes', 'boolean'],
             'pricing_mode' => ['sometimes', 'in:simple,detailed'],
             'payment_mode' => ['sometimes', 'in:online,pay_at_campsite'],
+            'down_payment_percent' => ['nullable', 'integer', 'min:0', 'max:100'],
             'free_items' => ['nullable', 'array'],
             'free_items.*' => ['string', 'max:255'],
         ]);

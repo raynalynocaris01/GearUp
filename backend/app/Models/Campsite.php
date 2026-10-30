@@ -29,10 +29,12 @@ class Campsite extends Model
         'is_available',
         'payment_mode',
         'free_items',
+        'down_payment_percent',
     ];
 
     protected $casts = [
     'price_per_night' => 'decimal:2',
+    'down_payment_percent' => 'decimal:2',
     // 'pricing_mode' is a string, no cast needed
     'rating' => 'decimal:2',
     'reviews_count' => 'integer',

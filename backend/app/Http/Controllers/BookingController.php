@@ -458,7 +458,31 @@ class BookingController extends Controller
 
         $total = $campsitePrice + $guidePrice + $gearPrice;
 
-        $booking = DB::transaction(function () use ($data, $request, $campsite, $roomCampsite, $tourGuide, $gearItem, $gearLines, $pricingLineSnapshots, $total) {
+        // Down payment: only applied for online-payment campsites
+        // when the guest actually chooses to pay online (payment_method != 'cash').
+        // If no campsite or payment mode is 'pay_at_campsite', no down payment.
+        $amountPaid = 0.0;
+        $balanceDue = 0.0;
+        $downPercent = 0;
+        $method = $data['payment_method'] ?? null;
+
+        if (
+            $campsite &&
+            $campsite->payment_mode === 'online' &&
+            $method !== 'cash'
+        ) {
+            $downPercent = (int) ($campsite->down_payment_percent ?? 0);
+        }
+
+        if ($downPercent > 0) {
+            $amountPaid = round($total * $downPercent / 100, 2);
+            $balanceDue = round($total - $amountPaid, 2);
+        } else {
+            $amountPaid = 0.0;
+            $balanceDue = (float) $total;
+        }
+
+        $booking = DB::transaction(function () use ($data, $request, $campsite, $roomCampsite, $tourGuide, $gearItem, $gearLines, $pricingLineSnapshots, $total, $amountPaid, $balanceDue) {
             $adults = (int) ($data['adults'] ?? $data['guests']);
             $children = (int) ($data['children'] ?? 0);
             $seniors = (int) ($data['seniors'] ?? 0);
@@ -488,6 +512,8 @@ class BookingController extends Controller
                 'seniors' => $seniors,
                 'pwd' => $pwd,
                 'total_price' => $total,
+                 'amount_paid' => $amountPaid,
+                'balance_due' => $balanceDue,
                 'status' => 'pending',
                 'payment_method' => $data['payment_method'] ?? null,
                 'payment_status' => 'pending',
