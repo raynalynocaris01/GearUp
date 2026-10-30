@@ -19,6 +19,12 @@ interface GearItem {
   is_available: boolean;
   created_at: string;
   updated_at: string;
+  pickup_method?: 'meetup' | 'pickup' | 'deliver' | 'all';
+  pickup_address?: string | null;
+  pickup_landmark?: string | null;
+  pickup_hours?: string | null;
+  pickup_instructions?: string | null;
+  contact_number?: string | null;
   owner?: {
     id: number;
     name: string;
@@ -201,8 +207,21 @@ export default async function GearDetailPage({
               )}
 
               <p className="text-xs text-gray-500 text-center mt-3">
-                Pick up at the owner&apos;s campsite. Free cancellation up to 48
-                hours before the rental date.
+                {(() => {
+                  const method = gear.pickup_method ?? 'meetup';
+                  const label =
+                    method === 'pickup' ? "Pick up at the owner's place"
+                    : method === 'deliver' ? 'Delivered to you'
+                    : method === 'all' ? 'Meet-up, pickup, or delivery available'
+                    : 'Meet-up at an agreed place';
+                  const parts = gear.pickup_address
+                    ? gear.pickup_address.split(',').map((s: string) => s.trim()).filter(Boolean)
+                    : [];
+                  const city = parts.length >= 2 ? parts[parts.length - 2] : null;
+                  return city
+                    ? `${label} in ${city}. Full details shown after booking. Free cancellation up to 48 hours before the rental date.`
+                    : `${label}. Full details shown after booking. Free cancellation up to 48 hours before the rental date.`;
+                })()}
               </p>
             </div>
           </div>
