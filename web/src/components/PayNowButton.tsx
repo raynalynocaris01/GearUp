@@ -5,11 +5,12 @@ import { useState } from 'react';
 interface Props {
   bookingId: number;
   amount: number;
+  balanceDue?: number;
   paymentStatus: string;
   paymentMode?: 'online' | 'pay_at_campsite';
 }
 
-export function PayNowButton({ bookingId, amount, paymentStatus, paymentMode }: Props) {
+export function PayNowButton({ bookingId, amount, balanceDue = 0, paymentStatus, paymentMode }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -58,9 +59,16 @@ export function PayNowButton({ bookingId, amount, paymentStatus, paymentMode }: 
 
   if (paymentStatus === 'paid') {
     return (
-      <div className="rounded-xl bg-green-50 border border-green-200 p-4 text-center">
+      <div className="rounded-xl bg-green-50 border border-green-200 p-4 text-center space-y-1">
         <p className="text-sm font-bold text-green-900">Payment received</p>
-        <p className="text-xs text-green-700 mt-1">This booking has been paid.</p>
+        <p className="text-xs text-green-700">
+          ₱{amount.toFixed(2)} has been paid.
+        </p>
+        {balanceDue > 0 && (
+          <p className="text-xs font-semibold text-amber-700 mt-2 pt-2 border-t border-green-200">
+            Balance due on arrival: ₱{balanceDue.toFixed(2)}
+          </p>
+        )}
       </div>
     );
   }
@@ -85,27 +93,39 @@ export function PayNowButton({ bookingId, amount, paymentStatus, paymentMode }: 
         disabled={loading}
         className="w-full bg-gearup-600 hover:bg-gearup-700 disabled:opacity-60 text-white font-bold py-4 rounded-xl transition text-lg"
       >
-        {loading ? 'Opening payment...' : `Pay Now - ₱${amount.toFixed(2)}`}
+        {loading
+          ? 'Opening payment...'
+          : paymentStatus === 'paid' && balanceDue > 0
+            ? `Pay Balance - ₱${amount.toFixed(2)}`
+            : `Pay Now - ₱${amount.toFixed(2)}`}
       </button>
       {loading && (
         <p className="text-xs text-gray-500 text-center -mt-1">
           Connecting to PayMongo... This may take a few seconds.
         </p>
       )}
-      <button
-        type="button"
-        onClick={handleCashPay}
-        disabled={loading}
-        className="w-full bg-white hover:bg-gray-50 disabled:opacity-60 text-gearup-700 border-2 border-gearup-600 font-bold py-3 rounded-xl transition text-base"
-      >
-        {loading ? 'Processing...' : 'Pay with Cash (Pay on Arrival)'}
-      </button>
+      {!(paymentStatus === 'paid' && balanceDue > 0) && (
+        <button
+          type="button"
+          onClick={handleCashPay}
+          disabled={loading}
+          className="w-full bg-white hover:bg-gray-50 disabled:opacity-60 text-gearup-700 border-2 border-gearup-600 font-bold py-3 rounded-xl transition text-base"
+        >
+          {loading ? 'Processing...' : 'Pay with Cash (Pay on Arrival)'}
+        </button>
+      )}
       {error && (
         <p className="text-sm text-red-600 text-center">{error}</p>
       )}
-      <p className="text-xs text-gray-500 text-center">
-        Choose cash if you will pay upon arrival. Your booking will be confirmed immediately.
-      </p>
+      {balanceDue > 0 ? (
+        <p className="text-xs text-amber-700 text-center font-semibold bg-amber-50 rounded-lg p-2">
+          After this down payment, ₱{balanceDue.toFixed(2)} is due on arrival.
+        </p>
+      ) : (
+        <p className="text-xs text-gray-500 text-center">
+          Choose cash if you will pay upon arrival. Your booking will be confirmed immediately.
+        </p>
+      )}
     </div>
   );
 }

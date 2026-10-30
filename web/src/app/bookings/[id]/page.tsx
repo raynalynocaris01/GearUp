@@ -562,6 +562,18 @@ export default async function BookingDetailPage({
                   </Link>
                 )}
 
+              {booking.payment_status === 'paid' &&
+                Number(booking.balance_due ?? 0) > 0 &&
+                booking.payment_method !== 'cash' && (
+                  <Link
+                    href={`/bookings/${booking.id}/confirmed`}
+                    className="inline-block text-sm font-semibold text-white bg-amber-600 hover:bg-amber-700 px-5 py-2.5 rounded-lg transition"
+                  >
+                    Pay Remaining Balance — ₱
+                    {Number(booking.balance_due).toFixed(2)}
+                  </Link>
+                )}
+
               {booking.status === 'completed' &&
                 booking.campsite &&
                 !booking.review && (

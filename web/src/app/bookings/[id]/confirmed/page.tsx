@@ -17,6 +17,8 @@ interface Booking {
   gear_end_date: string | null;
   status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
   total_price: number | string;
+  amount_paid?: number | string;
+  balance_due?: number | string;
   payment_status: string;
   preferred_arrival?: string | null;
   created_at: string;
@@ -190,12 +192,53 @@ export default async function BookingConfirmedPage({
             </p>
           )}
 
-          {/* Pay Now button */}
-          {booking.payment_status !== 'paid' && (
+          {/* Price breakdown */}
+          <div className="mt-5 pt-5 border-t border-gray-100 space-y-2 text-sm">
+            <div className="flex justify-between items-center">
+              <span className="text-gray-700">Total</span>
+              <span className="font-semibold text-gray-900">
+                ₱{Number(booking.total_price).toFixed(2)}
+              </span>
+            </div>
+            {Number(booking.amount_paid) > 0 && (
+              <>
+                <div className="flex justify-between items-center">
+                  <span className="text-gearup-700 font-semibold">
+                    Down payment ({Math.round((Number(booking.amount_paid) / Number(booking.total_price)) * 100)}%)
+                  </span>
+                  <span className="font-semibold text-gearup-700">
+                    ₱{Number(booking.amount_paid).toFixed(2)}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-700">
+                    Balance due on arrival
+                  </span>
+                  <span className="font-semibold text-amber-700">
+                    ₱{Number(booking.balance_due ?? 0).toFixed(2)}
+                  </span>
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* Pay Now / Pay Balance button */}
+          {(booking.payment_status !== 'paid' ||
+            Number(booking.balance_due ?? 0) > 0) && (
             <div className="mt-5 pt-5 border-t border-gray-100">
               <PayNowButton
                 bookingId={booking.id}
-                amount={Number(booking.total_price)}
+                amount={
+                  // If there's a balance to pay, charge the balance.
+                  // Otherwise, charge down payment (if any) or full total.
+                  Number(booking.balance_due ?? 0) > 0 &&
+                  Number(booking.amount_paid ?? 0) > 0
+                    ? Number(booking.balance_due)
+                    : Number(booking.amount_paid ?? 0) > 0
+                      ? Number(booking.amount_paid)
+                      : Number(booking.total_price)
+                }
+                balanceDue={Number(booking.balance_due ?? 0)}
                 paymentStatus={booking.payment_status}
                 paymentMode={booking.campsite?.payment_mode}
               />
@@ -205,7 +248,12 @@ export default async function BookingConfirmedPage({
             <div className="mt-5 pt-5 border-t border-gray-100">
               <PayNowButton
                 bookingId={booking.id}
-                amount={Number(booking.total_price)}
+                amount={
+                  Number(booking.amount_paid) > 0
+                    ? Number(booking.amount_paid)
+                    : Number(booking.total_price)
+                }
+                balanceDue={Number(booking.balance_due ?? 0)}
                 paymentStatus="paid"
               />
             </div>
