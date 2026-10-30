@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   Alert,
   Image,
+  Linking,
 } from 'react-native';
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
@@ -46,6 +47,17 @@ export default function ConfirmedBookingScreen() {
     }, [id])
   );
 
+  // Listen for deep link return from PayMongo
+  React.useEffect(() => {
+    const sub = Linking.addEventListener('url', async (event) => {
+      if (event.url && event.url.startsWith('gearup://')) {
+        try { await WebBrowser.dismissBrowser(); } catch {}
+        await fetchBooking();
+      }
+    });
+    return () => sub.remove();
+  }, [id]);
+
   // Auto-redirect to booking details after 5 seconds
   // Only start the countdown after the booking is loaded
   React.useEffect(() => {
@@ -66,9 +78,12 @@ export default function ConfirmedBookingScreen() {
     }, 1000);
 
     // Redirect after 5 seconds (only for "paid" or "cash" states)
-    redirectTimer.current = setTimeout(() => {
-      router.replace(`/booking/${booking.id}` as any);
-    }, 5000);
+    // Don't auto-redirect if there's a balance to pay
+    if (Number(booking.balance_due ?? 0) === 0) {
+      redirectTimer.current = setTimeout(() => {
+        router.replace(`/booking/${booking.id}` as any);
+      }, 5000);
+    }
 
     return () => {
       if (redirectTimer.current) clearTimeout(redirectTimer.current);
@@ -287,11 +302,37 @@ export default function ConfirmedBookingScreen() {
         </View>
       </View>
 
-      {isPaid ? (
+      {isPaid && Number(booking.balance_due ?? 0) > 0 ? (
+        <View>
+          <View style={{ backgroundColor: '#ecfdf5', paddingVertical: 16, paddingHorizontal: 20, borderRadius: 16, alignItems: 'center', borderWidth: 1, borderColor: '#a7f3d0', marginBottom: 12 }}>
+            <Ionicons name="checkmark-circle" size={32} color="#065f46" />
+            <Text style={{ fontSize: 16, fontWeight: '700', color: '#065f46', marginTop: 4 }}>Down payment received!</Text>
+            <Text style={{ fontSize: 13, color: '#047857', marginTop: 2 }}>₱{Number(booking.amount_paid).toFixed(2)} has been paid.</Text>
+            <Text style={{ fontSize: 13, fontWeight: '600', color: '#b45309', marginTop: 6 }}>
+              Balance due: ₱{Number(booking.balance_due).toFixed(2)}
+            </Text>
+          </View>
+          
+          <TouchableOpacity
+            onPress={handlePay}
+            disabled={paying}
+            style={[styles.payButton, { backgroundColor: '#d97706', paddingVertical: 14 }, paying && { opacity: 0.7 }]}
+          >
+            <Text style={styles.payButtonText}>
+              {paying ? 'Processing...' : `Pay Balance — ₱${Number(booking.balance_due).toFixed(2)}`}
+            </Text>
+          </TouchableOpacity>
+          {paying && (
+            <Text style={{ fontSize: 12, color: colors.textMuted, textAlign: 'center', marginTop: 8 }}>
+              Connecting to PayMongo...
+            </Text>
+          )}
+        </View>
+      ) : isPaid ? (
         <View style={styles.successPanel}>
           <Ionicons name="checkmark-circle" size={44} color="#065f46" />
           <Text style={styles.successText}>Payment Received!</Text>
-          <Text style={styles.successSubtext}>Your booking is confirmed.</Text>
+          <Text style={styles.successSubtext}>Your booking is fully paid.</Text>
         </View>
       ) : isCash || isPayAtCampsite ? (
         <View style={styles.cashNotice}>
@@ -299,7 +340,7 @@ export default function ConfirmedBookingScreen() {
           <Text style={styles.cashNoticeTitle}>Pay at Campsite</Text>
           <Text style={styles.cashNoticeText}>
             {isPayAtCampsite 
-                            ? `This campsite requires cash payment upon arrival. Please prepare ₱${Number(booking.total_price).toFixed(2)} for your visit.`
+              ? `This campsite requires cash payment upon arrival. Please prepare ₱${Number(booking.total_price).toFixed(2)} for your visit.`
               : `Please pay ₱${Number(booking.total_price).toFixed(2)} to the host when you arrive.`}
           </Text>
         </View>
@@ -341,7 +382,7 @@ export default function ConfirmedBookingScreen() {
         </View>
       )}
 
-      {booking && !paying && (
+      {booking && !paying && (!isPaid || Number(booking.balance_due ?? 0) === 0) && (
         <Text style={{ fontSize: 12, color: colors.textMuted, textAlign: 'center', marginTop: 16, marginBottom: 8 }}>
           Redirecting to booking details in {countdown}s...
         </Text>
