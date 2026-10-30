@@ -93,6 +93,12 @@ interface Booking {
     category: string;
     price_per_day: string;
     image_url: string | null;
+    pickup_method?: 'meetup' | 'pickup' | 'deliver' | 'all';
+    pickup_address?: string | null;
+    pickup_landmark?: string | null;
+    pickup_hours?: string | null;
+    pickup_instructions?: string | null;
+    contact_number?: string | null;
   } | null;
   gear_quantity: number | null;
   gear_items?: BookingGearLine[];
@@ -385,6 +391,89 @@ export default async function BookingDetailPage({
                       </p>
                     </div>
                   )}
+                </div>
+              )}
+              {isGearOnly && booking.status !== 'pending' && booking.status !== 'cancelled' && (
+                <div className="mt-4 rounded-xl border border-green-200 bg-green-50 p-4 text-sm text-green-900 shadow-sm">
+                  <div className="flex items-center gap-2 mb-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-700" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+                    </svg>
+                    <span className="font-semibold text-green-900">Pickup Information</span>
+                  </div>
+                  <div className="flex flex-col gap-2 pl-7">
+                    <p className="font-semibold text-green-900">
+                      {booking.gear_item?.pickup_method === 'pickup' && 'Pick up at the owner\'s place'}
+                      {booking.gear_item?.pickup_method === 'deliver' && 'Delivered to you'}
+                      {booking.gear_item?.pickup_method === 'all' && 'Meet-up, pickup, or delivery available'}
+                      {(!booking.gear_item?.pickup_method || booking.gear_item?.pickup_method === 'meetup') && 'Meet-up at an agreed place'}
+                    </p>
+
+                    {booking.gear_item?.pickup_address && (
+                      <div>
+                        <p className="text-xs font-semibold text-green-800 mb-0.5">Address</p>
+                        <p className="text-green-900">{booking.gear_item.pickup_address}</p>
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          <a
+                            href={`https://maps.google.com/?q=${encodeURIComponent(booking.gear_item.pickup_address)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-xs font-semibold text-green-700 bg-white border border-green-300 hover:bg-green-100 px-2.5 py-1 rounded transition"
+                          >
+                            Open in Maps
+                          </a>
+                        </div>
+                      </div>
+                    )}
+
+                    {booking.gear_item?.pickup_landmark && (
+                      <div>
+                        <p className="text-xs font-semibold text-green-800 mb-0.5">Landmark</p>
+                        <p className="text-green-900">{booking.gear_item.pickup_landmark}</p>
+                      </div>
+                    )}
+
+                    {booking.gear_item?.pickup_hours && (
+                      <div>
+                        <p className="text-xs font-semibold text-green-800 mb-0.5">Pickup hours</p>
+                        <p className="text-green-900">{booking.gear_item.pickup_hours}</p>
+                      </div>
+                    )}
+
+                    {booking.gear_item?.pickup_instructions && (
+                      <div>
+                        <p className="text-xs font-semibold text-green-800 mb-0.5">Instructions</p>
+                        <p className="text-green-900">{booking.gear_item.pickup_instructions}</p>
+                      </div>
+                    )}
+
+                    {booking.gear_item?.contact_number && (
+                      <div>
+                        <p className="text-xs font-semibold text-green-800 mb-0.5">Contact</p>
+                        <a
+                          href={`tel:${booking.gear_item.contact_number.replace(/\s+/g, '')}`}
+                          className="text-green-700 font-semibold underline"
+                        >
+                          {booking.gear_item.contact_number}
+                        </a>
+                      </div>
+                    )}
+
+                    {!booking.gear_item?.pickup_address && !booking.gear_item?.pickup_landmark && (
+                      <p className="text-xs italic text-green-700">
+                        Contact the owner to arrange the pickup details.
+                      </p>
+                    )}
+
+                    <div className="mt-2 pt-3 border-t border-green-200">
+                      <p className="text-xs font-semibold text-green-800 mb-1">Before you go</p>
+                      <ul className="text-xs text-green-900 list-disc pl-5 space-y-0.5">
+                        <li>Bring a valid ID for verification</li>
+                        <li>Confirm the pickup time with the owner</li>
+                        <li>Inspect the gear before leaving</li>
+                      </ul>
+                    </div>
+                  </div>
                 </div>
               )}
               {booking.tour_guide && (
