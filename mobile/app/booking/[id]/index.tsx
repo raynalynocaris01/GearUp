@@ -11,6 +11,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import * as Clipboard from 'expo-clipboard';
 import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { bookings } from '../../../lib/api';
 import type { Booking } from '@gearup/shared';
@@ -339,6 +340,34 @@ export default function BookingDetailScreen() {
                     <View>
                       <Text style={{ fontSize: 11, fontWeight: '700', color: '#047857' }}>ADDRESS</Text>
                       <Text style={{ fontSize: 13, color: '#065f46' }}>{booking.gear_item.pickup_address}</Text>
+                      <TouchableOpacity
+                        onPress={async () => {
+                          try {
+                            await Clipboard.setStringAsync(booking.gear_item!.pickup_address!);
+                            Alert.alert('Copied', 'Address copied to clipboard.');
+                          } catch {
+                            Alert.alert('Could not copy', 'Please copy the address manually.');
+                          }
+                        }}
+                        style={{
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          gap: 4,
+                          marginTop: 6,
+                          alignSelf: 'flex-start',
+                          paddingHorizontal: 10,
+                          paddingVertical: 5,
+                          borderRadius: 6,
+                          backgroundColor: '#fff',
+                          borderWidth: 1,
+                          borderColor: '#a7f3d0',
+                        }}
+                      >
+                        <Ionicons name="copy-outline" size={12} color="#047857" />
+                        <Text style={{ fontSize: 11, fontWeight: '700', color: '#047857' }}>
+                          Copy address
+                        </Text>
+                      </TouchableOpacity>
                     </View>
                   )}
 
