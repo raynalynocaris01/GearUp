@@ -214,10 +214,13 @@ export default async function GearDetailPage({
                     : method === 'deliver' ? 'Delivered to you'
                     : method === 'all' ? 'Meet-up, pickup, or delivery available'
                     : 'Meet-up at an agreed place';
-                  const parts = gear.pickup_address
-                    ? gear.pickup_address.split(',').map((s: string) => s.trim()).filter(Boolean)
-                    : [];
-                  const city = parts.length >= 2 ? parts[parts.length - 2] : null;
+                  const city = (gear as any).pickup_city
+                    ?? (gear.pickup_address
+                      ? (() => {
+                          const parts = gear.pickup_address.split(',').map((s: string) => s.trim()).filter(Boolean);
+                          return parts.length >= 2 ? parts[parts.length - 2] : null;
+                        })()
+                      : null);
                   return city
                     ? `${label} in ${city}. Full details shown after booking. Free cancellation up to 48 hours before the rental date.`
                     : `${label}. Full details shown after booking. Free cancellation up to 48 hours before the rental date.`;
