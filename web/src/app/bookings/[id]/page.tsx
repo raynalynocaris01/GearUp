@@ -6,6 +6,7 @@ import { Navbar } from '@/components/Navbar';
 import { CancelBookingButton } from '@/components/CancelBookingButton';
 import { BookingStatusTracker } from '@/components/BookingStatusTracker';
 import { appImageSrc } from '@/components/AppImage';
+import { CopyButton } from '@/components/CopyButton';
 
 export const dynamic = 'force-dynamic';
 const API_URL = process.env.NEXT_PUBLIC_API_URL!;
@@ -474,6 +475,11 @@ export default async function BookingDetailPage({
                           >
                             Open in Maps
                           </a>
+                          <CopyButton
+                            text={booking.gear_item.pickup_address}
+                            label="Copy Address"
+                            className="inline-flex items-center gap-1 text-xs font-semibold text-green-700 bg-white border border-green-300 hover:bg-green-100 px-2.5 py-1 rounded transition"
+                          />
                         </div>
                       </div>
                     )}
