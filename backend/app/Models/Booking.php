@@ -59,6 +59,7 @@ class Booking extends Model
         'cancelled_at',
         'notes',
         'preferred_arrival',
+         'price_snapshot',
     ];
 
     protected $casts = [
@@ -78,6 +79,7 @@ class Booking extends Model
         'confirmed_at' => 'datetime',
         'completed_at' => 'datetime',
         'cancelled_at' => 'datetime',
+         'price_snapshot' => 'array',
     ];
 
     public function user(): BelongsTo

@@ -482,7 +482,55 @@ class BookingController extends Controller
             $balanceDue = (float) $total;
         }
 
-        $booking = DB::transaction(function () use ($data, $request, $campsite, $roomCampsite, $tourGuide, $gearItem, $gearLines, $pricingLineSnapshots, $total, $amountPaid, $balanceDue) {
+        // ── Price snapshot ────────────────────────────────────────────────
+        // Freeze every price component as of the booking moment. This
+        // protects historical bookings from later owner price changes —
+        // a customer must always see the amount they originally agreed to.
+        $priceSnapshot = [
+            'campsite' => $campsite ? [
+                'name' => $campsite->name,
+                'price_per_night' => (float) $campsite->price_per_night,
+                'price_unit' => $campsite->price_unit,
+                'nights' => $nights ?? 0,
+                'guests' => (int) $data['guests'],
+                'subtotal' => round($campsitePrice, 2),
+            ] : null,
+            'room' => $roomCampsite ? [
+                'name' => $roomCampsite->name,
+                'price_per_night' => (float) $roomCampsite->price_per_night,
+                'price_unit' => $roomCampsite->price_unit ?? 'per_night',
+                'nights' => $nights ?? 0,
+                'guests' => (int) $data['guests'],
+                'subtotal' => round($campsitePrice, 2),
+            ] : null,
+            'guide' => $tourGuide ? [
+                'name' => $tourGuide->name,
+                'price_per_trip' => round($guidePrice, 2),
+            ] : null,
+            'gear_lines' => array_map(function ($line) {
+                $g = \App\Models\GearItem::find($line['gear_item_id']);
+                return [
+                    'name' => $g?->name ?? 'Gear',
+                    'price_per_day' => round((float) $line['price_per_day'], 2),
+                    'quantity' => (int) $line['quantity'],
+                    'subtotal' => round((float) $line['subtotal'], 2),
+                ];
+            }, $gearLines),
+            'single_gear' => $gearItem ? [
+                'name' => $gearItem->name,
+                'price_per_day' => round(
+                    $gearPrice / max(1, ($days ?? 1) * ($qty ?? 1)),
+                    2
+                ),
+                'days' => $days ?? 0,
+                'quantity' => $qty ?? 1,
+                'subtotal' => round($gearPrice, 2),
+            ] : null,
+            'down_payment_percent' => $downPercent,
+            'total' => round($total, 2),
+        ];
+
+        $booking = DB::transaction(function () use ($data, $request, $campsite, $roomCampsite, $tourGuide, $gearItem, $gearLines, $pricingLineSnapshots, $total, $amountPaid, $balanceDue, $priceSnapshot) {
             $adults = (int) ($data['adults'] ?? $data['guests']);
             $children = (int) ($data['children'] ?? 0);
             $seniors = (int) ($data['seniors'] ?? 0);
@@ -512,6 +560,7 @@ class BookingController extends Controller
                 'seniors' => $seniors,
                 'pwd' => $pwd,
                 'total_price' => $total,
+                'price_snapshot' => $priceSnapshot, 
                  'amount_paid' => $amountPaid,
                 'balance_due' => $balanceDue,
                 'status' => 'pending',

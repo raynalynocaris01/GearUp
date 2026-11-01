@@ -56,6 +56,43 @@ interface Booking {
   total_price: string;
   amount_paid?: number | string;
   balance_due?: number | string;
+  price_snapshot?: {
+    campsite?: {
+      name: string;
+      price_per_night: number;
+      price_unit: string;
+      nights: number;
+      guests: number;
+      subtotal: number;
+    } | null;
+    room?: {
+      name: string;
+      price_per_night: number;
+      price_unit: string;
+      nights: number;
+      guests: number;
+      subtotal: number;
+    } | null;
+    guide?: {
+      name: string;
+      price_per_trip: number;
+    } | null;
+    gear_lines?: {
+      name: string;
+      price_per_day: number;
+      quantity: number;
+      subtotal: number;
+    }[];
+    single_gear?: {
+      name: string;
+      price_per_day: number;
+      days: number;
+      quantity: number;
+      subtotal: number;
+    } | null;
+    down_payment_percent: number;
+    total: number;
+  } | null;
   status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
   payment_status?: 'unpaid' | 'pending' | 'paid';
   payment_method?: string | null;
@@ -198,37 +235,52 @@ export default async function BookingDetailPage({
   const hasMultiGear =
     booking.gear_items !== undefined && booking.gear_items.length > 0;
 
-  // Price breakdown math
-  const roomUnit = parseFloat(
-    booking.room_campsite?.price_per_night ?? '0',
-  );
+  // ── Price breakdown math ─────────────────────────────────────────
+  // Prefer the frozen `price_snapshot` written at booking time. This
+  // protects historical bookings from later owner price edits.
+  // Fall back to the old live-price math only for legacy bookings
+  // created before the snapshot migration.
+  const snap = booking.price_snapshot;
+
   const isRoom = !!booking.room_campsite;
 
-  const campsiteUnit = parseFloat(booking.campsite?.price_per_night ?? '0');
-  const isEntrance = booking.campsite?.price_unit === 'entrance';
+  const roomUnit = snap?.room?.price_per_night
+    ?? parseFloat(booking.room_campsite?.price_per_night ?? '0');
 
-  const campsiteSubtotal = isRoom
-    ? roomUnit * nights
-    : booking.campsite
-      ? isEntrance
-        ? campsiteUnit * booking.guests
-        : campsiteUnit * nights * booking.guests
-      : 0;
+  const campsiteUnit = snap?.campsite?.price_per_night
+    ?? parseFloat(booking.campsite?.price_per_night ?? '0');
 
-  const guideSubtotal = booking.tour_guide
-    ? parseFloat(booking.tour_guide.price_per_trip)
-    : 0;
+  const isEntrance = snap?.campsite?.price_unit === 'entrance'
+    || booking.campsite?.price_unit === 'entrance';
 
-  const gearSubtotal = hasMultiGear
-    ? booking.gear_items!.reduce(
-        (sum, line) => sum + parseFloat(line.pivot.subtotal),
-        0,
-      )
-    : booking.gear_item
-      ? parseFloat(booking.gear_item.price_per_day) *
-        nights *
-        (booking.gear_quantity ?? 1)
-      : 0;
+  const campsiteSubtotal = snap
+    ? (snap.room?.subtotal ?? snap.campsite?.subtotal ?? 0)
+    : (isRoom
+        ? roomUnit * nights
+        : booking.campsite
+          ? isEntrance
+            ? campsiteUnit * booking.guests
+            : campsiteUnit * nights * booking.guests
+          : 0);
+
+  const guideSubtotal = snap?.guide?.price_per_trip
+    ?? (booking.tour_guide
+      ? parseFloat(booking.tour_guide.price_per_trip)
+      : 0);
+
+  const gearSubtotal = snap?.gear_lines?.length
+    ? snap.gear_lines.reduce((s, l) => s + l.subtotal, 0)
+    : snap?.single_gear?.subtotal
+      ?? (hasMultiGear
+        ? booking.gear_items!.reduce(
+            (sum, line) => sum + parseFloat(line.pivot.subtotal),
+            0,
+          )
+        : booking.gear_item
+          ? parseFloat(booking.gear_item.price_per_day) *
+            nights *
+            (booking.gear_quantity ?? 1)
+          : 0);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -585,9 +637,12 @@ export default async function BookingDetailPage({
                   <div className="flex justify-between items-center">
                     <span>
                       {booking.gear_item.name}: ₱
-                      {parseFloat(booking.gear_item.price_per_day).toFixed(2)}{' '}
-                      × {nights} {nights === 1 ? 'day' : 'days'} ×{' '}
-                      {booking.gear_quantity ?? 1}
+                      {(snap?.single_gear?.price_per_day
+                        ?? parseFloat(booking.gear_item.price_per_day)
+                      ).toFixed(2)}{' '}
+                      × {snap?.single_gear?.days ?? nights}{' '}
+                      {(snap?.single_gear?.days ?? nights) === 1 ? 'day' : 'days'} ×{' '}
+                      {snap?.single_gear?.quantity ?? booking.gear_quantity ?? 1}
                     </span>
                     <span className="font-semibold">
                       ₱{gearSubtotal.toFixed(2)}
