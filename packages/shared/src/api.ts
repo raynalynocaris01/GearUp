@@ -237,6 +237,43 @@ export interface Booking {
   total_price: string;
   amount_paid?: number | string;
   balance_due?: number | string;
+  price_snapshot?: {
+    campsite?: {
+      name: string;
+      price_per_night: number;
+      price_unit: string;
+      nights: number;
+      guests: number;
+      subtotal: number;
+    } | null;
+    room?: {
+      name: string;
+      price_per_night: number;
+      price_unit: string;
+      nights: number;
+      guests: number;
+      subtotal: number;
+    } | null;
+    guide?: {
+      name: string;
+      price_per_trip: number;
+    } | null;
+    gear_lines?: {
+      name: string;
+      price_per_day: number;
+      quantity: number;
+      subtotal: number;
+    }[];
+    single_gear?: {
+      name: string;
+      price_per_day: number;
+      days: number;
+      quantity: number;
+      subtotal: number;
+    } | null;
+    down_payment_percent: number;
+    total: number;
+  } | null;
   status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
   notes: string | null;
   preferred_arrival?: string | null;
@@ -726,6 +763,7 @@ export interface GearItem {
   pickup_hours?: string | null;
   pickup_instructions?: string | null;
   contact_number?: string | null;
+  pickup_city?: string | null;
   owner?: {
     id: number;
     name: string;

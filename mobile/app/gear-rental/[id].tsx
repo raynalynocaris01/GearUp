@@ -157,6 +157,19 @@ export default function GearDetailScreen() {
             </View>
           )}
 
+          {/* Pickup hint */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Pickup</Text>
+            <Text style={styles.paragraph}>
+              {item.pickup_method === 'pickup' && "Pick up at the owner's place"}
+              {item.pickup_method === 'deliver' && 'Delivery available'}
+              {item.pickup_method === 'all' && 'Meet-up, pickup, or delivery available'}
+              {(!item.pickup_method || item.pickup_method === 'meetup') && 'Meet-up at an agreed place'}
+              {item.pickup_city ? ` in ${item.pickup_city}` : ''}
+              {'. Full details shown after booking.'}
+            </Text>
+          </View>
+
           {/* Rate */}
           <View style={styles.rateCard}>
             <Text style={styles.rateLabel}>RATE</Text>
