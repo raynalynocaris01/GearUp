@@ -152,6 +152,20 @@ export default function BookingDetailScreen() {
       : booking.check_out;
   const nights = nightsBetween(startDate, endDate);
 
+  // Snapshot-aware price math — prefer frozen price_snapshot so historical
+  // bookings never drift when owners change prices later.
+  const snap = booking.price_snapshot;
+  const roomUnit = snap?.room?.price_per_night
+    ?? parseFloat(booking.room_campsite?.price_per_night ?? '0');
+  const campsiteUnit = snap?.campsite?.price_per_night
+    ?? parseFloat(booking.campsite?.price_per_night ?? '0');
+  const guideSubtotal = snap?.guide?.price_per_trip
+    ?? parseFloat(booking.tour_guide?.price_per_trip ?? '0');
+  const singleGearUnit = snap?.single_gear?.price_per_day
+    ?? parseFloat(booking.gear_item?.price_per_day ?? '0');
+  const singleGearDays = snap?.single_gear?.days ?? nights;
+  const singleGearQty = snap?.single_gear?.quantity ?? booking.gear_quantity ?? 1;
+
   const title =
     booking.campsite?.name ?? booking.gear_item?.name ?? 'Booking';
 
@@ -285,7 +299,8 @@ export default function BookingDetailScreen() {
 
             )}
 
-            {/* Check-in / Check-out Policy */}
+            {/* Check-in / Check-out Policy — campsite bookings only */}
+            {!isGearOnly && (
             <View style={{ marginTop: 16, backgroundColor: "#fffbeb", padding: 16, borderRadius: 12, borderWidth: 1, borderColor: "#fde68a" }}>
               <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 8 }}>
                 <Ionicons name="time-outline" size={18} color="#d97706" style={{ marginRight: 6 }} />
@@ -303,6 +318,75 @@ export default function BookingDetailScreen() {
                 <Text style={{ fontSize: 11, fontStyle: "italic", color: "#b45309", marginTop: 6 }}>Need an early check-in? Contact the host.</Text>
               </View>
               </View>
+            )}
+
+            {/* Pickup Information — gear-only bookings once confirmed */}
+            {isGearOnly && booking.status !== 'pending' && booking.status !== 'cancelled' && (
+              <View style={{ marginTop: 16, backgroundColor: '#ecfdf5', padding: 16, borderRadius: 12, borderWidth: 1, borderColor: '#a7f3d0' }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+                  <Ionicons name="location-outline" size={18} color="#065f46" style={{ marginRight: 6 }} />
+                  <Text style={{ fontSize: 13, fontWeight: '700', color: '#065f46' }}>Pickup Information</Text>
+                </View>
+                <View style={{ paddingLeft: 24, gap: 8 }}>
+                  <Text style={{ fontSize: 13, fontWeight: '700', color: '#065f46' }}>
+                    {booking.gear_item?.pickup_method === 'pickup' && "Pick up at the owner's place"}
+                    {booking.gear_item?.pickup_method === 'deliver' && 'Delivered to you'}
+                    {booking.gear_item?.pickup_method === 'all' && 'Meet-up, pickup, or delivery available'}
+                    {(!booking.gear_item?.pickup_method || booking.gear_item?.pickup_method === 'meetup') && 'Meet-up at an agreed place'}
+                  </Text>
+
+                  {booking.gear_item?.pickup_address && (
+                    <View>
+                      <Text style={{ fontSize: 11, fontWeight: '700', color: '#047857' }}>ADDRESS</Text>
+                      <Text style={{ fontSize: 13, color: '#065f46' }}>{booking.gear_item.pickup_address}</Text>
+                    </View>
+                  )}
+
+                  {booking.gear_item?.pickup_landmark && (
+                    <View>
+                      <Text style={{ fontSize: 11, fontWeight: '700', color: '#047857' }}>LANDMARK</Text>
+                      <Text style={{ fontSize: 13, color: '#065f46' }}>{booking.gear_item.pickup_landmark}</Text>
+                    </View>
+                  )}
+
+                  {booking.gear_item?.pickup_hours && (
+                    <View>
+                      <Text style={{ fontSize: 11, fontWeight: '700', color: '#047857' }}>HOURS</Text>
+                      <Text style={{ fontSize: 13, color: '#065f46' }}>{booking.gear_item.pickup_hours}</Text>
+                    </View>
+                  )}
+
+                  {booking.gear_item?.pickup_instructions && (
+                    <View>
+                      <Text style={{ fontSize: 11, fontWeight: '700', color: '#047857' }}>INSTRUCTIONS</Text>
+                      <Text style={{ fontSize: 13, color: '#065f46' }}>{booking.gear_item.pickup_instructions}</Text>
+                    </View>
+                  )}
+
+                  {booking.gear_item?.contact_number && (
+                    <View>
+                      <Text style={{ fontSize: 11, fontWeight: '700', color: '#047857' }}>CONTACT</Text>
+                      <Text style={{ fontSize: 13, color: '#065f46', fontWeight: '700' }}>
+                        {booking.gear_item.contact_number}
+                      </Text>
+                    </View>
+                  )}
+
+                  {!booking.gear_item?.pickup_address && !booking.gear_item?.pickup_landmark && (
+                    <Text style={{ fontSize: 12, fontStyle: 'italic', color: '#047857' }}>
+                      Contact the owner to arrange the pickup details.
+                    </Text>
+                  )}
+
+                  <View style={{ marginTop: 8, paddingTop: 10, borderTopWidth: 1, borderTopColor: '#a7f3d0' }}>
+                    <Text style={{ fontSize: 11, fontWeight: '700', color: '#047857', marginBottom: 4 }}>BEFORE YOU GO</Text>
+                    <Text style={{ fontSize: 12, color: '#065f46', lineHeight: 18 }}>{'• Bring a valid ID for verification'}</Text>
+                    <Text style={{ fontSize: 12, color: '#065f46', lineHeight: 18 }}>{'• Confirm the pickup time with the owner'}</Text>
+                    <Text style={{ fontSize: 12, color: '#065f46', lineHeight: 18 }}>{'• Inspect the gear before leaving'}</Text>
+                  </View>
+                </View>
+              </View>
+            )}
 
             {/* Pay on Arrival notice for cash bookings */}
             {booking.payment_status !== 'paid' && booking.payment_method === 'cash' && (
@@ -344,16 +428,12 @@ export default function BookingDetailScreen() {
               <View style={styles.summaryRow}>
                 <Text style={styles.summaryLabel}>
                   {booking.room_campsite.name}: PHP{' '}
-                  {parseFloat(
-                    booking.room_campsite.price_per_night ?? '0',
-                  ).toFixed(2)}{' '}
+                  {roomUnit.toFixed(2)}{' '}
                   x {nights} {nights === 1 ? 'night' : 'nights'}
                 </Text>
                 <Text style={styles.summaryValue}>
                   PHP{' '}
-                  {(parseFloat(
-                    booking.room_campsite.price_per_night ?? '0',
-                  ) * nights).toFixed(2)}
+                  {(roomUnit * nights).toFixed(2)}
                 </Text>
               </View>
             ) : booking.campsite && booking.pricing_lines && booking.pricing_lines.length > 0 ? (
@@ -376,17 +456,13 @@ export default function BookingDetailScreen() {
               <View style={styles.summaryRow}>
                 <Text style={styles.summaryLabel}>
                   Campsite: PHP{' '}
-                  {parseFloat(
-                    booking.campsite.price_per_night ?? '0',
-                  ).toFixed(2)}{' '}
+                  {campsiteUnit.toFixed(2)}{' '}
                   x {nights} {nights === 1 ? 'night' : 'nights'} x{' '}
                   {booking.guests}
                 </Text>
                 <Text style={styles.summaryValue}>
                   PHP{' '}
-                  {(parseFloat(
-                    booking.campsite.price_per_night ?? '0',
-                  ) *
+                  {(campsiteUnit *
                     nights *
                     booking.guests
                   ).toFixed(2)}
@@ -401,9 +477,7 @@ export default function BookingDetailScreen() {
                 </Text>
                 <Text style={styles.summaryValue}>
                   PHP{' '}
-                  {parseFloat(
-                    booking.tour_guide.price_per_trip ?? '0',
-                  ).toFixed(2)}
+                  {guideSubtotal.toFixed(2)}
                 </Text>
               </View>
             )}
@@ -436,15 +510,15 @@ export default function BookingDetailScreen() {
               <View style={styles.summaryRow}>
                 <Text style={styles.summaryLabel}>
                   {booking.gear_item.name}: PHP{' '}
-                  {parseFloat(booking.gear_item.price_per_day).toFixed(2)} x{' '}
-                  {nights} {nights === 1 ? 'day' : 'days'} x{' '}
-                  {booking.gear_quantity ?? 1}
+                  {singleGearUnit.toFixed(2)} x{' '}
+                  {singleGearDays} {singleGearDays === 1 ? 'day' : 'days'} x{' '}
+                  {singleGearQty}
                 </Text>
                 <Text style={styles.summaryValue}>
                   PHP{' '}
-                  {(parseFloat(booking.gear_item.price_per_day) *
-                    nights *
-                    (booking.gear_quantity ?? 1)
+                  {(singleGearUnit *
+                    singleGearDays *
+                    singleGearQty
                   ).toFixed(2)}
                 </Text>
               </View>
