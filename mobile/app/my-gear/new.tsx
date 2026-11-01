@@ -28,6 +28,16 @@ export default function NewMyGearScreen() {
   const [isAvailable, setIsAvailable] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
+  // Pickup fields
+  const [pickupMethod, setPickupMethod] = useState<
+    'meetup' | 'pickup' | 'deliver' | 'all'
+  >('meetup');
+  const [pickupAddress, setPickupAddress] = useState('');
+  const [pickupLandmark, setPickupLandmark] = useState('');
+  const [pickupHours, setPickupHours] = useState('');
+  const [pickupInstructions, setPickupInstructions] = useState('');
+  const [contactNumber, setContactNumber] = useState('');
+
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
 
@@ -63,6 +73,12 @@ export default function NewMyGearScreen() {
         stock: Number(stock) || 1,
         is_available: isAvailable,
         image_url: '',
+        pickup_method: pickupMethod,
+        pickup_address: pickupAddress.trim() || null,
+        pickup_landmark: pickupLandmark.trim() || null,
+        pickup_hours: pickupHours.trim() || null,
+        pickup_instructions: pickupInstructions.trim() || null,
+        contact_number: contactNumber.trim() || null,
       });
       const gearId = res.data.id;
 
@@ -183,6 +199,106 @@ export default function NewMyGearScreen() {
               <Text style={styles.checkboxLabel}>Available</Text>
             </TouchableOpacity>
           </View>
+        </View>
+
+        <View style={styles.pickupSection}>
+          <Text style={styles.pickupHeading}>Pickup Information</Text>
+          <Text style={styles.pickupHelp}>
+            Tell renters how they'll get the gear. Shown after a booking is confirmed.
+          </Text>
+
+          <Text style={styles.label}>How should renters get the gear?</Text>
+          <View style={styles.pickupRadioGroup}>
+            {(
+              [
+                { value: 'meetup', label: 'Meet-up at a place' },
+                { value: 'pickup', label: 'Pick up at my place' },
+                { value: 'deliver', label: 'Deliver to them' },
+                { value: 'all', label: 'All three options' },
+              ] as const
+            ).map((opt) => {
+              const active = pickupMethod === opt.value;
+              return (
+                <TouchableOpacity
+                  key={opt.value}
+                  onPress={() => setPickupMethod(opt.value)}
+                  style={[
+                    styles.pickupRadio,
+                    active && styles.pickupRadioActive,
+                  ]}
+                >
+                  <View style={[styles.radioDot, active && styles.radioDotActive]}>
+                    {active && <View style={styles.radioDotInner} />}
+                  </View>
+                  <Text
+                    style={[
+                      styles.pickupRadioLabel,
+                      active && styles.pickupRadioLabelActive,
+                    ]}
+                  >
+                    {opt.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+
+          <Text style={styles.label}>
+            {pickupMethod === 'meetup' ? 'Meet-up location' : 'Pickup address'}
+            {['pickup', 'all'].includes(pickupMethod) ? ' *' : ''}
+          </Text>
+          <TextInput
+            style={[styles.input, styles.textarea]}
+            value={pickupAddress}
+            onChangeText={setPickupAddress}
+            placeholder="e.g. Purok 3, Brgy. San Jose, Valencia City, Bukidnon"
+            placeholderTextColor="#9ca3af"
+            multiline
+            numberOfLines={2}
+          />
+
+          {['meetup', 'all'].includes(pickupMethod) && (
+            <>
+              <Text style={styles.label}>Landmark (optional but helpful)</Text>
+              <TextInput
+                style={styles.input}
+                value={pickupLandmark}
+                onChangeText={setPickupLandmark}
+                placeholder="e.g. Near the barangay hall, blue gate"
+                placeholderTextColor="#9ca3af"
+              />
+            </>
+          )}
+
+          <Text style={styles.label}>Pickup hours (optional)</Text>
+          <TextInput
+            style={styles.input}
+            value={pickupHours}
+            onChangeText={setPickupHours}
+            placeholder="e.g. Mon–Sat 9AM–6PM, Sun by appointment"
+            placeholderTextColor="#9ca3af"
+          />
+
+          <Text style={styles.label}>Instructions (optional)</Text>
+          <TextInput
+            style={[styles.input, styles.textarea]}
+            value={pickupInstructions}
+            onChangeText={setPickupInstructions}
+            placeholder="e.g. Text me 30 minutes before arriving."
+            placeholderTextColor="#9ca3af"
+            multiline
+            numberOfLines={2}
+          />
+
+          <Text style={styles.label}>Contact number (optional)</Text>
+          <TextInput
+            style={styles.input}
+            value={contactNumber}
+            onChangeText={setContactNumber}
+            placeholder="e.g. 0917 123 4567"
+            placeholderTextColor="#9ca3af"
+            keyboardType="phone-pad"
+          />
         </View>
 
         <Text style={styles.label}>Gear image</Text>
@@ -321,4 +437,68 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   submitBtnText: { fontSize: 14, fontWeight: '700', color: '#fff' },
+  pickupSection: {
+    marginTop: 24,
+    paddingTop: 20,
+    borderTopWidth: 1,
+    borderTopColor: '#e5e7eb',
+  },
+  pickupHeading: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#111827',
+    marginBottom: 4,
+  },
+  pickupHelp: {
+    fontSize: 12,
+    color: '#6b7280',
+    marginBottom: 8,
+    lineHeight: 17,
+  },
+  pickupRadioGroup: {
+    gap: 8,
+    marginBottom: 4,
+  },
+  pickupRadio: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+    borderRadius: 10,
+    backgroundColor: '#fff',
+  },
+  pickupRadioActive: {
+    borderColor: '#15803d',
+    backgroundColor: '#f0fdf4',
+  },
+  pickupRadioLabel: {
+    fontSize: 14,
+    color: '#374151',
+  },
+  pickupRadioLabelActive: {
+    color: '#14532d',
+    fontWeight: '700',
+  },
+  radioDot: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    borderWidth: 2,
+    borderColor: '#d1d5db',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#fff',
+  },
+  radioDotActive: {
+    borderColor: '#15803d',
+  },
+  radioDotInner: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#15803d',
+  },
 });

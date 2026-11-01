@@ -742,6 +742,12 @@ export interface CreateGearItemPayload {
   image_url: string;
   stock: number;
   is_available?: boolean;
+  pickup_method?: 'meetup' | 'pickup' | 'deliver' | 'all';
+  pickup_address?: string | null;
+  pickup_landmark?: string | null;
+  pickup_hours?: string | null;
+  pickup_instructions?: string | null;
+  contact_number?: string | null;
 }
 
 export type UpdateGearItemPayload = Partial<CreateGearItemPayload>;
