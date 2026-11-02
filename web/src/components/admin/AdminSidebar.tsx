@@ -34,6 +34,7 @@ const NAV: NavItem[] = [
   // [Events disabled 2026-10-14] - uncomment to re-enable
   // { href: '/admin/events', label: 'Events', icon: 'events' },
   { href: '/admin/tour-guides', label: 'Tour Guides', icon: 'tourGuides' },
+  { href: '/admin/guide-applications', label: 'Guide Applications', icon: 'users' },
 ];
 
 function Icon({ name, size = 18 }: { name: IconName; size?: number }) {
