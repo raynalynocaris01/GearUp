@@ -118,10 +118,10 @@ export default async function ProfilePage() {
         )}
         {isGuide && (
           <Link
-            href="/guide"
+            href={user.is_approved ? '/guide' : '/guide-onboarding'}
             className="flex items-center justify-between bg-gearup-600 hover:bg-gearup-700 text-white font-bold px-5 py-4 rounded-xl mb-4 transition"
           >
-            <span>{user.is_approved ? 'Guide dashboard' : 'Guide application pending'}</span>
+            <span>{user.is_approved ? 'Guide dashboard' : 'Continue guide application'}</span>
             <span>›</span>
           </Link>
         )}

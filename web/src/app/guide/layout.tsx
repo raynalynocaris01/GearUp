@@ -49,12 +49,20 @@ export default async function GuideLayout({
             reviewing your application. You&apos;ll be able to accept bookings
             as soon as we approve it.
           </p>
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 bg-gearup-600 hover:bg-gearup-700 text-white font-semibold text-sm px-6 py-3 rounded-lg transition"
-          >
-            Continue as Customer
-          </Link>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
+            <Link
+              href="/guide-onboarding"
+              className="inline-flex items-center gap-2 bg-gearup-600 hover:bg-gearup-700 text-white font-semibold text-sm px-6 py-3 rounded-lg transition"
+            >
+              Upload / replace resume
+            </Link>
+            <Link
+              href="/"
+              className="inline-flex items-center gap-2 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold text-sm px-6 py-3 rounded-lg transition"
+            >
+              Continue as Customer
+            </Link>
+          </div>
         </div>
       </div>
     );
