@@ -3,10 +3,13 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\GuideApplication;
 use App\Models\TourGuide;
 use App\Models\User;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class TourGuideController extends Controller
@@ -54,39 +57,71 @@ class TourGuideController extends Controller
             'price_per_trip' => ['required', 'numeric', 'min:0'],
             'location' => ['nullable', 'string', 'max:255'],
             'campsite_id' => ['nullable', 'integer', 'exists:campsites,id'],
+            // Optional resume — admin may skip it (auto_approved with no resume).
+            'resume' => ['nullable', 'file', 'mimes:pdf', 'max:5120'],
         ]);
 
+        // Store resume BEFORE the transaction (files aren't transactional).
+        $resumePath = null;
+        if ($request->hasFile('resume')) {
+            $uuid = (string) Str::uuid();
+            $resumePath = $request->file('resume')
+                ->storeAs('resumes', $uuid . '.pdf', 'local');
+        }
+
         $tempPassword = Str::random(12);
+        $admin = $request->user();
 
-        $guide = DB::transaction(function () use ($data, $tempPassword, $request) {
+        $result = DB::transaction(function () use ($data, $tempPassword, $resumePath, $admin) {
             $user = User::create([
-                'name' => $data['name'],
-                'email' => $data['email'],
-                'password' => $tempPassword,
-                'role' => 'guide',
-                'is_approved' => true,
-                'is_suspended' => false,
-                'password_must_change' => true,
+                'name'                  => $data['name'],
+                'email'                 => $data['email'],
+                'password'              => $tempPassword,
+                'role'                  => 'guide',
+                'is_approved'           => true,
+                'is_suspended'          => false,
+                'password_must_change'  => true,
             ]);
 
-            return TourGuide::create([
-                'user_id' => $user->id,
-                'name' => $data['name'],
-                'contact_number' => $data['contact_number'],
-                'email' => $data['email'],
-                'description' => $data['description'] ?? null,
-                'price_per_trip' => $data['price_per_trip'],
-                'location' => $data['location'] ?? null,
-                'campsite_id' => $data['campsite_id'] ?? null,
-                'is_independent' => empty($data['campsite_id']),
-                'created_by' => $request->user()->id,
+            $guide = TourGuide::create([
+                'user_id'         => $user->id,
+                'name'            => $data['name'],
+                'contact_number'  => $data['contact_number'],
+                'email'           => $data['email'],
+                'description'     => $data['description'] ?? null,
+                'price_per_trip'  => $data['price_per_trip'],
+                'location'        => $data['location'] ?? null,
+                'campsite_id'     => $data['campsite_id'] ?? null,
+                'is_independent'  => empty($data['campsite_id']),
+                'created_by'      => $admin->id,
+                'approval_status' => 'approved',
             ]);
+
+            // Every guide — even an auto-approved one — gets an application
+            // row so the full audit trail exists (who created them, when,
+            // was a resume attached). Admin-created = auto_approved.
+            $application = GuideApplication::create([
+                'tour_guide_id'        => $guide->id,
+                'applicant_user_id'    => $user->id,
+                'submitted_by_user_id' => $admin->id,
+                'submission_source'    => 'admin_created',
+                'resume_url'           => $resumePath,
+                'resume_uploaded_at'   => $resumePath ? now() : null,
+                'status'               => 'auto_approved',
+                'reviewed_by_user_id'  => $admin->id,
+                'reviewed_at'          => now(),
+            ]);
+
+            $guide->update(['application_id' => $application->id]);
+
+            return ['guide' => $guide, 'user' => $user, 'application' => $application];
         });
 
         return response()->json([
-            'guide' => $guide->load(['campsite:id,name,location,image_url', 'creator:id,name,email']),
+            'guide'         => $result['guide']->fresh(['campsite:id,name,location,image_url', 'creator:id,name,email']),
+            'application'   => $result['application'],
             'temp_password' => $tempPassword,
-            'message' => 'Tour guide created. Share the temp password with them so they can log in.',
+            'message'       => 'Tour guide created and immediately bookable. Share the temp password with them so they can log in.',
         ], 201);
     }
 
@@ -115,6 +150,78 @@ class TourGuideController extends Controller
         return response()->json(
             $tourGuide->fresh(['campsite:id,name,location,image_url', 'creator:id,name,email']),
         );
+    }
+
+    /**
+     * POST /api/admin/tour-guides/{tourGuide}/update-resume
+     * Admin re-uploads a resume for an already-existing guide. The guide
+     * flips back to under_review and is NOT bookable until re-approved.
+     * Creates a fresh GuideApplication row (never reuses the old one) so
+     * the audit trail shows each resume version separately.
+     */
+    public function updateResume(Request $request, TourGuide $tourGuide)
+    {
+        $request->validate([
+            'resume' => ['required', 'file', 'mimes:pdf', 'max:5120'],
+        ]);
+
+        // Delete the previous resume file (if any) to keep storage clean.
+        $oldResume = $tourGuide->application?->resume_url
+            ?? GuideApplication::where('tour_guide_id', $tourGuide->id)
+                ->whereNotNull('resume_url')
+                ->orderByDesc('created_at')
+                ->value('resume_url');
+
+        $uuid = (string) Str::uuid();
+        $newResumePath = $request->file('resume')
+            ->storeAs('resumes', $uuid . '.pdf', 'local');
+
+        $admin = $request->user();
+
+        $application = DB::transaction(function () use ($tourGuide, $newResumePath, $admin) {
+            // Flip the guide back to review — it's no longer bookable
+            // until an admin re-approves via GuideApplicationController.
+            $tourGuide->update(['approval_status' => 'under_review']);
+
+            $app = GuideApplication::create([
+                'tour_guide_id'        => $tourGuide->id,
+                'applicant_user_id'    => $tourGuide->user_id ?? $admin->id,
+                'submitted_by_user_id' => $admin->id,
+                'submission_source'    => 'admin_created',
+                'resume_url'           => $newResumePath,
+                'resume_uploaded_at'   => now(),
+                'status'               => 'under_review',
+            ]);
+
+            $tourGuide->update(['application_id' => $app->id]);
+
+            return $app;
+        });
+
+        // Clean up old file AFTER the DB work succeeds, so we don't
+        // delete it if the transaction rolls back.
+        if ($oldResume) {
+            Storage::disk('local')->delete($oldResume);
+        }
+
+        // Notify the guide that their resume was replaced and re-review
+        // is pending. Best-effort — a notification failure doesn't undo
+        // the transaction.
+        if ($tourGuide->user_id) {
+            NotificationService::notify(
+                $tourGuide->user_id,
+                'guide.resume_updated',
+                'Your resume was updated',
+                'An admin uploaded a new version of your resume. Your guide profile is temporarily under review.',
+                '/guide/profile',
+            );
+        }
+
+        return response()->json([
+            'message'     => 'Resume updated. Guide is now pending re-approval.',
+            'guide'       => $tourGuide->fresh(['campsite:id,name,location,image_url', 'creator:id,name,email']),
+            'application' => $application,
+        ]);
     }
 
     /**

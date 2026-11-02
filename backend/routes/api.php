@@ -219,6 +219,7 @@ Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(functi
     Route::post('/tour-guides', [AdminTourGuideController::class, 'store']);
     Route::put('/tour-guides/{tourGuide}', [AdminTourGuideController::class, 'update']);
     Route::delete('/tour-guides/{tourGuide}', [AdminTourGuideController::class, 'destroy']);
+    Route::post('/tour-guides/{tourGuide}/update-resume', [AdminTourGuideController::class, 'updateResume']);
 
     // Guide applications (review queue)
     Route::get('/guide-applications', [\App\Http\Controllers\Admin\GuideApplicationController::class, 'index']);
