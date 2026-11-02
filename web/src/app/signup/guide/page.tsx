@@ -100,7 +100,7 @@ export default function GuideSignupPage() {
 
     // Guide signup: always redirect to onboarding to upload a resume.
     // The proxy forwards guide_application_id from the Laravel response.
-    router.push('/guide/onboarding');
+    router.push('/guide-onboarding');
     router.refresh();
   };
 

@@ -77,7 +77,7 @@ export function BecomeGuideCard({ role, isApproved }: Props) {
 
       // Success — the user is now a pending guide with an application.
       // Send them to onboarding so they can upload a resume.
-      router.push('/guide/onboarding');
+      router.push('/guide-onboarding');
       router.refresh();
     } catch {
       setError('Network error. Please try again.');
