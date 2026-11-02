@@ -211,6 +211,13 @@ Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(functi
     Route::post('/tour-guides', [AdminTourGuideController::class, 'store']);
     Route::put('/tour-guides/{tourGuide}', [AdminTourGuideController::class, 'update']);
     Route::delete('/tour-guides/{tourGuide}', [AdminTourGuideController::class, 'destroy']);
+
+    // Guide applications (review queue)
+    Route::get('/guide-applications', [\App\Http\Controllers\Admin\GuideApplicationController::class, 'index']);
+    Route::get('/guide-applications/{guideApplication}', [\App\Http\Controllers\Admin\GuideApplicationController::class, 'show']);
+    Route::get('/guide-applications/{guideApplication}/resume', [\App\Http\Controllers\Admin\GuideApplicationController::class, 'downloadResume']);
+    Route::post('/guide-applications/{guideApplication}/approve', [\App\Http\Controllers\Admin\GuideApplicationController::class, 'approve']);
+    Route::post('/guide-applications/{guideApplication}/reject', [\App\Http\Controllers\Admin\GuideApplicationController::class, 'reject']);
 });
 
 // Public endpoint PayMongo redirects to after payment.
