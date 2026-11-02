@@ -631,6 +631,30 @@ export interface AdminUser {
   updated_at: string;
 }
 
+export interface GuideApplication {
+  id: number;
+  tour_guide_id: number | null;
+  applicant_user_id: number;
+  submitted_by_user_id: number | null;
+  submission_source: 'self_signup' | 'customer_upgrade' | 'owner_created' | 'admin_created';
+  resume_url: string | null;
+  resume_uploaded_at: string | null;
+  status: 'pending' | 'under_review' | 'approved' | 'rejected' | 'auto_approved';
+  rejection_reason: string | null;
+  reviewed_at: string | null;
+  created_at: string;
+  updated_at: string;
+  applicant?: {
+    id: number;
+    name: string;
+    email: string;
+    role: string;
+    is_approved: boolean;
+  };
+  submitter?: { id: number; name: string; email: string; role: string } | null;
+  reviewer?: { id: number; name: string; email: string } | null;
+}
+
 export const adminApi = (client: ApiClient) => ({
   dashboard: () => client.get<AdminDashboardStats>('/admin/dashboard'),
   
@@ -693,11 +717,36 @@ export const adminApi = (client: ApiClient) => ({
 
   deleteTourGuide: (id: number | string) =>
     client.delete<{ message: string }>(`/admin/tour-guides/${id}`),
+
+  // Guide applications — admin review queue
+  guideApplications: {
+    list: (params?: { status?: string }) =>
+      client.get<GuideApplication[]>('/admin/guide-applications', { params }),
+
+    get: (id: number | string) =>
+      client.get<GuideApplication>(`/admin/guide-applications/${id}`),
+
+    approve: (id: number | string) =>
+      client.post<{ message: string; application: GuideApplication }>(
+        `/admin/guide-applications/${id}/approve`,
+      ),
+
+    reject: (id: number | string, reason: string) =>
+      client.post<{ message: string; application: GuideApplication }>(
+        `/admin/guide-applications/${id}/reject`,
+        { rejection_reason: reason },
+      ),
+
+    // Resume PDF — returns a URL the browser/PDF viewer can open.
+    // Mobile will need to fetch this with auth headers (see detail screen).
+    resumeUrl: (id: number | string) =>
+      `${client.defaults.baseURL}/admin/guide-applications/${id}/resume`,
+  },
 });
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// 
 // REVIEWS
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// 
 
 export interface Review {
   id: number;
