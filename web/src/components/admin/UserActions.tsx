@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 
 interface Props {
@@ -52,20 +53,18 @@ export function UserActions({
   return (
     <>
       <div className="flex flex-wrap gap-2 justify-end">
-        {(role === 'owner' || role === 'guide') && !isApproved && (
+        {/* Owners are approved here. Guides must go through the
+            Guide Applications review page so their resume can be
+            checked before they become bookable. */}
+        {role === 'owner' && !isApproved && (
           <>
             <button
               onClick={() =>
                 setModal({
                   action: 'approve',
-                  title:
-                    role === 'guide'
-                      ? 'Approve this tour guide?'
-                      : 'Approve this business owner?',
+                  title: 'Approve this business owner?',
                   message:
-                    role === 'guide'
-                      ? 'They will gain access to the guide dashboard and be able to accept tour bookings.'
-                      : 'They will gain access to the owner dashboard and be able to post campsites.',
+                    'They will gain access to the owner dashboard and be able to post campsites.',
                   confirmLabel: 'Approve',
                   variant: 'primary',
                 })
@@ -78,14 +77,9 @@ export function UserActions({
               onClick={() =>
                 setModal({
                   action: 'reject',
-                  title:
-                    role === 'guide'
-                      ? 'Reject this tour guide?'
-                      : 'Reject this business owner?',
+                  title: 'Reject this business owner?',
                   message:
-                    role === 'guide'
-                      ? 'They will be downgraded to a regular customer and will not be able to accept tour bookings.'
-                      : 'They will be downgraded to a regular customer and will not be able to post campsites.',
+                    'They will be downgraded to a regular customer and will not be able to post campsites.',
                   confirmLabel: 'Reject',
                   variant: 'danger',
                 })
@@ -95,6 +89,15 @@ export function UserActions({
               Reject
             </button>
           </>
+        )}
+
+        {role === 'guide' && !isApproved && (
+          <Link
+            href="/admin/guide-applications?status=under_review"
+            className="text-xs font-semibold text-gearup-600 border border-gearup-200 bg-gearup-50 hover:bg-gearup-100 px-3 py-2 rounded-lg transition"
+          >
+            Review application →
+          </Link>
         )}
 
         {!isSuspended ? (
