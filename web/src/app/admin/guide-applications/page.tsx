@@ -60,7 +60,7 @@ export default async function GuideApplicationsPage({
 
   const FILTERS = [
     { label: 'All', href: '/admin/guide-applications?status=', active: status === '' },
-    { label: 'Under review', href: '/admin/guide-applications', active: !status || status === 'under_review' },
+    { label: 'Under review', href: '/admin/guide-applications', active: status === undefined || status === 'under_review' },
     { label: 'Pending', href: '/admin/guide-applications?status=pending', active: status === 'pending' },
     { label: 'Approved', href: '/admin/guide-applications?status=approved', active: status === 'approved' },
     { label: 'Rejected', href: '/admin/guide-applications?status=rejected', active: status === 'rejected' },
