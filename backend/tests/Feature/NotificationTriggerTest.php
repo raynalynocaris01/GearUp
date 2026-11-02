@@ -29,8 +29,8 @@ class NotificationTriggerTest extends TestCase
 
         $this->actingAs($customer)->postJson('/api/bookings', [
             'campsite_id' => $campsite->id,
-            'check_in' => '2026-11-01',
-            'check_out' => '2026-11-03',
+            'check_in' => now()->addDay()->toDateString(),
+            'check_out' => now()->addDays(3)->toDateString(),
             'guests' => 2,
         ])->assertStatus(201);
 
@@ -84,8 +84,8 @@ class NotificationTriggerTest extends TestCase
 
         $this->actingAs($customer)->postJson('/api/bookings', [
             'gear_item_id' => $gear->id,
-            'gear_start_date' => '2026-11-01',
-            'gear_end_date' => '2026-11-03',
+            'gear_start_date' => now()->addDay()->toDateString(),
+            'gear_end_date' => now()->addDays(3)->toDateString(),
             'gear_quantity' => 1,
             'guests' => 1,
         ])->assertStatus(201);
@@ -112,8 +112,8 @@ class NotificationTriggerTest extends TestCase
         // Customer books
         $response = $this->actingAs($customer)->postJson('/api/bookings', [
             'campsite_id' => $campsite->id,
-            'check_in' => '2026-11-01',
-            'check_out' => '2026-11-03',
+            'check_in' => now()->addDay()->toDateString(),
+            'check_out' => now()->addDays(3)->toDateString(),
             'guests' => 2,
         ]);
         $bookingId = $response->json('id');

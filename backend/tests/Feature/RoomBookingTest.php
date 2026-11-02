@@ -43,8 +43,8 @@ class RoomBookingTest extends TestCase
         $response = $this->actingAs($customer)->postJson('/api/bookings', [
             'campsite_id' => $parent->id,
             'room_campsite_id' => $room->id,
-            'check_in' => '2026-11-01',
-            'check_out' => '2026-11-03', // 2 nights
+            'check_in' => now()->addDay()->toDateString(),
+            'check_out' => now()->addDays(3)->toDateString(), // 2 nights
             'guests' => 2,
         ]);
 
@@ -101,8 +101,8 @@ class RoomBookingTest extends TestCase
         $response = $this->actingAs($customer)->postJson('/api/bookings', [
             'campsite_id' => $parentB->id,
             'room_campsite_id' => $roomOfA->id,
-            'check_in' => '2026-11-01',
-            'check_out' => '2026-11-03',
+            'check_in' => now()->addDay()->toDateString(),
+            'check_out' => now()->addDays(3)->toDateString(),
             'guests' => 2,
         ]);
 
@@ -140,8 +140,8 @@ class RoomBookingTest extends TestCase
         $response = $this->actingAs($customer)->postJson('/api/bookings', [
             'campsite_id' => $parent->id,
             'room_campsite_id' => $room->id,
-            'check_in' => '2026-11-01',
-            'check_out' => '2026-11-03',
+            'check_in' => now()->addDay()->toDateString(),
+            'check_out' => now()->addDays(3)->toDateString(),
             'guests' => 5,
         ]);
 

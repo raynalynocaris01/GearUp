@@ -154,8 +154,8 @@ class PricingLinesTest extends TestCase
         // Create a booking that consumes the line
         $this->actingAs($customer)->postJson('/api/bookings', [
             'campsite_id' => $campsite->id,
-            'check_in' => '2026-11-01',
-            'check_out' => '2026-11-03',
+            'check_in' => now()->addDay()->toDateString(),
+            'check_out' => now()->addDays(3)->toDateString(),
             'guests' => 1,
             'adults' => 1,
         ])->assertStatus(201);
@@ -242,8 +242,8 @@ class PricingLinesTest extends TestCase
 
         $response = $this->actingAs($customer)->postJson('/api/bookings', [
             'campsite_id' => $campsite->id,
-            'check_in' => '2026-11-01',
-            'check_out' => '2026-11-03', // 2 nights (not used by flat/per_person)
+            'check_in' => now()->addDay()->toDateString(),
+            'check_out' => now()->addDays(3)->toDateString(), // 2 nights (not used by flat/per_person)
             'guests' => 3,
             'adults' => 2,
             'children' => 1,
@@ -286,8 +286,8 @@ class PricingLinesTest extends TestCase
         // 1) Book WITHOUT the optional tent rental
         $response = $this->actingAs($customer)->postJson('/api/bookings', [
             'campsite_id' => $campsite->id,
-            'check_in' => '2026-11-01',
-            'check_out' => '2026-11-03',
+            'check_in' => now()->addDay()->toDateString(),
+            'check_out' => now()->addDays(3)->toDateString(),
             'guests' => 1,
             'adults' => 1,
         ]);
@@ -298,8 +298,8 @@ class PricingLinesTest extends TestCase
         $customer2 = User::factory()->create();
         $response2 = $this->actingAs($customer2)->postJson('/api/bookings', [
             'campsite_id' => $campsite->id,
-            'check_in' => '2026-11-05',
-            'check_out' => '2026-11-07',
+            'check_in' => now()->addDays(5)->toDateString(),
+            'check_out' => now()->addDays(7)->toDateString(),
             'guests' => 1,
             'adults' => 1,
             'pricing_lines' => [
@@ -363,8 +363,8 @@ class PricingLinesTest extends TestCase
 
         $response = $this->actingAs($customer)->postJson('/api/bookings', [
             'campsite_id' => $campsite->id,
-            'check_in' => '2026-11-01',
-            'check_out' => '2026-11-03',
+            'check_in' => now()->addDay()->toDateString(),
+            'check_out' => now()->addDays(3)->toDateString(),
             'guests' => 5,
             'adults' => 2,
             'children' => 1,
@@ -405,8 +405,8 @@ class PricingLinesTest extends TestCase
 
         $response = $this->actingAs($customer)->postJson('/api/bookings', [
             'campsite_id' => $campsite->id,
-            'check_in' => '2026-11-01',
-            'check_out' => '2026-11-03', // 2 nights
+            'check_in' => now()->addDay()->toDateString(),
+            'check_out' => now()->addDays(3)->toDateString(), // 2 nights
             'guests' => 2,
         ]);
 

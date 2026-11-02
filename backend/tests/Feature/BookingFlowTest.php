@@ -28,8 +28,8 @@ class BookingFlowTest extends TestCase
 
         $response = $this->actingAs($customer)->postJson('/api/bookings', [
             'campsite_id' => $campsite->id,
-            'check_in' => '2026-11-01',
-            'check_out' => '2026-11-03',
+            'check_in' => now()->addDay()->toDateString(),
+            'check_out' => now()->addDays(3)->toDateString(),
             'guests' => 2,
             'notes' => 'Late arrival',
         ]);
@@ -62,8 +62,8 @@ class BookingFlowTest extends TestCase
         // First booking: 2 guests, Nov 1 - Nov 5
         Booking::factory()->confirmed()->create([
             'campsite_id' => $campsite->id,
-            'check_in' => '2026-11-01',
-            'check_out' => '2026-11-05',
+            'check_in' => now()->addDay()->toDateString(),
+            'check_out' => now()->addDays(5)->toDateString(),
             'guests' => 2,
         ]);
 
@@ -73,8 +73,8 @@ class BookingFlowTest extends TestCase
         // 2 + 2 = 4 = capacity, so this should succeed.
         $response = $this->actingAs($customer)->postJson('/api/bookings', [
             'campsite_id' => $campsite->id,
-            'check_in' => '2026-11-03',
-            'check_out' => '2026-11-07',
+            'check_in' => now()->addDays(3)->toDateString(),
+            'check_out' => now()->addDays(7)->toDateString(),
             'guests' => 2,
         ]);
 
@@ -97,8 +97,8 @@ class BookingFlowTest extends TestCase
         // First booking: 3 guests, Nov 1 - Nov 5
         Booking::factory()->confirmed()->create([
             'campsite_id' => $campsite->id,
-            'check_in' => '2026-11-01',
-            'check_out' => '2026-11-05',
+            'check_in' => now()->addDay()->toDateString(),
+            'check_out' => now()->addDays(5)->toDateString(),
             'guests' => 3,
         ]);
 
@@ -108,8 +108,8 @@ class BookingFlowTest extends TestCase
         // 3 + 2 = 5 > capacity 4, so this should fail with 1 spot remaining.
         $response = $this->actingAs($customer)->postJson('/api/bookings', [
             'campsite_id' => $campsite->id,
-            'check_in' => '2026-11-03',
-            'check_out' => '2026-11-07',
+            'check_in' => now()->addDays(3)->toDateString(),
+            'check_out' => now()->addDays(7)->toDateString(),
             'guests' => 2,
         ]);
 
@@ -134,8 +134,8 @@ class BookingFlowTest extends TestCase
 
         Booking::factory()->confirmed()->create([
             'campsite_id' => $campsite->id,
-            'check_in' => '2026-11-01',
-            'check_out' => '2026-11-05',
+            'check_in' => now()->addDay()->toDateString(),
+            'check_out' => now()->addDays(5)->toDateString(),
             'guests' => 4,
         ]);
 
@@ -143,8 +143,8 @@ class BookingFlowTest extends TestCase
 
         $response = $this->actingAs($customer)->postJson('/api/bookings', [
             'campsite_id' => $campsite->id,
-            'check_in' => '2026-11-03',
-            'check_out' => '2026-11-07',
+            'check_in' => now()->addDays(3)->toDateString(),
+            'check_out' => now()->addDays(7)->toDateString(),
             'guests' => 1,
         ]);
 
@@ -169,8 +169,8 @@ class BookingFlowTest extends TestCase
 
         $response = $this->actingAs($customer)->postJson('/api/bookings', [
             'campsite_id' => $campsite->id,
-            'check_in' => '2026-11-01',
-            'check_out' => '2026-11-03',
+            'check_in' => now()->addDay()->toDateString(),
+            'check_out' => now()->addDays(3)->toDateString(),
             'guests' => 5,
         ]);
 

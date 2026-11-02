@@ -54,8 +54,8 @@ class GearRentalLifecycleTest extends TestCase
             'campsite_id' => null,
             'check_in' => null,
             'check_out' => null,
-            'gear_start_date' => '2026-11-01',
-            'gear_end_date' => '2026-11-03',
+            'gear_start_date' => now()->addDay()->toDateString(),
+            'gear_end_date' => now()->addDays(3)->toDateString(),
             'gear_quantity' => 1,
             'status' => 'pending',
         ]);
@@ -80,8 +80,8 @@ class GearRentalLifecycleTest extends TestCase
             'campsite_id' => null,
             'check_in' => null,
             'check_out' => null,
-            'gear_start_date' => '2026-11-01',
-            'gear_end_date' => '2026-11-03',
+            'gear_start_date' => now()->addDay()->toDateString(),
+            'gear_end_date' => now()->addDays(3)->toDateString(),
             'gear_quantity' => 1,
             'status' => 'pending',
         ]);
@@ -111,8 +111,8 @@ class GearRentalLifecycleTest extends TestCase
             'campsite_id' => null,
             'check_in' => null,
             'check_out' => null,
-            'gear_start_date' => '2026-11-01',
-            'gear_end_date' => '2026-11-03',
+            'gear_start_date' => now()->addDay()->toDateString(),
+            'gear_end_date' => now()->addDays(3)->toDateString(),
             'gear_quantity' => 1,
             'status' => 'confirmed',
         ]);
@@ -138,8 +138,8 @@ class GearRentalLifecycleTest extends TestCase
             'campsite_id' => null,
             'check_in' => null,
             'check_out' => null,
-            'gear_start_date' => '2026-11-01',
-            'gear_end_date' => '2026-11-03',
+            'gear_start_date' => now()->addDay()->toDateString(),
+            'gear_end_date' => now()->addDays(3)->toDateString(),
             'gear_quantity' => 1,
             'status' => 'pending',
         ]);
@@ -176,8 +176,8 @@ class GearRentalLifecycleTest extends TestCase
         $renter = User::factory()->create();
         $bookResponse = $this->actingAs($renter)->postJson('/api/bookings', [
             'gear_item_id' => $gearId,
-            'gear_start_date' => '2026-11-01',
-            'gear_end_date' => '2026-11-03',
+            'gear_start_date' => now()->addDay()->toDateString(),
+            'gear_end_date' => now()->addDays(3)->toDateString(),
             'gear_quantity' => 1,
             'guests' => 1,
         ]);
