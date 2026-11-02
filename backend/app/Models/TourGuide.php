@@ -20,6 +20,8 @@ class TourGuide extends Model
         'description',
         'price_per_trip',
         'is_independent',
+        'approval_status',
+        'application_id',
         'location',
     ];
 
@@ -47,8 +49,27 @@ class TourGuide extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
+    /**
+     * The application that produced / manages this guide.
+     * Null for legacy guides created before the applications feature.
+     */
+    public function application(): BelongsTo
+    {
+        return $this->belongsTo(GuideApplication::class, 'application_id');
+    }
+
     public function bookings()
     {
         return $this->hasMany(Booking::class);
+    }
+
+    /**
+     * Scope to guides that are visible on public listings and bookable.
+     * Excludes pending, under_review, and rejected.
+     * Includes 'legacy' (pre-feature guides grandfather into bookable).
+     */
+    public function scopeApproved($query)
+    {
+        return $query->whereIn('approval_status', ['approved', 'legacy']);
     }
 }

@@ -88,4 +88,24 @@ class User extends Authenticatable
     {
         return $this->hasOne(TourGuide::class, 'user_id');
     }
+
+    /**
+     * Guide applications this user has submitted (as the applicant).
+     * A user may have multiple applications over time if they were
+     * rejected and re-applied, or if their status changed from pending
+     * to under_review after a resume upload.
+     */
+    public function guideApplications(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(GuideApplication::class, 'applicant_user_id');
+    }
+
+    /**
+     * Guide applications this user submitted on behalf of others
+     * (as an owner or admin).
+     */
+    public function submittedGuideApplications(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(GuideApplication::class, 'submitted_by_user_id');
+    }
 }
