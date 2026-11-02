@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import { Navbar } from '@/components/Navbar';
 import { appImageSrc } from '@/components/AppImage';
 import { AvatarUploader } from '@/components/AvatarUploader';
+import { BecomeGuideCard } from '@/components/BecomeGuideCard';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL!;
 
@@ -128,6 +129,11 @@ export default async function ProfilePage() {
         {/* Account section */}
         <Section title="Account" rows={accountRows} />
 
+        {/* Become a guide card (customers only — the component itself
+            handles the already-guide/owner case internally) */}
+        <div className="mt-6">
+          <BecomeGuideCard role={user.role} isApproved={user.is_approved ?? false} />
+        </div>
 
         {/* About section */}
         <Section title="About" rows={aboutRows} />
