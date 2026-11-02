@@ -108,28 +108,32 @@ export default function GuideOnboardingPage() {
 
   if (loading) {
     return (
-      <div className="max-w-2xl mx-auto">
-        <p className="text-gray-600 text-sm">Loading your application...</p>
+      <div className="min-h-screen bg-slate-100">
+        <div className="max-w-2xl mx-auto px-4 py-10">
+          <p className="text-gray-600 text-sm">Loading your application...</p>
+        </div>
       </div>
     );
   }
 
   if (!status?.has_application) {
     return (
-      <div className="max-w-2xl mx-auto">
-        <div className="bg-amber-50 border border-amber-200 rounded-xl p-5">
-          <p className="font-semibold text-amber-900 mb-2">
-            No guide application found
-          </p>
-          <p className="text-sm text-amber-800 mb-4">
-            You need to apply to become a guide before uploading a resume.
-          </p>
-          <Link
-            href="/signup/guide"
-            className="inline-block bg-gearup-600 hover:bg-gearup-700 text-white text-sm font-semibold px-4 py-2 rounded-md"
-          >
-            Apply to become a guide
-          </Link>
+      <div className="min-h-screen bg-slate-100">
+        <div className="max-w-2xl mx-auto px-4 py-10">
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-5">
+            <p className="font-semibold text-amber-900 mb-2">
+              No guide application found
+            </p>
+            <p className="text-sm text-amber-800 mb-4">
+              You need to apply to become a guide before uploading a resume.
+            </p>
+            <Link
+              href="/signup/guide"
+              className="inline-block bg-gearup-600 hover:bg-gearup-700 text-white text-sm font-semibold px-4 py-2 rounded-md"
+            >
+              Apply to become a guide
+            </Link>
+          </div>
         </div>
       </div>
     );
@@ -141,7 +145,8 @@ export default function GuideOnboardingPage() {
   const isPending = status.status === 'pending';
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="min-h-screen bg-slate-100">
+      <div className="max-w-2xl mx-auto px-4 py-10">
       <div className="mb-8">
         <h1 className="text-3xl font-black text-gray-900">
           Guide Application
@@ -255,6 +260,7 @@ export default function GuideOnboardingPage() {
           )}
         </div>
       )}
+      </div>
     </div>
   );
 }
