@@ -145,9 +145,10 @@ export default function ProfileScreen() {
               await auth.becomeGuide();
               Alert.alert(
                 'Application submitted',
-                'Your guide application is pending admin approval.',
+                'Please upload your resume so our team can review your application.',
               );
               await fetchUser();
+              router.push('/guide-onboarding');
             } catch (err: any) {
               const msg =
                 err?.response?.data?.message ??

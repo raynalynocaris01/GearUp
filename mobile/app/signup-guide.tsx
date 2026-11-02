@@ -57,9 +57,10 @@ export default function GuideSignupScreen() {
         'guide', // ← request a guide account
       );
       await saveToken(res.data.token);
-      // Land the user on the guide dashboard, which will show the
-      // "pending approval" screen until an admin approves them.
-      router.replace('/guide');
+      // Land the user on the onboarding screen to upload a resume.
+      // The guide dashboard (inside /guide/) is gated until approved,
+      // so pending guides must not be sent there yet.
+      router.replace('/guide-onboarding');
     } catch (err: any) {
       const data = err.response?.data;
       const message =

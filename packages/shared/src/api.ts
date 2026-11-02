@@ -989,6 +989,16 @@ export interface UpdateGuideProfilePayload {
   campsite_id?: number | null;
 }
 
+export interface GuideApplicationStatus {
+  has_application: boolean;
+  application_id: number | null;
+  status: 'pending' | 'under_review' | 'approved' | 'rejected' | 'auto_approved' | null;
+  resume_url: string | null;
+  resume_uploaded_at: string | null;
+  rejection_reason: string | null;
+  reviewed_at: string | null;
+}
+
 export const guideApi = (client: ApiClient) => ({
   profile: {
     get: () => client.get<GuideProfilePayload>('/guide/profile'),
@@ -1010,5 +1020,15 @@ export const guideApi = (client: ApiClient) => ({
       password: string;
       password_confirmation: string;
     }) => client.post<{ message: string }>('/guide/settings/password', payload),
+  },
+  // Guide onboarding — available to pending (unapproved) guides.
+  resume: {
+    get: () => client.get<GuideApplicationStatus>('/guide/resume'),
+    upload: (formData: FormData) =>
+      client.post<{ message: string; application: unknown }>(
+        '/guide/resume',
+        formData,
+        { headers: { 'Content-Type': 'multipart/form-data' } },
+      ),
   },
 });
