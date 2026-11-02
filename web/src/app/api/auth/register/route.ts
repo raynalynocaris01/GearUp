@@ -28,7 +28,13 @@ export async function POST(request: Request) {
     return NextResponse.json(data, { status: res.status });
   }
 
-  const response = NextResponse.json({ user: data.user }, { status: 201 });
+  const response = NextResponse.json(
+    {
+      user: data.user,
+      guide_application_id: data.guide_application_id ?? null,
+    },
+    { status: 201 },
+  );
 
   response.cookies.set('auth_token', data.token, {
     httpOnly: true,
