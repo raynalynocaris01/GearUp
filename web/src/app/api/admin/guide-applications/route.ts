@@ -10,8 +10,11 @@ export async function GET(request: Request) {
     return NextResponse.json({ message: 'Unauthenticated' }, { status: 401 });
   }
 
-  const { search } = new URL(request.url);
-  const res = await fetch(`${API_URL}/admin/guide-applications${search}`, {
+  // Strip empty ?status= so the backend gets no filter (returns all).
+  const url = new URL(request.url);
+  const status = url.searchParams.get('status');
+  const query = status ? `?status=${status}` : '';
+  const res = await fetch(`${API_URL}/admin/guide-applications${query}`, {
     headers: {
       Accept: 'application/json',
       Authorization: `Bearer ${token}`,

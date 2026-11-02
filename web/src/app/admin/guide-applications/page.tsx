@@ -53,11 +53,14 @@ export default async function GuideApplicationsPage({
   const { status } = await searchParams;
   const cookieStore = await cookies();
   const token = cookieStore.get('auth_token')!.value;
-  const applications = await getApplications(token, status);
+  // Default to under_review — the primary admin review queue.
+  // Only show "All" if the admin explicitly navigates via the All tab.
+  const effectiveStatus = status ?? 'under_review';
+  const applications = await getApplications(token, effectiveStatus);
 
   const FILTERS = [
-    { label: 'All', href: '/admin/guide-applications', active: !status },
-    { label: 'Under review', href: '/admin/guide-applications?status=under_review', active: status === 'under_review' },
+    { label: 'All', href: '/admin/guide-applications?status=', active: status === '' },
+    { label: 'Under review', href: '/admin/guide-applications', active: !status || status === 'under_review' },
     { label: 'Pending', href: '/admin/guide-applications?status=pending', active: status === 'pending' },
     { label: 'Approved', href: '/admin/guide-applications?status=approved', active: status === 'approved' },
     { label: 'Rejected', href: '/admin/guide-applications?status=rejected', active: status === 'rejected' },

@@ -93,7 +93,7 @@ export function UserActions({
 
         {role === 'guide' && !isApproved && (
           <Link
-            href="/admin/guide-applications?status=under_review"
+            href="/admin/guide-applications"
             className="text-xs font-semibold text-gearup-600 border border-gearup-200 bg-gearup-50 hover:bg-gearup-100 px-3 py-2 rounded-lg transition"
           >
             Review application →
