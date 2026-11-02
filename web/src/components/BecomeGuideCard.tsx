@@ -13,6 +13,11 @@ export function BecomeGuideCard({ role, isApproved }: Props) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
+  // Admins and owners don't apply to be guides — hide the CTA entirely.
+  if (role === 'admin') {
+    return null;
+  }
+
   // Already a guide — show status
   if (role === 'guide') {
     return (
