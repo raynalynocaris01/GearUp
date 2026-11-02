@@ -15,16 +15,17 @@ export async function POST(
     return NextResponse.json({ message: 'Unauthenticated' }, { status: 401 });
   }
 
-  const body = await request.json();
+  // Forward multipart/form-data directly to Laravel. The browser sets
+  // the boundary in the Content-Type header — we don't override it.
+  const incomingFormData = await request.formData();
 
   const res = await fetch(`${API_URL}/owner/campsites/${id}/tour-guides`, {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json',
       Accept: 'application/json',
       Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify(body),
+    body: incomingFormData,
   });
 
   const data = await res.json();

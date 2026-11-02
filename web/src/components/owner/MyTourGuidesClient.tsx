@@ -33,6 +33,8 @@ export function MyTourGuidesClient({ guides }: Props) {
   });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [resumeFile, setResumeFile] = useState<File | null>(null);
+  const [resumeError, setResumeError] = useState('');
   const [confirmDelete, setConfirmDelete] = useState<TourGuide | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
 
@@ -88,7 +90,7 @@ export function MyTourGuidesClient({ guides }: Props) {
     return guides;
   }, [guides, filter]);
 
-  const resetForm = () =>
+  const resetForm = () => {
     setForm({
       campsite_id: '',
       name: '',
@@ -98,6 +100,29 @@ export function MyTourGuidesClient({ guides }: Props) {
       email: '',
       description: '',
     });
+    setResumeFile(null);
+    setResumeError('');
+  };
+
+  const handleResumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setResumeError('');
+    const file = e.target.files?.[0] ?? null;
+    if (!file) {
+      setResumeFile(null);
+      return;
+    }
+    if (file.type !== 'application/pdf') {
+      setResumeError('Resume must be a PDF.');
+      setResumeFile(null);
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setResumeError('Resume must be 5 MB or smaller.');
+      setResumeFile(null);
+      return;
+    }
+    setResumeFile(file);
+  };
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -106,31 +131,40 @@ export function MyTourGuidesClient({ guides }: Props) {
       setError('Email is required.');
       return;
     }
+    if (!resumeFile) {
+      setError('Resume (PDF) is required to create a guide.');
+      return;
+    }
     setSubmitting(true);
     try {
       const url =
         form.campsite_id !== ''
           ? `/api/owner/campsites/${form.campsite_id}/tour-guides`
           : '/api/owner/tour-guides';
+
+      const fd = new FormData();
+      fd.append('name', form.name.trim());
+      fd.append('contact_number', form.contact_number.trim());
+      fd.append(
+        'price_per_trip',
+        form.price_per_trip ? String(Number(form.price_per_trip)) : '0',
+      );
+      fd.append('email', form.email.trim());
+      if (form.location.trim()) fd.append('location', form.location.trim());
+      if (form.description.trim())
+        fd.append('description', form.description.trim());
+      fd.append('resume', resumeFile);
+
       const res = await fetch(url, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: form.name.trim(),
-          contact_number: form.contact_number.trim(),
-          price_per_trip: form.price_per_trip
-            ? Number(form.price_per_trip)
-            : 0,
-          location: form.location.trim() || undefined,
-          email: form.email.trim(),
-          description: form.description.trim() || undefined,
-        }),
+        body: fd,
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         throw new Error(
           data?.message ??
             data?.errors?.name?.[0] ??
+            data?.errors?.resume?.[0] ??
             'Could not create guide.',
         );
       }
@@ -399,6 +433,25 @@ export function MyTourGuidesClient({ guides }: Props) {
               }
               className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-gearup-600 resize-none"
             />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              Resume (PDF) *
+            </label>
+            <input
+              type="file"
+              accept="application/pdf"
+              onChange={handleResumeChange}
+              className="block w-full text-sm text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:bg-gearup-50 file:text-gearup-700 file:font-semibold hover:file:bg-gearup-100"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Required — the admin reviews this before the guide goes live.
+              PDF only. Maximum 5 MB.
+            </p>
+            {resumeError && (
+              <p className="text-xs text-red-600 mt-1">{resumeError}</p>
+            )}
           </div>
 
           {error && (

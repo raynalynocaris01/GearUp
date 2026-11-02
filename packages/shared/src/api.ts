@@ -500,10 +500,12 @@ export const ownerApi = (client: ApiClient) => ({
   listTourGuides: (campsiteId: number | string) =>
     client.get<TourGuide[]>(`/owner/campsites/${campsiteId}/tour-guides`),
 
-  createTourGuide: (campsiteId: number | string, payload: CreateTourGuidePayload) =>
-    client.post<{ guide: TourGuide; temp_password: string; message: string }>(
+  // Multipart — caller builds FormData (fields + 'resume' file).
+  createTourGuide: (campsiteId: number | string, formData: FormData) =>
+    client.post<{ guide: TourGuide; temp_password: string | null; message: string }>(
       `/owner/campsites/${campsiteId}/tour-guides`,
-      payload,
+      formData,
+      { headers: { 'Content-Type': 'multipart/form-data' } },
     ),
   attachGuide: (campsiteId: number | string, guideId: number | string) =>
     client.post<{ guide: TourGuide; message: string }>(`/owner/campsites/${campsiteId}/attach-guide`, { guide_id: Number(guideId) }),
@@ -514,12 +516,13 @@ export const ownerApi = (client: ApiClient) => ({
   // All guides owned by the current owner (attached + independent)
   listAllMyGuides: () => client.get<TourGuide[]>('/owner/tour-guides'),
 
-  // Create an independent guide (no campsite)
-  createIndependentGuide: (payload: CreateTourGuidePayload) =>
-    client.post<{ guide: TourGuide; temp_password: string; message: string }>('/owner/tour-guides', {
-      ...payload,
-      is_independent: true,
-    }),
+  // Multipart — caller builds FormData with the `is_independent` flag baked in.
+  createIndependentGuide: (formData: FormData) =>
+    client.post<{ guide: TourGuide; temp_password: string | null; message: string }>(
+      '/owner/tour-guides',
+      formData,
+      { headers: { 'Content-Type': 'multipart/form-data' } },
+    ),
 
   // Update an existing guide
   updateGuide: (id: number | string, payload: Partial<CreateTourGuidePayload>) =>

@@ -13,6 +13,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import * as DocumentPicker from 'expo-document-picker';
 import { owner } from '../../lib/api';
 import type { TourGuide } from '@gearup/shared';
 import { colors } from '../../theme';
@@ -61,6 +62,11 @@ export function MyTourGuidesClient({ initialGuides, onRefresh }: Props) {
     email: '',
     description: '',
   });
+  const [resumeFile, setResumeFile] = useState<{
+    uri: string;
+    name: string;
+    size?: number;
+  } | null>(null);
 
   const counts = useMemo(
     () => ({
@@ -79,7 +85,7 @@ export function MyTourGuidesClient({ initialGuides, onRefresh }: Props) {
     return initialGuides;
   }, [initialGuides, filter]);
 
-  const resetForm = () =>
+  const resetForm = () => {
     setForm({
       name: '',
       contact_number: '',
@@ -88,6 +94,33 @@ export function MyTourGuidesClient({ initialGuides, onRefresh }: Props) {
       email: '',
       description: '',
     });
+    setResumeFile(null);
+  };
+
+  const pickResume = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: 'application/pdf',
+        copyToCacheDirectory: true,
+        multiple: false,
+      });
+      if (result.canceled || !result.assets || result.assets.length === 0) {
+        return;
+      }
+      const asset = result.assets[0];
+      if (asset.size && asset.size > 5 * 1024 * 1024) {
+        Alert.alert('File too large', 'Resume must be 5 MB or smaller.');
+        return;
+      }
+      setResumeFile({
+        uri: asset.uri,
+        name: asset.name ?? 'resume.pdf',
+        size: asset.size ?? undefined,
+      });
+    } catch {
+      Alert.alert('Error', 'Could not open the document picker.');
+    }
+  };
 
   const handleCreate = async () => {
     setError('');
@@ -99,18 +132,31 @@ export function MyTourGuidesClient({ initialGuides, onRefresh }: Props) {
       Alert.alert('Missing email', 'Email is required to create a guide account.');
       return;
     }
+    if (!resumeFile) {
+      Alert.alert('Resume required', 'Please attach a PDF resume to create this guide.');
+      return;
+    }
     setSubmitting(true);
     try {
-      const res = await owner.createIndependentGuide({
-        name: form.name.trim(),
-        contact_number: form.contact_number.trim(),
-        price_per_trip: form.price_per_trip
-          ? Number(form.price_per_trip)
-          : 0,
-        location: form.location.trim() || undefined,
-        email: form.email.trim(),
-        description: form.description.trim() || undefined,
-      });
+      const fd = new FormData();
+      fd.append('name', form.name.trim());
+      fd.append('contact_number', form.contact_number.trim());
+      fd.append(
+        'price_per_trip',
+        form.price_per_trip ? String(Number(form.price_per_trip)) : '0',
+      );
+      fd.append('email', form.email.trim());
+      if (form.location.trim()) fd.append('location', form.location.trim());
+      if (form.description.trim())
+        fd.append('description', form.description.trim());
+      fd.append('is_independent', '1');
+      fd.append('resume', {
+        uri: resumeFile.uri,
+        name: resumeFile.name,
+        type: 'application/pdf',
+      } as any);
+
+      const res = await owner.createIndependentGuide(fd);
 
       if (res.data.temp_password) {
         setTempPassword(res.data.temp_password);
@@ -122,6 +168,7 @@ export function MyTourGuidesClient({ initialGuides, onRefresh }: Props) {
       const msg =
         err?.response?.data?.message ??
         err?.response?.data?.errors?.name?.[0] ??
+        err?.response?.data?.errors?.resume?.[0] ??
         err?.message ??
         'Could not create guide.';
       setError(msg);
@@ -342,6 +389,34 @@ export function MyTourGuidesClient({ initialGuides, onRefresh }: Props) {
               placeholder="Short bio or specialties"
               placeholderTextColor="#9ca3af"
             />
+
+            <Text style={styles.label}>Resume (PDF) *</Text>
+            <TouchableOpacity
+              style={styles.resumePicker}
+              onPress={pickResume}
+              activeOpacity={0.8}
+            >
+              <Ionicons
+                name="document-outline"
+                size={18}
+                color={colors.gearupGreen}
+              />
+              <Text style={styles.resumePickerText}>
+                {resumeFile ? 'Change PDF file' : 'Choose PDF file'}
+              </Text>
+            </TouchableOpacity>
+            {resumeFile ? (
+              <Text style={styles.resumeFileName}>
+                Selected: {resumeFile.name}
+                {resumeFile.size
+                  ? ` (${Math.round(resumeFile.size / 1024)} KB)`
+                  : ''}
+              </Text>
+            ) : (
+              <Text style={styles.resumeHint}>
+                Required — the admin reviews this before the guide goes live.
+              </Text>
+            )}
 
             {error ? (
               <View style={styles.errorBox}>
@@ -651,6 +726,33 @@ export function MyTourGuidesClient({ initialGuides, onRefresh }: Props) {
 }
 
 const styles = StyleSheet.create({
+  resumePicker: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    borderWidth: 1.5,
+    borderColor: colors.gearupGreen,
+    borderRadius: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    marginTop: 6,
+  },
+  resumePickerText: {
+    color: colors.gearupGreen,
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  resumeFileName: {
+    fontSize: 11,
+    color: '#374151',
+    marginTop: 6,
+  },
+  resumeHint: {
+    fontSize: 11,
+    color: colors.textMuted,
+    marginTop: 6,
+    lineHeight: 15,
+  },
   tempPasswordBox: {
     backgroundColor: "#f0fdf4",
     borderWidth: 1,
