@@ -14,7 +14,9 @@ class TourGuideController extends Controller
      */
     public function index(Request $request)
     {
-        $query = TourGuide::with('campsite:id,name,location,image_url,owner_id');
+        // Public listing — only approved (or legacy) guides.
+        $query = TourGuide::with('campsite:id,name,location,image_url,owner_id')
+            ->approved();
 
         if ($request->boolean('independent')) {
             $query->where('is_independent', true);
@@ -31,9 +33,33 @@ class TourGuideController extends Controller
 
     /**
      * GET /api/tour-guides/{tourGuide}
+     * Public — 404 for non-approved guides unless the requester is
+     * the guide's owner, the admin, or the guide themselves.
      */
-    public function show(TourGuide $tourGuide)
+    public function show(Request $request, TourGuide $tourGuide)
     {
+        $isApproved = in_array($tourGuide->approval_status, ['approved', 'legacy'], true);
+
+        if (! $isApproved) {
+            $viewer = $request->user();
+            $allowed = false;
+
+            if ($viewer) {
+                if ($viewer->role === 'admin') {
+                    $allowed = true;
+                } elseif ($tourGuide->created_by === $viewer->id
+                    || $tourGuide->user_id === $viewer->id
+                    || ($tourGuide->campsite && $tourGuide->campsite->owner_id === $viewer->id)
+                ) {
+                    $allowed = true;
+                }
+            }
+
+            if (! $allowed) {
+                abort(404, 'Tour guide not found.');
+            }
+        }
+
         return response()->json(
             $tourGuide->load('campsite:id,name,location,image_url,owner_id')
         );

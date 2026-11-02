@@ -38,8 +38,10 @@ class HomeController extends Controller
             ->limit($limit)
             ->get();
 
-        // Tour guides (attached or independent) — pick a mix
+        // Tour guides (attached or independent) — pick a mix.
+        // Only approved (or legacy) — pending guides never appear here.
         $guides = TourGuide::with('campsite:id,name,image_url')
+            ->approved()
             ->orderByDesc('is_independent')
             ->orderByDesc('created_at')
             ->limit($limit)

@@ -347,6 +347,16 @@ class BookingController extends Controller
         if (!empty($data['tour_guide_id'])) {
             $tourGuide = TourGuide::findOrFail($data['tour_guide_id']);
 
+            // Reject bookings for guides that aren't yet approved.
+            // Legacy guides are grandfathered as bookable.
+            if (! in_array($tourGuide->approval_status, ['approved', 'legacy'], true)) {
+                throw ValidationException::withMessages([
+                    'tour_guide_id' => [
+                        'This tour guide is not yet available for booking.',
+                    ],
+                ]);
+            }
+
             if ($campsite && $tourGuide->campsite_id && $tourGuide->campsite_id !== $campsite->id) {
                 throw ValidationException::withMessages([
                     'tour_guide_id' => [

@@ -32,8 +32,12 @@ class CampsiteController extends Controller
      */
     public function show(Campsite $campsite)
     {
+        // Public campsite detail — only approved guides are shown.
+        // We load them via the scoped relation, then alias them back
+        // to `tourGuides` so the response shape stays `tour_guides`
+        // (existing clients don't break).
         $campsite->load([
-            'tourGuides',
+            'approvedTourGuides',
             'children',
             'parent:id,name',
             'pricingLines',
@@ -42,6 +46,10 @@ class CampsiteController extends Controller
                 $q->with('user:id,name')->orderByDesc('created_at');
             },
         ]);
+
+        // Alias back to `tourGuides` so the response key is unchanged.
+        $campsite->setRelation('tourGuides', $campsite->approvedTourGuides);
+        $campsite->unsetRelation('approvedTourGuides');
 
         return response()->json($campsite);
     }

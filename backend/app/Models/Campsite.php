@@ -83,6 +83,16 @@ class Campsite extends Model
         return $this->hasMany(TourGuide::class);
     }
 
+    /**
+     * Only guides that are bookable and publicly visible. Used by the
+     * public campsite detail page so pending / under-review guides
+     * never appear to customers.
+     */
+    public function approvedTourGuides()
+    {
+        return $this->hasMany(TourGuide::class)->approved();
+    }
+
     public function bookings()
     {
         return $this->hasMany(Booking::class);
