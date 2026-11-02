@@ -121,7 +121,9 @@ export function UserActions({
 
   return (
     <View style={styles.row}>
-      {(role === 'owner' || role === 'guide') && !isApproved && (
+      {/* Approve/reject only for owners. Guides go through the
+          Guide Applications review screen so their resume is seen first. */}
+      {role === 'owner' && !isApproved && (
         <>
           <TouchableOpacity
             style={styles.approveButton}

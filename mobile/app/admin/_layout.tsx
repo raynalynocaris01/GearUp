@@ -85,6 +85,10 @@ export default function AdminLayout() {
       <Drawer.Screen name="campsites" options={{ title: 'Campsites' }} />
       <Drawer.Screen name="bookings" options={{ title: 'Bookings' }} />
       <Drawer.Screen name="reviews" options={{ title: 'Reviews' }} />
+      <Drawer.Screen
+        name="guide-applications"
+        options={{ title: 'Guide Applications' }}
+      />
       {/* [Events disabled 2026-10-14] - uncomment to re-enable */}
       {/* <Drawer.Screen name="events" options={{ title: 'Events' }} /> */}
       <Drawer.Screen name="tour-guides" options={{ title: 'Tour Guides' }} />

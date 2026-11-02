@@ -52,6 +52,12 @@ const NAV: NavItem[] = [
     icon: 'compass-outline',
     href: '/admin/tour-guides',
   },
+  {
+    key: 'guide-applications',
+    label: 'Guide Applications',
+    icon: 'document-text-outline',
+    href: '/admin/guide-applications',
+  },
 ];
 
 export function AdminDrawerContent({
