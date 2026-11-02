@@ -13,8 +13,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-    $middleware->alias([
-        'role' => \App\Http\Middleware\EnsureRole::class,
+     $middleware->alias([
+        'role'     => \App\Http\Middleware\EnsureRole::class,
+        'approved' => \App\Http\Middleware\EnsureApproved::class,
     ]);
 
     // For API requests, return 401 JSON instead of redirecting to a login route
