@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\GuideApplication;
 use App\Models\User;
 use App\Services\NotificationService;
 use Illuminate\Http\Request;
@@ -33,15 +34,35 @@ class AuthController extends Controller
             'terms_accepted_at' => now(),
         ]);
 
-        if ($role === 'owner' || $role === 'guide') {
-            $this->notifyAdminsOfPendingUser($user, $role);
+        // Owners still notify admins here — their review is the user
+        // account itself, nothing else is required to kick off review.
+        if ($role === 'owner') {
+            $this->notifyAdminsOfPendingUser($user, 'owner');
+        }
+
+        // Guides get a GuideApplication row so they can upload a resume.
+        // Admins are NOT notified yet — the notification fires from
+        // ResumeController::store once an actual resume exists. This
+        // prevents "pending applications with no resume" noise in the
+        // admin queue.
+        $guideApplicationId = null;
+        if ($role === 'guide') {
+            $application = GuideApplication::create([
+                'applicant_user_id'    => $user->id,
+                'submitted_by_user_id' => $user->id,
+                'submission_source'    => 'self_signup',
+                'resume_url'           => null,
+                'status'               => 'pending',
+            ]);
+            $guideApplicationId = $application->id;
         }
 
         $token = $user->createToken($data['device_name'])->plainTextToken;
 
         return response()->json([
-            'user'  => $user,
-            'token' => $token,
+            'user'                 => $user,
+            'token'                => $token,
+            'guide_application_id' => $guideApplicationId,
         ], 201);
     }
 
@@ -106,9 +127,38 @@ class AuthController extends Controller
             'is_approved'  => false,
         ]);
 
-        $this->notifyAdminsOfPendingUser($user->fresh(), 'guide');
+        // Reuse an existing pending application if one is already open
+        // for this user. This makes rapid double-clicks idempotent and
+        // also handles the case where a guide was rejected and re-applies
+        // — we create a fresh row (not reusing rejected), so the previous
+        // rejection history is preserved.
+        $application = GuideApplication::where('applicant_user_id', $user->id)
+            ->whereIn('status', ['pending', 'under_review'])
+            ->orderByDesc('created_at')
+            ->first();
 
-        return response()->json($user->fresh());
+        if (! $application) {
+            $application = GuideApplication::create([
+                'applicant_user_id'    => $user->id,
+                'submitted_by_user_id' => $user->id,
+                'submission_source'    => 'customer_upgrade',
+                'resume_url'           => null,
+                'status'               => 'pending',
+            ]);
+        }
+
+        // Admin notification happens in ResumeController::store once
+        // the resume is uploaded — see the note in register() above.
+
+        // Return the updated user fields at the top level (backward-compat
+        // with existing frontend that treats the response as the user),
+        // plus guide_application_id for the onboarding redirect.
+        $user = $user->fresh();
+
+        return response()->json(array_merge(
+            $user->toArray(),
+            ['guide_application_id' => $application->id],
+        ));
     }
 
     /**
