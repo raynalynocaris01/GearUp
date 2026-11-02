@@ -3,14 +3,17 @@ import { NextResponse } from 'next/server';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL!;
 
-export async function GET() {
+export async function GET(request: Request) {
   const cookieStore = await cookies();
   const token = cookieStore.get('auth_token')?.value;
   if (!token) {
     return NextResponse.json({ message: 'Unauthenticated' }, { status: 401 });
   }
 
-  const res = await fetch(`${API_URL}/owner/tour-guides`, {
+  // Forward query params (e.g. ?approved_only=1) so the backend can
+  // apply its filters.
+  const { search } = new URL(request.url);
+  const res = await fetch(`${API_URL}/owner/tour-guides${search}`, {
     headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
     cache: 'no-store',
   });
