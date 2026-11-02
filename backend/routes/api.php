@@ -160,7 +160,15 @@ Route::middleware(['auth:sanctum', 'role:owner'])->prefix('owner')->group(functi
 });
 
 
-// ─── Guide only ──────────────────────────────────────────
+// ─── Guide onboarding (role=guide, NOT yet approved) ─────
+// These routes are reachable by a pending guide so they can upload
+// their resume. Everything else under /guide/* requires approval.
+Route::middleware(['auth:sanctum', 'role:guide'])->prefix('guide')->group(function () {
+    Route::get('/resume', [\App\Http\Controllers\Guide\ResumeController::class, 'show']);
+    Route::post('/resume', [\App\Http\Controllers\Guide\ResumeController::class, 'store']);
+});
+
+// ─── Guide only (role=guide, approved) ───────────────────
 Route::middleware(['auth:sanctum', 'role:guide', 'approved'])->prefix('guide')->group(function () {
     // Profile
     Route::get('/profile', [GuideProfileController::class, 'show']);
