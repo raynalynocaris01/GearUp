@@ -45,35 +45,27 @@ class UserController extends Controller
 
     /**
      * POST /api/admin/users/{user}/approve
-     * Approve a pending owner (or any user).
+     * Approve a pending OWNER user account.
+     *
+     * Guides are approved through the Guide Applications review flow —
+     * see Admin\GuideApplicationController::approve. This is because
+     * guide approval requires seeing the resume, which the Users page
+     * does not expose. Allowing approve here would let a guide skip
+     * the review process and become bookable without a resume.
      */
     public function approve(User $user)
     {
-        $user->update(['is_approved' => true]);
-
-        // If approving a tour guide, create their tour_guides profile.
-        // They can then fill in price, description, and contact from
-        // the "My Guide Profile" screen after logging in.
-        if ($user->role === 'guide' && ! $user->guideProfile) {
-            \App\Models\TourGuide::create([
-                'user_id'        => $user->id,
-                'name'           => $user->name,
-                'email'          => $user->email,
-                'contact_number' => '',
-                'description'    => null,
-                'price_per_trip' => 0,
-                'is_independent' => true,
-                'campsite_id'    => null,
-                'location'       => null,
-                'created_by'     => $user->id,
-            ]);
+        if ($user->role === 'guide') {
+            return response()->json([
+                'message' => 'Guides must be approved through the Guide Applications review page (resume required).',
+            ], 422);
         }
 
-        // Guides land on their guide dashboard; owners/customers keep /owner.
-        $actionUrl = $user->role === 'guide' ? '/guide' : '/owner';
-        $message = $user->role === 'guide'
-            ? 'You can now accept tour guide bookings on GearUp.'
-            : 'You can now list campsites, gear, and events on GearUp.';
+        $user->update(['is_approved' => true]);
+
+        // Owners land on the owner dashboard; customers on their bookings.
+        $actionUrl = '/owner';
+        $message = 'You can now list campsites, gear, and events on GearUp.';
 
         NotificationService::notify(
             $user->id,
@@ -88,10 +80,20 @@ class UserController extends Controller
 
     /**
      * POST /api/admin/users/{user}/reject
-     * Reject a pending owner — sends them back to customer.
+     * Reject a pending OWNER — sends them back to customer.
+     *
+     * Guides must be rejected via Admin\GuideApplicationController::reject
+     * so the rejection reason is recorded and the guide is notified with
+     * context.
      */
     public function reject(User $user)
     {
+        if ($user->role === 'guide') {
+            return response()->json([
+                'message' => 'Guides must be rejected through the Guide Applications review page.',
+            ], 422);
+        }
+
         $user->update([
             'is_approved' => true,
             'role' => 'customer',
