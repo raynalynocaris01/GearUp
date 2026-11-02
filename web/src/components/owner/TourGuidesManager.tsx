@@ -36,7 +36,10 @@ export function TourGuidesManager({ campsiteId, initialGuides }: Props) {
 
   useEffect(() => {
     if (!adding) return;
-    fetch('/api/owner/tour-guides')
+    // approved_only=1 uses the backend scope to return only guides
+    // that are bookable (approved or legacy). Prevents attaching a
+    // pending guide that would 422 on the backend.
+    fetch('/api/owner/tour-guides?approved_only=1')
       .then((res) => (res.ok ? res.json() : []))
       .then((data) => {
         const all = Array.isArray(data) ? data : [];
@@ -336,106 +339,123 @@ export function TourGuidesManager({ campsiteId, initialGuides }: Props) {
             <div className="flex-grow border-t border-gray-200"></div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                Full name
-              </label>
-              <input
-                type="text"
-                required
-                value={form.name}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, name: e.target.value }))
-                }
-                placeholder="e.g. Juan Dela Cruz"
-                className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gearup-600 focus:border-transparent"
-              />
+          {!selectedGuideId && (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                    Full name
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={form.name}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, name: e.target.value }))
+                    }
+                    placeholder="e.g. Juan Dela Cruz"
+                    className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gearup-600 focus:border-transparent"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                    Contact number
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={form.contact_number}
+                    onChange={(e) =>
+                      setForm((f) => ({
+                        ...f,
+                        contact_number: e.target.value,
+                      }))
+                    }
+                    placeholder="e.g. 0917-123-4567"
+                    className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gearup-600 focus:border-transparent"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                  Price per trip (PHP)
+                </label>
+                <input
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  value={form.price_per_trip}
+                  onChange={(e) =>
+                    setForm((f) => ({
+                      ...f,
+                      price_per_trip: e.target.value,
+                    }))
+                  }
+                  placeholder="e.g. 1800"
+                  className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gearup-600 focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                  Email *
+                </label>
+                <input
+                  type="email"
+                  required
+                  value={form.email}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, email: e.target.value }))
+                  }
+                  placeholder="juan@example.com"
+                  className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gearup-600 focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                  Description (optional)
+                </label>
+                <textarea
+                  value={form.description}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, description: e.target.value }))
+                  }
+                  rows={3}
+                  placeholder="Experience, specialties, languages spoken…"
+                  className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gearup-600 focus:border-transparent resize-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                  Resume (PDF) *
+                </label>
+                <input
+                  type="file"
+                  accept="application/pdf"
+                  onChange={handleResumeChange}
+                  className="block w-full text-sm text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:bg-gearup-50 file:text-gearup-700 file:font-semibold hover:file:bg-gearup-100"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Required — the admin reviews this before the guide goes live.
+                  PDF only. Maximum 5 MB.
+                </p>
+                {resumeError && (
+                  <p className="text-xs text-red-600 mt-1">{resumeError}</p>
+                )}
+              </div>
+            </>
+          )}
+
+          {selectedGuideId && (
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-sm text-blue-800">
+              You&apos;re attaching an existing guide — no need to re-enter
+              their info or upload a resume. The guide is already approved.
             </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                Contact number
-              </label>
-              <input
-                type="text"
-                required
-                value={form.contact_number}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, contact_number: e.target.value }))
-                }
-                placeholder="e.g. 0917-123-4567"
-                className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gearup-600 focus:border-transparent"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
-              Price per trip (PHP)
-            </label>
-            <input
-              type="number"
-              min={0}
-              step="0.01"
-              value={form.price_per_trip}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, price_per_trip: e.target.value }))
-              }
-              placeholder="e.g. 1800"
-              className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gearup-600 focus:border-transparent"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
-              Email *
-            </label>
-            <input
-              type="email"
-              required
-              value={form.email}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, email: e.target.value }))
-              }
-              placeholder="juan@example.com"
-              className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gearup-600 focus:border-transparent"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
-              Description (optional)
-            </label>
-            <textarea
-              value={form.description}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, description: e.target.value }))
-              }
-              rows={3}
-              placeholder="Experience, specialties, languages spoken…"
-              className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gearup-600 focus:border-transparent resize-none"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
-              Resume (PDF) *
-            </label>
-            <input
-              type="file"
-              accept="application/pdf"
-              onChange={handleResumeChange}
-              className="block w-full text-sm text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:bg-gearup-50 file:text-gearup-700 file:font-semibold hover:file:bg-gearup-100"
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              Required — the admin reviews this before the guide goes live.
-              PDF only. Maximum 5 MB.
-            </p>
-            {resumeError && (
-              <p className="text-xs text-red-600 mt-1">{resumeError}</p>
-            )}
-          </div>
+          )}
 
           <div className="flex justify-end gap-3 pt-2">
             <button
