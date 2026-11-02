@@ -357,7 +357,7 @@ export default function ProfileScreen() {
         />
       </View>
 
-      {/* ── Become a Guide CTA (customers only) ─────── */}
+      {/* ── Guide CTA — three states: customer / pending guide / approved guide ── */}
       {isCustomer && (
         <TouchableOpacity
           style={styles.ctaButton}
@@ -366,6 +366,19 @@ export default function ProfileScreen() {
           <View style={styles.ctaContent}>
             <Ionicons name="compass-outline" size={20} color="#fff" />
             <Text style={styles.ctaText}>Become a tour guide</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color="#fff" />
+        </TouchableOpacity>
+      )}
+
+      {isGuide && !user?.is_approved && (
+        <TouchableOpacity
+          style={styles.ctaButton}
+          onPress={() => router.push('/guide-onboarding' as any)}
+        >
+          <View style={styles.ctaContent}>
+            <Ionicons name="document-text-outline" size={20} color="#fff" />
+            <Text style={styles.ctaText}>Continue guide application</Text>
           </View>
           <Ionicons name="chevron-forward" size={18} color="#fff" />
         </TouchableOpacity>

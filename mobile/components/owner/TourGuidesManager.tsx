@@ -10,6 +10,7 @@ import {
   Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import * as DocumentPicker from 'expo-document-picker';
 import { owner } from '../../lib/api';
 
 interface TourGuide {
@@ -44,6 +45,11 @@ export function TourGuidesManager({ campsiteId, initialGuides, onRefresh }: Prop
 
   const [myGuides, setMyGuides] = useState<TourGuide[]>([]);
   const [selectedGuideId, setSelectedGuideId] = useState<number | null>(null);
+  const [resumeFile, setResumeFile] = useState<{
+    uri: string;
+    name: string;
+    size?: number;
+  } | null>(null);
 
   useEffect(() => {
     if (!adding) {
@@ -86,6 +92,32 @@ export function TourGuidesManager({ campsiteId, initialGuides, onRefresh }: Prop
       description: '',
     });
     setSelectedGuideId(null);
+    setResumeFile(null);
+  };
+
+  const pickResume = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: 'application/pdf',
+        copyToCacheDirectory: true,
+        multiple: false,
+      });
+      if (result.canceled || !result.assets || result.assets.length === 0) {
+        return;
+      }
+      const asset = result.assets[0];
+      if (asset.size && asset.size > 5 * 1024 * 1024) {
+        Alert.alert('File too large', 'Resume must be 5 MB or smaller.');
+        return;
+      }
+      setResumeFile({
+        uri: asset.uri,
+        name: asset.name ?? 'resume.pdf',
+        size: asset.size ?? undefined,
+      });
+    } catch {
+      Alert.alert('Error', 'Could not open the document picker.');
+    }
   };
 
   const handleAdd = async () => {
@@ -131,13 +163,33 @@ export function TourGuidesManager({ campsiteId, initialGuides, onRefresh }: Prop
 
 
     try {
-      const res = await owner.createTourGuide(campsiteId, {
-        name: form.name.trim(),
-        contact_number: form.contact_number.trim(),
-        price_per_trip: form.price_per_trip ? Number(form.price_per_trip) : 0,
-        email: form.email.trim(),
-        description: form.description.trim() || undefined,
-      });
+      if (!resumeFile) {
+        Alert.alert(
+          'Resume required',
+          'Please attach a PDF resume to create this guide.',
+        );
+        setLoading(false);
+        return;
+      }
+
+      const fd = new FormData();
+      fd.append('name', form.name.trim());
+      fd.append('contact_number', form.contact_number.trim());
+      fd.append(
+        'price_per_trip',
+        form.price_per_trip ? String(Number(form.price_per_trip)) : '0',
+      );
+      fd.append('email', form.email.trim());
+      if (form.description.trim()) {
+        fd.append('description', form.description.trim());
+      }
+      fd.append('resume', {
+        uri: resumeFile.uri,
+        name: resumeFile.name,
+        type: 'application/pdf',
+      } as any);
+
+      const res = await owner.createTourGuide(campsiteId, fd);
 
       const savedGuide = res.data.guide ?? res.data;
       setGuides((prev) => { const exists = prev.some((g) => g.id === savedGuide.id); return exists ? prev.map((g) => g.id === savedGuide.id ? savedGuide : g) : [...prev, savedGuide]; });
@@ -264,56 +316,103 @@ export function TourGuidesManager({ campsiteId, initialGuides, onRefresh }: Prop
             </View>
           )}
 
-          <Text style={styles.label}>Full name *</Text>
-          <TextInput
-            style={styles.input}
-            value={form.name}
-            onChangeText={(v) => setForm((f) => ({ ...f, name: v }))}
-            placeholder="e.g. Juan Dela Cruz"
-            placeholderTextColor="#9ca3af"
-          />
+          {selectedGuideId === null && (
+            <>
+              <Text style={styles.label}>Full name *</Text>
+              <TextInput
+                style={styles.input}
+                value={form.name}
+                onChangeText={(v) => setForm((f) => ({ ...f, name: v }))}
+                placeholder="e.g. Juan Dela Cruz"
+                placeholderTextColor="#9ca3af"
+              />
 
-          <Text style={styles.label}>Contact number *</Text>
-          <TextInput
-            style={styles.input}
-            value={form.contact_number}
-            onChangeText={(v) => setForm((f) => ({ ...f, contact_number: v }))}
-            placeholder="e.g. 0917-123-4567"
-            placeholderTextColor="#9ca3af"
-            keyboardType="phone-pad"
-          />
+              <Text style={styles.label}>Contact number *</Text>
+              <TextInput
+                style={styles.input}
+                value={form.contact_number}
+                onChangeText={(v) =>
+                  setForm((f) => ({ ...f, contact_number: v }))
+                }
+                placeholder="e.g. 0917-123-4567"
+                placeholderTextColor="#9ca3af"
+                keyboardType="phone-pad"
+              />
 
-          <Text style={styles.label}>Price per trip (PHP) *</Text>
-          <TextInput
-            style={styles.input}
-            value={form.price_per_trip}
-            onChangeText={(v) => setForm((f) => ({ ...f, price_per_trip: v }))}
-            placeholder="e.g. 1800"
-            placeholderTextColor="#9ca3af"
-            keyboardType="numeric"
-          />
+              <Text style={styles.label}>Price per trip (PHP) *</Text>
+              <TextInput
+                style={styles.input}
+                value={form.price_per_trip}
+                onChangeText={(v) =>
+                  setForm((f) => ({ ...f, price_per_trip: v }))
+                }
+                placeholder="e.g. 1800"
+                placeholderTextColor="#9ca3af"
+                keyboardType="numeric"
+              />
 
-          <Text style={styles.label}>Email *</Text>
-          <TextInput
-            style={styles.input}
-            value={form.email}
-            onChangeText={(v) => setForm((f) => ({ ...f, email: v }))}
-            placeholder="juan@example.com"
-            placeholderTextColor="#9ca3af"
-            keyboardType="email-address"
-            autoCapitalize="none"
-          />
+              <Text style={styles.label}>Email *</Text>
+              <TextInput
+                style={styles.input}
+                value={form.email}
+                onChangeText={(v) => setForm((f) => ({ ...f, email: v }))}
+                placeholder="juan@example.com"
+                placeholderTextColor="#9ca3af"
+                keyboardType="email-address"
+                autoCapitalize="none"
+              />
 
-          <Text style={styles.label}>Description (optional)</Text>
-          <TextInput
-            style={[styles.input, styles.textarea]}
-            value={form.description}
-            onChangeText={(v) => setForm((f) => ({ ...f, description: v }))}
-            placeholder="Experience, specialties..."
-            placeholderTextColor="#9ca3af"
-            multiline
-            numberOfLines={3}
-          />
+              <Text style={styles.label}>Description (optional)</Text>
+              <TextInput
+                style={[styles.input, styles.textarea]}
+                value={form.description}
+                onChangeText={(v) =>
+                  setForm((f) => ({ ...f, description: v }))
+                }
+                placeholder="Experience, specialties..."
+                placeholderTextColor="#9ca3af"
+                multiline
+                numberOfLines={3}
+              />
+
+              <Text style={styles.label}>Resume (PDF) *</Text>
+              <TouchableOpacity
+                style={styles.resumePicker}
+                onPress={pickResume}
+                activeOpacity={0.8}
+              >
+                <Ionicons
+                  name="document-outline"
+                  size={18}
+                  color="#15803d"
+                />
+                <Text style={styles.resumePickerText}>
+                  {resumeFile ? 'Change PDF file' : 'Choose PDF file'}
+                </Text>
+              </TouchableOpacity>
+              {resumeFile ? (
+                <Text style={styles.resumeHint}>
+                  Selected: {resumeFile.name}
+                  {resumeFile.size
+                    ? ` (${Math.round(resumeFile.size / 1024)} KB)`
+                    : ''}
+                </Text>
+              ) : (
+                <Text style={styles.resumeHint}>
+                  Required — the admin reviews this before the guide goes live.
+                </Text>
+              )}
+            </>
+          )}
+
+          {selectedGuideId !== null && (
+            <View style={styles.attachNote}>
+              <Text style={styles.attachNoteText}>
+                You&apos;re attaching an existing guide — no need to re-enter
+                their info or upload a resume. The guide is already approved.
+              </Text>
+            </View>
+          )}
 
           <View style={styles.formActions}>
             <TouchableOpacity
@@ -446,6 +545,41 @@ const styles = StyleSheet.create({
     color: '#374151',
   },
   chipTextActive: { color: '#fff' },
+  resumePicker: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    borderWidth: 1.5,
+    borderColor: '#15803d',
+    borderRadius: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    marginBottom: 6,
+  },
+  resumePickerText: {
+    color: '#15803d',
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  resumeHint: {
+    fontSize: 11,
+    color: '#6b7280',
+    marginBottom: 8,
+    lineHeight: 15,
+  },
+  attachNote: {
+    backgroundColor: '#eff6ff',
+    borderWidth: 1,
+    borderColor: '#bfdbfe',
+    borderRadius: 10,
+    padding: 12,
+    marginVertical: 8,
+  },
+  attachNoteText: {
+    fontSize: 12,
+    color: '#1e40af',
+    lineHeight: 17,
+  },
   label: {
     fontSize: 13,
     fontWeight: '600',

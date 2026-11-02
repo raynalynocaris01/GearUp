@@ -66,6 +66,13 @@ export default function GuideLayout() {
           use GearUp as a customer.
         </Text>
         <TouchableOpacity
+          onPress={() => router.push('/guide-onboarding' as any)}
+          style={styles.primaryButton}
+          activeOpacity={0.85}
+        >
+          <Text style={styles.primaryButtonText}>Upload / replace resume</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
           onPress={() => router.replace('/(tabs)')}
           style={styles.continueButton}
           activeOpacity={0.85}
@@ -118,14 +125,28 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     marginBottom: 24,
   },
-  continueButton: {
+  primaryButton: {
     backgroundColor: colors.gearupGreen,
     paddingHorizontal: 24,
     paddingVertical: 14,
     borderRadius: 10,
+    marginBottom: 12,
   },
-  continueButtonText: {
+  primaryButtonText: {
     color: '#fff',
+    fontWeight: '700',
+    fontSize: 14,
+  },
+  continueButton: {
+    backgroundColor: 'transparent',
+    borderWidth: 1.5,
+    borderColor: colors.gearupGreen,
+    paddingHorizontal: 24,
+    paddingVertical: 14,
+    borderRadius: 10,
+  },
+   continueButtonText: {
+    color: colors.gearupGreen,
     fontWeight: '700',
     fontSize: 14,
   },
