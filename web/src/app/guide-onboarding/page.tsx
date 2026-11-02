@@ -224,12 +224,20 @@ export default function GuideOnboardingPage() {
         </div>
       )}
 
-      {/* Upload form (hidden once approved) */}
-      {!isApproved && (
-        <div className="border border-gray-200 rounded-xl p-5">
+      {/* Upload form — always visible so guides can replace their resume
+          even after approval. Re-uploading flips the application back
+          to under_review (admin re-checks; guide stays bookable). */}
+      <div className="border border-gray-200 rounded-xl p-5">
           <p className="text-sm font-semibold text-gray-900 mb-3">
             {status.resume_url ? 'Replace your resume' : 'Upload your resume'}
           </p>
+          {isApproved && (
+            <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-3 py-2 mb-3">
+              Heads up: re-uploading your resume will send your application
+              back to admin review. You&apos;ll remain bookable while it&apos;s
+              re-checked.
+            </p>
+          )}
           <input
             ref={fileInputRef}
             type="file"
@@ -259,7 +267,6 @@ export default function GuideOnboardingPage() {
             <p className="text-green-700 text-xs mt-2">{successMessage}</p>
           )}
         </div>
-      )}
       </div>
     </div>
   );
