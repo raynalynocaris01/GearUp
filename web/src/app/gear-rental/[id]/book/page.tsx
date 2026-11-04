@@ -96,7 +96,7 @@ export default async function BookGearPage({
     redirect(`/gear-rental/${gear.id}`);
   }
 
-  // Check if this gear is owner-provided and find the associated campsite
+  // Check if this gear is campsite-provided and find the associated campsite
   const isOwnerGear = gear.owner?.role === 'owner';
   const ownerCampsite = isOwnerGear 
     ? campsites.find((c) => c.owner_id === gear.owner_id) 

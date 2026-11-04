@@ -10,7 +10,7 @@ type FilterKey = 'all' | 'owner' | 'individual';
 
 const FILTERS: { key: FilterKey; label: string }[] = [
   { key: 'all', label: 'All' },
-  { key: 'owner', label: 'Owner-provided' },
+  { key: 'owner', label: 'Campsite-provided' },
   { key: 'individual', label: 'Individual' },
 ];
 
@@ -74,7 +74,7 @@ export function GearRentalGrid({ gear, campsites }: Props) {
       groups['From Individuals'] = individualGear;
     }
 
-    // Then owner-provided gear grouped by campsite name
+    // Then campsite-provided gear grouped by campsite name
     ownerGear.forEach((g) => {
       const ownerCampsites = campsites.filter(
         (c) => c.owner_id === g.owner_id && !c.parent_campsite_id,

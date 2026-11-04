@@ -115,7 +115,7 @@ export default function GearRentalScreen() {
       groups['From Individuals'] = individualGear;
     }
 
-    // Then owner-provided gear grouped by campsite name
+    // Then campsite-provided gear grouped by campsite name
     ownerGear.forEach((g) => {
       const ownerCampsites = allCampsites.filter(
         (c) => c.owner_id === g.owner_id && !c.parent_campsite_id,
@@ -227,7 +227,7 @@ export default function GearRentalScreen() {
             {(
               [
                 { key: 'all' as const, label: 'All' },
-                { key: 'owner' as const, label: 'Owner-provided' },
+                { key: 'owner' as const, label: 'Campsite-provided' },
                 { key: 'individual' as const, label: 'Individual' },
               ]
             ).map((f) => {
