@@ -117,8 +117,83 @@ export function AdminReviewsClient({ reviews }: { reviews: Review[] }) {
           </p>
         </div>
       ) : (
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-          <table className="w-full">
+        <>
+          {/* Inline CSS — no Tailwind dependency, no flash */}
+          <style
+            dangerouslySetInnerHTML={{
+              __html: `
+                .ge-rev-mobile-shell { display: block !important; }
+                .ge-rev-desktop-shell { display: none !important; }
+                @media (min-width: 1024px) {
+                  .ge-rev-mobile-shell { display: none !important; }
+                  .ge-rev-desktop-shell { display: block !important; }
+                }
+              `,
+            }}
+          />
+
+          {/* Mobile card list (shown < 1024px) */}
+          <div className="ge-rev-mobile-shell space-y-3">
+            {visible.map((r) => (
+              <div
+                key={r.id}
+                className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4"
+              >
+                <div className="flex items-start gap-3 mb-3">
+                  <div className="w-9 h-9 rounded-full bg-gearup-50 text-gearup-700 flex items-center justify-center text-sm font-bold shrink-0">
+                    {(r.user?.name ?? '?').charAt(0).toUpperCase()}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-bold text-gray-900 text-sm truncate">
+                      {r.user?.name ?? 'Anonymous'}
+                    </p>
+                    <p className="text-[11px] text-gray-500">
+                      {formatDate(r.created_at)}
+                    </p>
+                  </div>
+                  <div className="shrink-0">
+                    <StarRow rating={r.rating} />
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 bg-gray-50 rounded-lg p-2 mb-3">
+                  <div className="relative w-10 h-10 rounded-lg overflow-hidden bg-gray-200 shrink-0">
+                    {r.campsite?.image_url ? (
+                      <Image
+                        src={appImageSrc(r.campsite.image_url)}
+                        alt={r.campsite.name}
+                        fill
+                        sizes="40px"
+                        className="object-cover"
+                        unoptimized
+                      />
+                    ) : null}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-semibold text-gray-900 truncate">
+                      {r.campsite?.name ?? '-'}
+                    </p>
+                    {r.campsite?.owner?.name ? (
+                      <p className="text-[10px] text-gray-500 truncate">
+                        Owner: {r.campsite.owner.name}
+                      </p>
+                    ) : null}
+                  </div>
+                </div>
+
+                {r.comment && (
+                  <p className="text-sm text-gray-700 line-clamp-3">
+                    &quot;{r.comment}&quot;
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop table (shown >= 1024px) */}
+          <div className="ge-rev-desktop-shell">
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+              <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-100">
               <tr>
                 <th className="text-left text-xs font-bold text-gray-500 uppercase tracking-wider px-5 py-3">
@@ -194,9 +269,11 @@ export function AdminReviewsClient({ reviews }: { reviews: Review[] }) {
                   </td>
                 </tr>
               ))}
-            </tbody>
-          </table>
-        </div>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
       )}
     </>
   );
