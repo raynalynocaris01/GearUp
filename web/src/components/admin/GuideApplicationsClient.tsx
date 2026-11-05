@@ -121,8 +121,84 @@ export function GuideApplicationsClient({
 
   return (
     <>
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-        <table className="w-full">
+      {/* Inline CSS — no Tailwind dependency, no flash */}
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
+            .ge-ga-mobile-shell { display: block !important; }
+            .ge-ga-desktop-shell { display: none !important; }
+            @media (min-width: 1024px) {
+              .ge-ga-mobile-shell { display: none !important; }
+              .ge-ga-desktop-shell { display: block !important; }
+            }
+          `,
+        }}
+      />
+
+      {/* Mobile card list (shown < 1024px) */}
+      <div className="ge-ga-mobile-shell space-y-3">
+        {initialApplications.map((app) => {
+          const statusMeta = STATUS_LABELS[app.status];
+          return (
+            <div
+              key={app.id}
+              className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4"
+            >
+              <div className="flex items-start gap-3 mb-3">
+                <div className="w-10 h-10 rounded-full bg-gearup-600 text-white flex items-center justify-center text-sm font-bold shrink-0">
+                  {(app.applicant?.name ?? '?').charAt(0).toUpperCase()}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="font-bold text-gray-900 text-sm truncate">
+                    {app.applicant?.name ?? 'Unknown'}
+                  </p>
+                  <p className="text-xs text-gray-500 truncate">
+                    {app.applicant?.email ?? ''}
+                  </p>
+                </div>
+                <span
+                  className={`shrink-0 inline-block text-[10px] font-extrabold tracking-wider px-2 py-1 rounded ${statusMeta.className}`}
+                >
+                  {statusMeta.label}
+                </span>
+              </div>
+
+              <div className="border-t border-gray-100 pt-2 mt-2 text-xs text-gray-600 space-y-1">
+                <p>
+                  <span className="text-gray-400">Source: </span>
+                  {SOURCE_LABELS[app.submission_source]}
+                  {app.submitter && app.submitter.id !== app.applicant_user_id && (
+                    <span className="text-gray-400"> by {app.submitter.name}</span>
+                  )}
+                </p>
+                <p>
+                  <span className="text-gray-400">Submitted: </span>
+                  {new Date(app.created_at).toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric',
+                  })}
+                </p>
+              </div>
+
+              <div className="flex justify-end mt-3 pt-3 border-t border-gray-100">
+                <button
+                  type="button"
+                  onClick={() => setSelected(app)}
+                  className="text-xs font-semibold text-gearup-600 border border-gearup-200 bg-gearup-50 hover:bg-gearup-100 px-4 py-2 rounded-lg transition"
+                >
+                  Review
+                </button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Desktop table (shown >= 1024px) */}
+      <div className="ge-ga-desktop-shell">
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <table className="w-full">
           <thead className="bg-gray-50 border-b border-gray-100">
             <tr>
               <th className="text-left text-xs font-bold text-gray-500 uppercase tracking-wider px-5 py-3">Applicant</th>
@@ -188,8 +264,9 @@ export function GuideApplicationsClient({
                 </tr>
               );
             })}
-          </tbody>
-        </table>
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* Detail modal */}
@@ -222,7 +299,7 @@ export function GuideApplicationsClient({
               <div>
                 <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Resume</p>
                 {selected.resume_url ? (
-                  <div className="border border-gray-200 rounded-lg overflow-hidden bg-gray-50" style={{ height: '500px' }}>
+                  <div className="border border-gray-200 rounded-lg overflow-hidden bg-gray-50 h-72 lg:h-[500px]">
                     <iframe
                       src={`/api/admin/guide-applications/${selected.id}/resume`}
                       className="w-full h-full"
