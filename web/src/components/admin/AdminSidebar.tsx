@@ -31,8 +31,6 @@ const NAV: NavItem[] = [
   { href: '/admin/campsites', label: 'Campsites', icon: 'campsites' },
   { href: '/admin/bookings', label: 'Bookings', icon: 'bookings' },
   { href: '/admin/reviews', label: 'Reviews', icon: 'reviews' },
-  // [Events disabled 2026-10-14] - uncomment to re-enable
-  // { href: '/admin/events', label: 'Events', icon: 'events' },
   { href: '/admin/tour-guides', label: 'Tour Guides', icon: 'tourGuides' },
   { href: '/admin/guide-applications', label: 'Guide Applications', icon: 'users' },
 ];
@@ -151,9 +149,20 @@ export function AdminSidebar({
 
   const initial = adminName.charAt(0).toUpperCase();
 
+  const mobilePageTitle = (() => {
+    if (pathname === '/admin') return 'Dashboard';
+    if (pathname.startsWith('/admin/users')) return 'Users';
+    if (pathname.startsWith('/admin/campsites')) return 'Campsites';
+    if (pathname.startsWith('/admin/bookings')) return 'Bookings';
+    if (pathname.startsWith('/admin/reviews')) return 'Reviews';
+    if (pathname.startsWith('/admin/tour-guides')) return 'Tour Guides';
+    if (pathname.startsWith('/admin/guide-applications')) return 'Guide Applications';
+    if (pathname.startsWith('/admin/notifications')) return 'Notifications';
+    return 'Admin';
+  })();
+
   const content = (
-        <div className="flex flex-col h-full bg-[#183d1d] text-white/90">
-      {/* Brand */}
+    <div className="flex flex-col h-full bg-[#183d1d] text-white/90">
       <Link
         href="/admin"
         className="flex items-center gap-3 px-5 py-4 border-b border-white/10 shrink-0"
@@ -175,7 +184,6 @@ export function AdminSidebar({
         </div>
       </Link>
 
-      {/* Nav (scrollable) */}
       <nav className="flex-1 overflow-y-auto px-2 py-2 min-h-0">
         <div className="space-y-0.5">
           {NAV.map((item) => {
@@ -217,11 +225,9 @@ export function AdminSidebar({
         </div>
       </nav>
 
-      {/* Bottom */}
       <div className="border-t border-white/10 shrink-0 pb-8">
         <NotificationBellRow href="/admin/notifications" variant="dark" />
 
-        {/* User block */}
         <div className="px-4 py-2.5 flex items-center gap-3">
           <div className="w-9 h-9 rounded-full bg-gearup-600 text-white flex items-center justify-center font-bold text-sm shrink-0">
             {initial}
@@ -238,7 +244,6 @@ export function AdminSidebar({
           </div>
         </div>
 
-        {/* Logout */}
         <button
           type="button"
           onClick={handleLogout}
@@ -249,7 +254,6 @@ export function AdminSidebar({
           <span>{loggingOut ? 'Logging out...' : 'Log out'}</span>
         </button>
 
-        {/* Back */}
         <div className="px-4 py-3 border-t border-white/10">
           <Link
             href="/"
@@ -265,67 +269,80 @@ export function AdminSidebar({
 
   return (
     <>
-      {/* Mobile top bar */}
-      <div className="lg:hidden sticky top-0 z-30 bg-[#183d1d] border-b border-white/10 flex items-center justify-between px-4 py-3">
-        <Link href="/admin" className="flex items-center gap-2">
-          <Image
-            src="/logo.png"
-            alt="GearUp"
-            width={24}
-            height={24}
-            style={{ width: 24, height: 24, objectFit: 'contain' }}
-          />
-          <span className="text-sm font-black tracking-tight text-white">
-            Admin
-          </span>
-        </Link>
-        <button
-          onClick={() => setMobileOpen(true)}
-          className="p-2 text-white/80"
-          aria-label="Open menu"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="22"
-            height="22"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
+      {/* Inline CSS — no Tailwind dependency, no JS timing, no flash */}
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
+            .ge-admin-mobile-shell { display: block !important; }
+            .ge-admin-desktop-shell { display: none !important; }
+            @media (min-width: 1024px) {
+              .ge-admin-mobile-shell { display: none !important; }
+              .ge-admin-desktop-shell { display: block !important; }
+            }
+            .ge-admin-mobile-drawer {
+              transition: transform 200ms ease-in-out;
+            }
+          `,
+        }}
+      />
+
+      {/* Mobile shell: header + drawer (hidden >= 1024px via inline CSS) */}
+      <div className="ge-admin-mobile-shell">
+        <div className="sticky top-0 z-30 bg-[#183d1d] border-b border-white/10 flex items-center justify-between px-4 py-3">
+          <button
+            onClick={() => setMobileOpen(true)}
+            className="p-2 -ml-2 text-white"
+            aria-label="Open menu"
           >
-            <line x1="3" y1="6" x2="21" y2="6" />
-            <line x1="3" y1="12" x2="21" y2="12" />
-            <line x1="3" y1="18" x2="21" y2="18" />
-          </svg>
-        </button>
-        <div className="w-8 h-8 rounded-full bg-gearup-600 text-white flex items-center justify-center font-bold text-xs">
-          {initial}
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <line x1="3" y1="6" x2="21" y2="6" />
+              <line x1="3" y1="12" x2="21" y2="12" />
+              <line x1="3" y1="18" x2="21" y2="18" />
+            </svg>
+          </button>
+          <span className="flex-1 text-center text-base font-black tracking-tight text-white">
+            {mobilePageTitle}
+          </span>
+          <div className="rounded-full bg-white/15 px-2.5 py-1">
+            <span className="text-[9px] font-black tracking-widest text-white">
+              ADMIN
+            </span>
+          </div>
         </div>
+
+        {mobileOpen && (
+          <div
+            className="fixed inset-0 z-40 bg-black/50"
+            onClick={() => setMobileOpen(false)}
+          />
+        )}
+
+        <aside
+          className="ge-admin-mobile-drawer fixed top-0 left-0 bottom-0 z-50 w-64 bg-[#183d1d] overflow-y-auto"
+          style={{
+            transform: mobileOpen ? 'translateX(0)' : 'translateX(-100%)',
+          }}
+        >
+          {content}
+        </aside>
       </div>
 
-      {mobileOpen && (
-        <div
-          className="lg:hidden fixed inset-0 z-40 bg-black/50"
-          onClick={() => setMobileOpen(false)}
-        />
-      )}
-
-      <aside
-        className={`lg:hidden fixed top-0 left-0 bottom-0 z-50 w-64 transform transition-transform duration-200 ${
-          mobileOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
-        style={{
-          transform: mobileOpen ? 'translateX(0)' : 'translateX(-100%)',
-        }}
-      >
-        {content}
-      </aside>
-
-      <aside className="max-lg:hidden lg:flex w-60 shrink-0 sticky top-0 h-dvh overflow-hidden">
-        {content}
-      </aside>
+      {/* Desktop shell: sidebar (hidden < 1024px via inline CSS) */}
+      <div className="ge-admin-desktop-shell">
+        <aside className="flex w-60 shrink-0 sticky top-0 h-dvh overflow-hidden">
+          {content}
+        </aside>
+      </div>
     </>
   );
 }
