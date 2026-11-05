@@ -123,11 +123,11 @@ export default async function OwnerBookingsPage() {
             return (
               <div
                 key={b.id}
-                className={`bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex ${
+                className={`bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col sm:flex-row ${
                   cancelled ? 'opacity-60' : ''
                 }`}
               >
-                <div className="relative w-40 shrink-0">
+                <div className="relative w-full h-40 sm:h-auto sm:w-40 shrink-0">
                   {b.campsite?.image_url ? (
                     <Image
                       src={appImageSrc(b.campsite.image_url)}
@@ -142,7 +142,7 @@ export default async function OwnerBookingsPage() {
                   )}
                 </div>
 
-                <div className="flex-1 p-6">
+                <div className="flex-1 p-4 sm:p-6">
                   <div className="flex items-start justify-between gap-4 mb-3">
                     <div>
                       <span
@@ -158,7 +158,7 @@ export default async function OwnerBookingsPage() {
                       >
                         {b.status.toUpperCase()}
                       </span>
-                      <h3 className="text-lg font-bold text-gray-900 mt-2">
+                      <h3 className="text-base sm:text-lg font-bold text-gray-900 mt-2">
                         {b.campsite?.name ?? (b.tour_guide ? 'Tour Guide Booking' : 'Booking')}
                       </h3>
                       {b.room_campsite && (
@@ -170,8 +170,8 @@ export default async function OwnerBookingsPage() {
                         📍 {b.campsite?.location}
                       </p>
                     </div>
-                    <div className="text-right">
-                       <p className="text-2xl font-black text-gearup-600">
+                    <div className="text-right shrink-0 ml-2">
+                       <p className="text-lg sm:text-2xl font-black text-gearup-600">
                         PHP {b.total_price}
                       </p>
                     </div>
