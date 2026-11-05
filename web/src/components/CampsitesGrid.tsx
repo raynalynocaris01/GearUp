@@ -152,19 +152,19 @@ export function CampsitesGrid({
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6">
           {sorted.map((c) => (
             <Link
               key={c.id}
               href={`/campsites/${c.id}`}
               className="group bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-lg transition"
             >
-              <div className="relative h-44 overflow-hidden">
+              <div className="relative h-32 sm:h-44 overflow-hidden">
                 <Image
                   src={appImageSrc(c.image_url)}
                   alt={c.name}
                   fill
-                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 25vw"
                   className="object-cover group-hover:scale-105 transition duration-500"
                   unoptimized
                 />
@@ -185,16 +185,16 @@ export function CampsitesGrid({
                   ♡
                 </button>
               </div>
-              <div className="p-4">
-                <h3 className="font-bold text-gray-900">{c.name}</h3>
-                <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
-                  <span>📍</span> {c.location}
+              <div className="p-3 sm:p-4">
+                <h3 className="font-bold text-gray-900 text-sm sm:text-base line-clamp-2 leading-tight">{c.name}</h3>
+                <p className="text-[10px] sm:text-xs text-gray-500 mt-1 flex items-center gap-1">
+                  <span>📍</span> <span className="truncate">{c.location}</span>
                 </p>
-                <p className="text-xs text-gray-700 mt-1 flex items-center gap-1">
+                <p className="text-[10px] sm:text-xs text-gray-700 mt-1 flex items-center gap-1">
                   <span className="text-yellow-500">★</span>
                   {c.rating} ({c.reviews_count})
                 </p>
-                <p className="text-sm font-bold text-gearup-600 mt-3">
+                <p className="text-xs sm:text-sm font-bold text-gearup-600 mt-2 sm:mt-3">
                   ₱{c.price_per_night} / {c.price_unit}
                 </p>
               </div>
