@@ -93,6 +93,14 @@ export function GuideSidebar({
   const isActive = (item: NavItem) =>
     item.exact ? pathname === item.href : pathname.startsWith(item.href);
 
+  const mobilePageTitle = (() => {
+    if (pathname === '/guide') return 'Bookings';
+    if (pathname.startsWith('/guide/profile')) return 'Profile';
+    if (pathname.startsWith('/guide-onboarding')) return 'Guide Application';
+    if (pathname.startsWith('/guide/notifications')) return 'Notifications';
+    return 'Guide';
+  })();
+
   const handleLogout = async () => {
     setLoggingOut(true);
     try {
@@ -209,73 +217,80 @@ export function GuideSidebar({
 
   return (
     <>
-      {/* Mobile top bar */}
-      <div className="lg:hidden sticky top-0 z-30 bg-white border-b border-gray-100 flex items-center justify-between px-4 py-3">
-        <Link href="/" className="flex items-center gap-2">
-          <Image
-            src="/logo.png"
-            alt="GearUp"
-            width={28}
-            height={28}
-            style={{ width: 28, height: 28, objectFit: 'contain' }}
-          />
-          <span className="text-base font-black tracking-tight">
-            <span className="text-gray-900">Gear</span>
-            <span className="text-gearup-600">Up</span>
-          </span>
-        </Link>
+      {/* Inline CSS — no Tailwind dependency, no JS timing, no flash */}
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
+            .ge-guide-mobile-shell { display: block !important; }
+            .ge-guide-desktop-shell { display: none !important; }
+            @media (min-width: 1024px) {
+              .ge-guide-mobile-shell { display: none !important; }
+              .ge-guide-desktop-shell { display: block !important; }
+            }
+            .ge-guide-mobile-drawer {
+              transition: transform 200ms ease-in-out;
+            }
+          `,
+        }}
+      />
 
-        <button
-          onClick={() => setMobileOpen(true)}
-          className="p-2"
-          aria-label="Open menu"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
+      {/* Mobile shell: header + drawer (hidden >= 1024px via inline CSS) */}
+      <div className="ge-guide-mobile-shell">
+        <div className="sticky top-0 z-30 bg-white border-b border-gray-200 flex items-center justify-between px-4 py-3">
+          <button
+            onClick={() => setMobileOpen(true)}
+            className="p-2 -ml-2 text-gray-900"
+            aria-label="Open menu"
           >
-            <line x1="3" y1="6" x2="21" y2="6" />
-            <line x1="3" y1="12" x2="21" y2="12" />
-            <line x1="3" y1="18" x2="21" y2="18" />
-          </svg>
-        </button>
-
-        <div className="w-9 h-9 rounded-full bg-gearup-600 text-white flex items-center justify-center font-bold text-sm">
-          {initial}
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <line x1="3" y1="6" x2="21" y2="6" />
+              <line x1="3" y1="12" x2="21" y2="12" />
+              <line x1="3" y1="18" x2="21" y2="18" />
+            </svg>
+          </button>
+          <span className="flex-1 text-center text-base font-black tracking-tight text-gray-900">
+            {mobilePageTitle}
+          </span>
+          <div className="rounded-full bg-gearup-100 px-2.5 py-1">
+            <span className="text-[9px] font-black tracking-widest text-gearup-700">
+              GUIDE
+            </span>
+          </div>
         </div>
+
+        {mobileOpen && (
+          <div
+            className="fixed inset-0 z-40 bg-black/50"
+            onClick={() => setMobileOpen(false)}
+          />
+        )}
+
+        <aside
+          className="ge-guide-mobile-drawer fixed top-0 left-0 bottom-0 z-50 w-64 bg-white overflow-y-auto"
+          style={{
+            transform: mobileOpen ? 'translateX(0)' : 'translateX(-100%)',
+          }}
+        >
+          {content}
+        </aside>
       </div>
 
-      {/* Mobile drawer backdrop */}
-      {mobileOpen && (
-        <div
-          className="lg:hidden fixed inset-0 z-40 bg-black/40"
-          onClick={() => setMobileOpen(false)}
-        />
-      )}
-
-      {/* Mobile drawer panel */}
-      <aside
-        className={`lg:hidden fixed top-0 left-0 bottom-0 z-50 w-72 bg-white border-r border-gray-100 transform transition-transform duration-200 ${
-          mobileOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
-        style={{
-          transform: mobileOpen ? 'translateX(0)' : 'translateX(-100%)',
-        }}
-      >
-        {content}
-      </aside>
-
-      {/* Desktop sidebar */}
-      <aside className="max-lg:hidden lg:flex w-64 shrink-0 bg-white border-r border-gray-100 sticky top-0 h-dvh overflow-hidden">
-        {content}
-      </aside>
+      {/* Desktop shell: sidebar (hidden < 1024px via inline CSS) */}
+      <div className="ge-guide-desktop-shell">
+        <aside className="flex w-60 shrink-0 sticky top-0 h-dvh overflow-hidden">
+          {content}
+        </aside>
+      </div>
     </>
   );
 }
