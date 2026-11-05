@@ -105,24 +105,24 @@ export default async function GuideDashboardPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-        <div className="bg-white rounded-xl border border-gray-100 p-5">
-          <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 mb-8">
+        <div className="bg-white rounded-xl border border-gray-100 p-4 sm:p-5">
+          <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-gray-500">
             Pending
           </p>
-          <p className="text-3xl font-black text-amber-600 mt-2">{pendingCount}</p>
+          <p className="text-2xl sm:text-3xl font-black text-amber-600 mt-1 sm:mt-2">{pendingCount}</p>
         </div>
-        <div className="bg-white rounded-xl border border-gray-100 p-5">
-          <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">
+        <div className="bg-white rounded-xl border border-gray-100 p-4 sm:p-5">
+          <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-gray-500">
             Accepted
           </p>
-          <p className="text-3xl font-black text-green-600 mt-2">{acceptedCount}</p>
+          <p className="text-2xl sm:text-3xl font-black text-green-600 mt-1 sm:mt-2">{acceptedCount}</p>
         </div>
-        <div className="bg-white rounded-xl border border-gray-100 p-5">
-          <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">
+        <div className="bg-white rounded-xl border border-gray-100 p-4 sm:p-5 col-span-2 sm:col-span-1">
+          <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-gray-500">
             Declined
           </p>
-          <p className="text-3xl font-black text-red-600 mt-2">{declinedCount}</p>
+          <p className="text-2xl sm:text-3xl font-black text-red-600 mt-1 sm:mt-2">{declinedCount}</p>
         </div>
       </div>
 
