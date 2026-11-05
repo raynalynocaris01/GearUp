@@ -81,9 +81,9 @@ export default async function OwnerCampsitesPage() {
           {campsites.map((c) => (
             <div
               key={c.id}
-              className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex"
+              className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col sm:flex-row"
             >
-              <div className="relative w-48 shrink-0">
+              <div className="relative w-full h-40 sm:h-auto sm:w-48 shrink-0">
                 <Image
                   src={appImageSrc(c.image_url)}
                   alt={c.name}
@@ -94,8 +94,8 @@ export default async function OwnerCampsitesPage() {
                 />
               </div>
 
-              <div className="flex-1 p-5">
-                <h3 className="text-lg font-bold text-gray-900">{c.name}</h3>
+              <div className="flex-1 p-4 sm:p-5">
+                <h3 className="text-base sm:text-lg font-bold text-gray-900">{c.name}</h3>
                 <p className="text-xs text-gray-500 mt-1">📍 {c.location}</p>
                 <p className="text-xs text-gray-600 mt-2">
                   <span className="text-yellow-500">★</span> {c.rating} (
