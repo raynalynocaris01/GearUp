@@ -84,9 +84,9 @@ export default async function OwnerGearPage() {
           {gear.map((g) => (
             <div
               key={g.id}
-              className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex"
+              className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col sm:flex-row"
             >
-              <div className="relative w-48 shrink-0 bg-gray-100">
+              <div className="relative w-full h-40 sm:h-auto sm:w-48 shrink-0 bg-gray-100">
                 {g.image_url ? (
                   <Image
                     src={appImageSrc(g.image_url)}
@@ -103,9 +103,9 @@ export default async function OwnerGearPage() {
                 )}
               </div>
 
-              <div className="flex-1 p-5">
+              <div className="flex-1 p-4 sm:p-5">
                 <div className="flex items-center gap-2 mb-1">
-                  <h3 className="text-lg font-bold text-gray-900">
+                  <h3 className="text-base sm:text-lg font-bold text-gray-900">
                     {g.name}
                   </h3>
                   {!g.is_available && (
