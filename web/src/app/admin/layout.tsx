@@ -55,7 +55,7 @@ export default async function AdminLayout({
   const pendingCount = stats?.pending_users ?? stats?.pending_owners ?? 0;
 
   return (
-    <div className="min-h-screen bg-slate-50 flex">
+    <div className="min-h-screen bg-slate-50 flex flex-col lg:flex-row">
       <AdminSidebar
         adminName={user.name ?? 'Admin'}
         adminEmail={user.email ?? ''}

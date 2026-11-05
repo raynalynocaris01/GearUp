@@ -69,7 +69,7 @@ export default async function GuideLayout({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-gray-50 flex flex-col lg:flex-row">
       <GuideSidebar
         guideName={user.name ?? 'Tour Guide'}
         guideEmail={user.email ?? ''}
