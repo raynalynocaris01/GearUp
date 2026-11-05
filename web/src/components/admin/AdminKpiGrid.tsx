@@ -63,22 +63,22 @@ function Icon({ name, size = 22 }: { name: KpiIcon; size?: number }) {
 
 export function AdminKpiGrid({ kpis }: { kpis: Kpi[] }) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
       {kpis.map((k) => (
         <Link
           key={k.label}
           href={k.href}
-          className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition p-5"
+          className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition p-4 sm:p-5"
         >
           <div
-            className={`w-12 h-12 rounded-xl ${k.accent} flex items-center justify-center mb-4`}
+            className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl ${k.accent} flex items-center justify-center mb-3 sm:mb-4`}
           >
-            <Icon name={k.icon} size={22} />
+            <Icon name={k.icon} size={20} />
           </div>
-          <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide">
+          <p className="text-[10px] sm:text-xs text-gray-500 font-semibold uppercase tracking-wide">
             {k.label}
           </p>
-          <p className="text-3xl font-black text-gray-900 mt-1">
+          <p className="text-2xl sm:text-3xl font-black text-gray-900 mt-1">
             {k.value}
           </p>
           {k.delta && (
