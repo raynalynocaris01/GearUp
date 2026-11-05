@@ -150,8 +150,76 @@ export default async function AdminUsersPage({
           <p className="text-sm text-gray-500">No users match this filter.</p>
         </div>
       ) : (
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-          <table className="w-full">
+        <>
+          {/* Inline CSS — no Tailwind dependency, no flash */}
+          <style
+            dangerouslySetInnerHTML={{
+              __html: `
+                .ge-users-mobile-shell { display: block !important; }
+                .ge-users-desktop-shell { display: none !important; }
+                @media (min-width: 1024px) {
+                  .ge-users-mobile-shell { display: none !important; }
+                  .ge-users-desktop-shell { display: block !important; }
+                }
+              `,
+            }}
+          />
+
+          {/* Mobile card list (shown < 1024px) */}
+          <div className="ge-users-mobile-shell space-y-3">
+            {users.map((u) => (
+              <div
+                key={u.id}
+                className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4"
+              >
+                <div className="flex items-start gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-full bg-gearup-600 text-white flex items-center justify-center text-sm font-bold shrink-0">
+                    {u.name.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-bold text-gray-900 text-sm truncate">
+                      {u.name}
+                    </p>
+                    <p className="text-xs text-gray-500 truncate">
+                      {u.email}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2 mb-3">
+                  {roleBadge(u.role, u.is_approved)}
+                  {u.is_suspended && (
+                    <span className="inline-block text-[10px] font-extrabold tracking-wider px-2 py-1 rounded bg-red-100 text-red-700">
+                      SUSPENDED
+                    </span>
+                  )}
+                </div>
+
+                <p className="text-xs text-gray-500 mb-3">
+                  Joined{' '}
+                  {new Date(u.created_at).toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric',
+                  })}
+                </p>
+
+                <div className="flex justify-end border-t border-gray-100 pt-3">
+                  <UserActions
+                    userId={u.id}
+                    role={u.role}
+                    isApproved={u.is_approved}
+                    isSuspended={u.is_suspended}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop table (shown >= 1024px) */}
+          <div className="ge-users-desktop-shell">
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+              <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-100">
               <tr>
                 <th className="text-left text-xs font-bold text-gray-500 uppercase tracking-wider px-5 py-3">
@@ -215,9 +283,11 @@ export default async function AdminUsersPage({
                   </td>
                 </tr>
               ))}
-            </tbody>
-          </table>
-        </div>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
       )}
     </div>
   );
