@@ -15,6 +15,9 @@ interface User {
   role: 'customer' | 'owner' | 'guide' | 'admin';
   is_approved?: boolean;
   avatar_url?: string | null;
+  gear_count?: number;
+  pickup_method?: string | null;
+  pickup_address?: string | null;
 }
 
 async function getCurrentUser(): Promise<User | null> {
@@ -57,6 +60,12 @@ export default async function ProfilePage() {
   }
   if (isGuide) {
     accountRows.push({ href: '/guide/profile', label: 'Guide profile' });
+  }
+  if (isCustomer || isOwner || isGuide) {
+    accountRows.push({
+      href: '/profile/pickup',
+      label: 'Pickup & delivery info',
+    });
   }
   accountRows.push({ href: '/bookings', label: 'My bookings' });
   accountRows.push({ href: '/profile/change-password', label: 'Change password' });
@@ -125,6 +134,27 @@ export default async function ProfilePage() {
             <span>›</span>
           </Link>
         )}
+
+        {/* Nudge banner: gear listings but no pickup info */}
+        {(user.gear_count ?? 0) > 0 &&
+          !user.pickup_method &&
+          !user.pickup_address && (
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4">
+              <p className="text-sm font-semibold text-amber-900">
+                Add pickup info for your gear listings
+              </p>
+              <p className="text-xs text-amber-800 mt-1">
+                Renters need to know how to get their gear. Set it once — it
+                applies to all {user.gear_count} of your listings.
+              </p>
+              <Link
+                href="/profile/pickup"
+                className="inline-block mt-3 bg-amber-600 hover:bg-amber-700 text-white text-sm font-semibold px-4 py-2 rounded-md"
+              >
+                Set up pickup info
+              </Link>
+            </div>
+          )}
 
         {/* Account section */}
         <Section title="Account" rows={accountRows} />

@@ -86,6 +86,22 @@ export const authApi = (client: ApiClient) => ({
 
   user: () => client.get<AuthUser>('/user'),
 
+  pickupInfo: {
+    get: () => client.get<{ pickup_info: PickupInfo | null }>('/user/pickup'),
+    update: (payload: {
+      pickup_method?: 'meetup' | 'pickup' | 'deliver' | 'all' | null;
+      pickup_address?: string | null;
+      pickup_landmark?: string | null;
+      pickup_hours?: string | null;
+      pickup_instructions?: string | null;
+      pickup_contact_number?: string | null;
+    }) =>
+      client.put<{ message: string; pickup_info: PickupInfo | null }>(
+        '/user/pickup',
+        payload,
+      ),
+  },
+
   uploadAvatar: (formData: FormData) =>
     client.post<{ message: string; avatar_url: string; user: AuthUser }>(
       '/user/avatar',
@@ -797,6 +813,15 @@ export const reviewApi = (client: ApiClient) => ({
 // GEAR ITEMS (PUBLIC)
 // 
 
+export interface PickupInfo {
+  method: 'meetup' | 'pickup' | 'deliver' | 'all';
+  address: string | null;
+  landmark: string | null;
+  hours: string | null;
+  instructions: string | null;
+  contact_number: string | null;
+}
+
 export interface GearItem {
   id: number;
   owner_id: number;
@@ -816,6 +841,7 @@ export interface GearItem {
   pickup_instructions?: string | null;
   contact_number?: string | null;
   pickup_city?: string | null;
+  owner_pickup?: PickupInfo | null;
   owner?: {
     id: number;
     name: string;

@@ -25,6 +25,15 @@ interface GearItem {
   pickup_hours?: string | null;
   pickup_instructions?: string | null;
   contact_number?: string | null;
+  pickup_city?: string | null;
+  owner_pickup?: {
+    method: string | null;
+    address: string | null;
+    landmark: string | null;
+    hours: string | null;
+    instructions: string | null;
+    contact_number: string | null;
+  } | null;
   owner?: {
     id: number;
     name: string;
@@ -148,16 +157,61 @@ export default async function GearDetailPage({
             </div>
 
             {gear.owner && (
-              <div className="mt-8 bg-gray-50 rounded-2xl p-6">
-                <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wide mb-2">
-                  Provided by
-                </h2>
-                <p className="text-lg font-bold text-gray-900">
-                  {gear.owner.name}
-                </p>
-                <p className="text-sm text-gray-500">{gear.owner.email}</p>
-              </div>
-            )}
+  <div className="bg-white rounded-2xl border border-gray-100 p-6">
+    <p className="text-xs font-extrabold tracking-wider text-gray-500 mb-2">
+      PROVIDED BY
+    </p>
+    <p className="font-semibold text-gray-900">{gear.owner.name}</p>
+    <p className="text-sm text-gray-500">{gear.owner.email}</p>
+  </div>
+)}
+
+{/* Pickup & delivery */}
+<div className="bg-white rounded-2xl border border-gray-100 p-6">
+  <p className="text-xs font-extrabold tracking-wider text-gray-500 mb-2">
+    PICKUP & DELIVERY
+  </p>
+  {gear.owner_pickup ? (
+    <>
+      <p className="font-semibold text-gray-900">
+        {gear.owner_pickup.method === 'pickup'
+          ? "Pick up at the owner's place"
+          : gear.owner_pickup.method === 'deliver'
+            ? 'Delivered to you'
+            : gear.owner_pickup.method === 'all'
+              ? 'Meet-up, pickup, or delivery available'
+              : 'Meet-up at an agreed place'}
+      </p>
+      {gear.owner_pickup.landmark && (
+        <p className="text-sm text-gray-600 mt-1">
+          Landmark: {gear.owner_pickup.landmark}
+        </p>
+      )}
+      {gear.owner_pickup.hours && (
+        <p className="text-sm text-gray-600 mt-1">
+          Hours: {gear.owner_pickup.hours}
+        </p>
+      )}
+      {gear.owner_pickup.address && (
+        <p className="text-sm text-gray-600 mt-1">
+          Address: {gear.owner_pickup.address}
+        </p>
+      )}
+      {gear.owner_pickup.instructions && (
+        <p className="text-sm text-gray-600 mt-1">
+          Instructions: {gear.owner_pickup.instructions}
+        </p>
+      )}
+      <p className="text-xs text-gray-500 mt-3 italic">
+        Full details including contact number shown after booking confirmation.
+      </p>
+    </>
+  ) : (
+    <p className="text-sm text-gray-500 italic">
+      Pickup details not yet provided by the seller.
+    </p>
+  )}
+</div>
           </div>
 
           {/* Right: rental card */}
