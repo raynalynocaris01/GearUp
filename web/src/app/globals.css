@@ -49,3 +49,14 @@ select {
   color: #111827;
   background-color: #fff;
 }
+/* Custom slim scrollbar for booking feed */
+.max-h-\[70vh\]::-webkit-scrollbar {
+  width: 6px;
+}
+.max-h-\[70vh\]::-webkit-scrollbar-track {
+  background: transparent;
+}
+.max-h-\[70vh\]::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1; /* Tailwind slate-300 */
+  border-radius: 10px;
+}

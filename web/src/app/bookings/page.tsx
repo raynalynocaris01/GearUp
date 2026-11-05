@@ -183,7 +183,7 @@ export default async function BookingsPage() {
             </Link>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-2 pb-10">
             {bookings.map((b) => {
               const cancelled = b.status === 'cancelled';
               const isGearOnly = !b.campsite && b.gear_item;
