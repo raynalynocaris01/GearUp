@@ -133,8 +133,103 @@ export default async function AdminBookingsPage({
           <p className="text-sm text-gray-500">No bookings match this filter.</p>
         </div>
       ) : (
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-          <table className="w-full">
+        <>
+          {/* Inline CSS — no Tailwind dependency, no flash */}
+          <style
+            dangerouslySetInnerHTML={{
+              __html: `
+                .ge-bk-mobile-shell { display: block !important; }
+                .ge-bk-desktop-shell { display: none !important; }
+                @media (min-width: 1024px) {
+                  .ge-bk-mobile-shell { display: none !important; }
+                  .ge-bk-desktop-shell { display: block !important; }
+                }
+              `,
+            }}
+          />
+
+          {/* Mobile card list (shown < 1024px) */}
+          <div className="ge-bk-mobile-shell space-y-3">
+            {bookings.map((b) => {
+              const pill =
+                b.status === 'cancelled'
+                  ? 'bg-red-100 text-red-700'
+                  : b.status === 'pending'
+                    ? 'bg-yellow-100 text-yellow-800'
+                    : 'bg-green-100 text-green-700';
+              return (
+                <Link
+                  key={b.id}
+                  href={`/admin/bookings/${b.id}`}
+                  className="block bg-white rounded-2xl border border-gray-100 shadow-sm p-4"
+                >
+                  <div className="flex items-start justify-between gap-3 mb-2">
+                    <div className="min-w-0 flex-1">
+                      <p className="font-bold text-gray-900 text-sm truncate">
+                        {b.user?.name ?? 'Unknown'}
+                      </p>
+                      <p className="text-xs text-gray-500 truncate">
+                        {b.user?.email}
+                      </p>
+                    </div>
+                    <span className={`shrink-0 inline-block text-[10px] font-extrabold tracking-wider px-2 py-1 rounded ${pill}`}>
+                      {b.status.toUpperCase()}
+                    </span>
+                  </div>
+
+                  <div className="border-t border-gray-100 pt-2 mt-2">
+                    <p className="text-xs font-semibold text-gray-900 truncate">
+                      🏕️ {b.campsite?.name ?? '-'}
+                    </p>
+                    {b.room_campsite && (
+                      <p className="text-[11px] font-semibold text-gearup-600 mt-0.5">
+                        Room: {b.room_campsite.name}
+                      </p>
+                    )}
+                    <p className="text-[11px] text-gray-500 mt-0.5 truncate">
+                      {b.campsite?.owner
+                        ? `Owner: ${b.campsite.owner.name}`
+                        : 'Platform-owned'}
+                    </p>
+                  </div>
+
+                  <div className="flex items-end justify-between mt-3 pt-2 border-t border-gray-100">
+                    <div className="min-w-0">
+                      <p className="text-[11px] text-gray-700 truncate">
+                        📅 {formatDate(b.check_in)} → {formatDate(b.check_out)}
+                      </p>
+                      <p className="text-[10px] text-gray-500 mt-0.5 truncate">
+                        {b.pricing_lines && b.pricing_lines.length > 0
+                          ? [
+                              b.adults && b.adults > 0
+                                ? `${b.adults}A`
+                                : null,
+                              b.children && b.children > 0
+                                ? `${b.children}C`
+                                : null,
+                              b.seniors && b.seniors > 0
+                                ? `${b.seniors}S`
+                                : null,
+                              b.pwd && b.pwd > 0 ? `${b.pwd}PWD` : null,
+                            ]
+                              .filter(Boolean)
+                              .join(' · ')
+                          : `${b.guests} ${b.guests === 1 ? 'guest' : 'guests'}`}
+                      </p>
+                    </div>
+                    <p className="text-sm font-black text-gearup-600 shrink-0 ml-3">
+                      ₱{b.total_price}
+                    </p>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+
+          {/* Desktop table (shown >= 1024px) */}
+          <div className="ge-bk-desktop-shell">
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+              <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-100">
               <tr>
                 <th className="text-left text-xs font-bold text-gray-500 uppercase tracking-wider px-5 py-3">
@@ -236,9 +331,11 @@ export default async function AdminBookingsPage({
                   </tr>
                 );
               })}
-            </tbody>
-          </table>
-        </div>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
       )}
     </div>
   );
