@@ -61,8 +61,8 @@ export default async function AdminLayout({
         adminEmail={user.email ?? ''}
         pendingCount={pendingCount}
       />
-      <main className="flex-1 min-w-0">
-        <div className="max-w-7xl mx-auto px-6 lg:px-10 py-8">
+      <main className="flex-1 min-w-0 w-full lg:w-auto">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-6 lg:py-8">
           {children}
         </div>
       </main>

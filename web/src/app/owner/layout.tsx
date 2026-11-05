@@ -67,7 +67,7 @@ export default async function OwnerLayout({
     return (
     <div className="min-h-screen bg-slate-200 flex">
       <OwnerSidebar ownerName={user.name} ownerEmail={user.email} />
-      <main className="flex-1 min-w-0 px-6 py-10 lg:px-10 bg-slate-200">
+      <main className="flex-1 min-w-0 w-full lg:w-auto px-4 sm:px-6 py-6 lg:py-10 bg-slate-200">
         <div className="max-w-6xl mx-auto bg-slate-200">{children}</div>
       </main>
     </div>

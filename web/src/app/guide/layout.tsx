@@ -74,8 +74,10 @@ export default async function GuideLayout({
         guideName={user.name ?? 'Tour Guide'}
         guideEmail={user.email ?? ''}
       />
-      <main className="flex-1 min-w-0">
-        <div className="max-w-6xl mx-auto px-6 py-10">{children}</div>
+      <main className="flex-1 min-w-0 w-full lg:w-auto">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-10 py-6 lg:py-10">
+          {children}
+        </div>
       </main>
     </div>
   );

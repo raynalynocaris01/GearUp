@@ -16,8 +16,8 @@ export function HomeSearch() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="mt-10 max-w-2xl">
-      <div className="flex items-center gap-3 bg-white rounded-2xl p-2 shadow-xl">
+    <form onSubmit={handleSubmit} className="mt-10 w-full max-w-2xl">
+      <div className="flex items-center gap-2 sm:gap-3 bg-white rounded-2xl p-2 shadow-xl">
         {/* Location pin icon */}
         <div className="pl-3 text-gray-400">
           <svg
@@ -42,15 +42,16 @@ export function HomeSearch() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Where do you want to go?"
-          className="flex-1 px-2 py-3 text-gray-900 placeholder-gray-500 focus:outline-none bg-transparent"
+          className="flex-1 min-w-0 px-2 py-3 text-gray-900 placeholder-gray-500 focus:outline-none bg-transparent"
         />
 
         {/* Search button */}
         <button
           type="submit"
-          className="bg-gearup-600 hover:bg-gearup-700 text-white font-semibold px-6 py-3 rounded-xl transition"
+          className="bg-gearup-600 hover:bg-gearup-700 text-white font-semibold px-4 sm:px-6 py-3 rounded-xl transition shrink-0 whitespace-nowrap"
         >
-          Explore Now
+          <span className="hidden sm:inline">Explore Now</span>
+          <span className="sm:hidden">Go</span>
         </button>
       </div>
     </form>

@@ -316,11 +316,14 @@ export function AdminSidebar({
         className={`lg:hidden fixed top-0 left-0 bottom-0 z-50 w-64 transform transition-transform duration-200 ${
           mobileOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
+        style={{
+          transform: mobileOpen ? 'translateX(0)' : 'translateX(-100%)',
+        }}
       >
         {content}
       </aside>
 
-      <aside className="hidden lg:flex w-60 shrink-0 sticky top-0 h-dvh overflow-hidden">
+      <aside className="max-lg:hidden lg:flex w-60 shrink-0 sticky top-0 h-dvh overflow-hidden">
         {content}
       </aside>
     </>
