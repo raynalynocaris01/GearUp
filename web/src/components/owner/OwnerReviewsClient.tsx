@@ -133,9 +133,9 @@ export function OwnerReviewsClient({ reviews }: { reviews: Review[] }) {
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
           <ul className="divide-y divide-gray-100">
             {visible.map((r) => (
-              <li key={r.id} className="p-6">
-                <div className="flex items-start gap-4">
-                  <div className="w-11 h-11 rounded-full bg-gearup-50 text-gearup-600 flex items-center justify-center font-bold text-sm shrink-0">
+              <li key={r.id} className="p-4 sm:p-6">
+                <div className="flex items-start gap-3 sm:gap-4">
+                  <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-gearup-50 text-gearup-600 flex items-center justify-center font-bold text-sm shrink-0">
                     {(r.user?.name ?? '?').charAt(0).toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">
