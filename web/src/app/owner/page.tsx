@@ -256,22 +256,22 @@ export default async function OwnerDashboardPage() {
       </div>
 
       {/* Stat cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-10">
         {cards.map((c) => (
           <Link
             key={c.label}
             href={c.href}
-            className="bg-slate-50 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition p-5"
+            className="bg-slate-50 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition p-4 sm:p-5"
           >
             <div
-              className={`w-11 h-11 rounded-xl ${c.accent} flex items-center justify-center mb-4`}
+              className={`w-10 h-10 sm:w-11 sm:h-11 rounded-xl ${c.accent} flex items-center justify-center mb-3 sm:mb-4`}
             >
               {c.icon}
             </div>
-            <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">
+            <p className="text-[10px] sm:text-xs text-gray-500 font-medium uppercase tracking-wide">
               {c.label}
             </p>
-            <p className="text-3xl font-black text-gray-900 mt-2">
+            <p className="text-2xl sm:text-3xl font-black text-gray-900 mt-1 sm:mt-2">
               {c.value}
             </p>
           </Link>
