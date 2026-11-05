@@ -214,12 +214,12 @@ export default async function BookingsPage() {
               return (
                 <div
                   key={b.id}
-                  className={`bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex ${
+                  className={`bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col sm:flex-row ${
                     cancelled ? 'opacity-60' : ''
                   }`}
                 >
                   {/* Image */}
-                  <div className="relative w-40 shrink-0 bg-gray-100">
+                  <div className="relative w-full h-40 sm:h-auto sm:w-40 shrink-0 bg-gray-100">
                     {imageUrl ? (
                       <Image
                         src={imageUrl}
@@ -237,7 +237,7 @@ export default async function BookingsPage() {
                   </div>
 
                   {/* Body */}
-                  <div className="flex-1 p-6">
+                  <div className="flex-1 p-4 sm:p-6">
                     <div className="flex items-start justify-between mb-3">
                       <div>
                         <span
@@ -278,8 +278,8 @@ export default async function BookingsPage() {
                           </p>
                         )}
                       </div>
-                      <div className="text-right">
-                        <p className="text-2xl font-black text-gearup-600">
+                      <div className="text-right shrink-0 ml-4">
+                        <p className="text-xl sm:text-2xl font-black text-gearup-600">
                           ₱{b.total_price}
                         </p>
                       </div>

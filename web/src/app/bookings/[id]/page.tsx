@@ -297,7 +297,7 @@ export default async function BookingDetailPage({
 
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           {/* Hero image */}
-          <div className="relative h-56 bg-gray-100">
+          <div className="relative h-44 sm:h-56 bg-gray-100">
             {imageUrl ? (
               <Image
                 src={imageUrl}
@@ -314,7 +314,7 @@ export default async function BookingDetailPage({
             )}
           </div>
 
-          <div className="p-8">
+          <div className="p-4 sm:p-8">
             {/* Status + title */}
             <div className="flex items-center gap-3 mb-3">
               <span
@@ -335,7 +335,7 @@ export default async function BookingDetailPage({
               </span>
             </div>
 
-            <h1 className="text-3xl font-black text-gray-900 mb-1">
+            <h1 className="text-2xl sm:text-3xl font-black text-gray-900 mb-1">
               {title}
             </h1>
             {booking.room_campsite && (

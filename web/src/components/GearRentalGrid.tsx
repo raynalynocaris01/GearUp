@@ -202,20 +202,20 @@ export function GearRentalGrid({ gear, campsites }: Props) {
                 <h2 className="text-xl font-bold text-gray-900 mb-4 border-b border-gray-200 pb-2">
                   {groupName}
                 </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6">
                   {displayItems.map((g) => (
                     <Link
                       key={g.id}
                       href={`/gear-rental/${g.id}`}
                       className="group bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-lg transition"
                     >
-                      <div className="relative h-48 bg-gray-100">
+                      <div className="relative h-32 sm:h-48 bg-gray-100">
                         {g.image_url ? (
                           <Image
                             src={appImageSrc(g.image_url)}
                             alt={g.name}
                             fill
-                            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 25vw"
                             className="object-cover group-hover:scale-105 transition"
                             unoptimized
                           />
@@ -231,35 +231,35 @@ export function GearRentalGrid({ gear, campsites }: Props) {
                         )}
                       </div>
 
-                      <div className="p-5">
+                      <div className="p-3 sm:p-5">
                         <div className="flex items-center justify-between mb-2">
-                          <span className="text-xs font-semibold text-gearup-600 bg-gearup-50 px-2 py-1 rounded">
+                          <span className="text-[9px] sm:text-xs font-semibold text-gearup-600 bg-gearup-50 px-1.5 sm:px-2 py-1 rounded truncate">
                             {g.category}
                           </span>
-                          <span className="text-xs text-gray-500">
+                          <span className="text-[9px] sm:text-xs text-gray-500 shrink-0">
                             Stock: {g.stock}
                           </span>
                         </div>
 
-                        <h3 className="text-base font-bold text-gray-900 line-clamp-1">
+                        <h3 className="text-sm sm:text-base font-bold text-gray-900 line-clamp-2 leading-tight">
                           {g.name}
                         </h3>
 
                         {g.description && (
-                          <p className="text-xs text-gray-500 mt-1 line-clamp-2">
+                          <p className="text-[10px] sm:text-xs text-gray-500 mt-1 line-clamp-2">
                             {g.description}
                           </p>
                         )}
 
-                        <div className="flex items-end justify-between mt-4">
+                        <div className="flex items-end justify-between mt-2 sm:mt-4">
                           <div>
-                            <p className="text-lg font-black text-gearup-600">
+                            <p className="text-sm sm:text-lg font-black text-gearup-600">
                               ₱{g.price_per_day}
                             </p>
-                            <p className="text-xs text-gray-500">per day</p>
+                            <p className="text-[9px] sm:text-xs text-gray-500">per day</p>
                           </div>
                           {g.owner && (
-                            <p className="text-xs text-gray-500 truncate max-w-[100px]">
+                            <p className="text-[9px] sm:text-xs text-gray-500 truncate max-w-[60px] sm:max-w-[100px]">
                               by {g.owner.name}
                             </p>
                           )}
