@@ -14,7 +14,9 @@ class GearItemController extends Controller
      */
     public function index(Request $request)
     {
-        $query = GearItem::with('owner:id,name,email,role');
+        // Load full owner so effectivePickup() can read pickup columns.
+        // Pickup fields are hidden from serialization via User::$hidden.
+        $query = GearItem::with('owner');
 
         if ($request->filled('category')) {
             $query->where('category', $request->string('category'));
@@ -45,7 +47,9 @@ class GearItemController extends Controller
      */
     public function show(Request $request, GearItem $gearItem)
     {
-        $gearItem->load('owner:id,name,email,role');
+        // Load full owner so effectivePickup() can read pickup columns.
+        // Pickup fields are hidden from serialization via User::$hidden.
+        $gearItem->load('owner');
 
         $privileged = $this->privilegedGearIds($request, collect([$gearItem]));
         $viewerId = $request->user()?->id;
@@ -99,22 +103,42 @@ class GearItemController extends Controller
 
     /**
      * Strip sensitive pickup fields from the gear item when the viewer
-     * is not privileged. Always exposes a derived `pickup_city` so the
-     * public gear page can still show a geographic hint.
+     * is not privileged. Also attaches `owner_pickup` (the owner's
+     * profile-level pickup info) for the public gear detail page.
      */
     private function applyPickupPrivacy(GearItem $item, ?int $viewerId, array $privileged): void
     {
-        // Derive city regardless of viewer (it's the only geo-hint we
-        // expose publicly).
-        $item->setAttribute('pickup_city', $this->derivePickupCity($item->pickup_address));
-
         $isPrivileged = $viewerId !== null && !empty($privileged[(int) $item->id]);
 
+        // Attach the effective pickup (owner-level first, legacy fallback).
+        $effective = $item->effectivePickup();
+        $item->setAttribute('owner_pickup', $effective);
+
+        // Derive pickup_city from the effective address (owner-level if
+        // available, else legacy per-gear).
+        $address = $effective['address'] ?? null;
+        $item->setAttribute('pickup_city', $this->derivePickupCity($address));
+
+        // Strip sensitive fields from the legacy per-gear columns for
+        // non-privileged viewers. The `owner_pickup` array is still
+        // included, but its `address` and `instructions` should be
+        // stripped too for non-privileged viewers.
         if (!$isPrivileged) {
             $item->setAttribute('pickup_address', null);
             $item->setAttribute('pickup_landmark', null);
             $item->setAttribute('pickup_instructions', null);
             $item->setAttribute('contact_number', null);
+
+            if ($effective && is_array($effective)) {
+                $item->setAttribute('owner_pickup', [
+                    'method' => $effective['method'] ?? null,
+                    'address' => null,
+                    'landmark' => $effective['landmark'] ?? null,
+                    'hours' => $effective['hours'] ?? null,
+                    'instructions' => null,
+                    'contact_number' => null,
+                ]);
+            }
         }
     }
 

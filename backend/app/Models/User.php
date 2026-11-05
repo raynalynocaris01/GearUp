@@ -21,11 +21,26 @@ class User extends Authenticatable
         'is_suspended',
         'password_must_change',
         'terms_accepted_at',
+        'pickup_method',
+        'pickup_address',
+        'pickup_landmark',
+        'pickup_hours',
+        'pickup_instructions',
+        'pickup_contact_number',
     ];
 
     protected $hidden = [
         'password',
         'remember_token',
+        // Never serialize raw pickup columns on the User object.
+        // Pickup info is only exposed via `owner_pickup` in gear responses
+        // (which strips sensitive fields for non-privileged viewers).
+        'pickup_method',
+        'pickup_address',
+        'pickup_landmark',
+        'pickup_hours',
+        'pickup_instructions',
+        'pickup_contact_number',
     ];
 
     protected function casts(): array
@@ -84,9 +99,30 @@ class User extends Authenticatable
     /**
      * The tour guide profile owned by this user (only for role=guide).
      */
-    public function guideProfile(): \Illuminate\Database\Eloquent\Relations\HasOne
+        public function guideProfile(): \Illuminate\Database\Eloquent\Relations\HasOne
     {
         return $this->hasOne(TourGuide::class, 'user_id');
+    }
+
+    /**
+     * Returns the user's pickup info as a compact array, or null
+     * if the user hasn't set any pickup info yet.
+     * Used by GearItemController to embed `owner_pickup` in responses.
+     */
+    public function pickupInfoArray(): ?array
+    {
+        if (! $this->pickup_method && ! $this->pickup_address) {
+            return null;
+        }
+
+        return [
+            'method' => $this->pickup_method,
+            'address' => $this->pickup_address,
+            'landmark' => $this->pickup_landmark,
+            'hours' => $this->pickup_hours,
+            'instructions' => $this->pickup_instructions,
+            'contact_number' => $this->pickup_contact_number,
+        ];
     }
 
     /**

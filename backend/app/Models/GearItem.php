@@ -106,4 +106,41 @@ class GearItem extends Model
         $parts = array_map('trim', explode(',', $this->pickup_address));
         return $parts[count($parts) >= 2 ? count($parts) - 2 : 0] ?? null;
     }
+
+    /**
+     * Pickup info to display for this gear — pulled from the OWNER's
+     * profile-level pickup fields first, with fallback to the legacy
+     * per-gear fields (for gear listed before the migration).
+     *
+     * Returns null if neither is set.
+     */
+    public function effectivePickup(): ?array
+    {
+        // Prefer owner-level pickup (new model).
+        if ($this->relationLoaded('owner') && $this->owner) {
+            $ownerPickup = $this->owner->pickupInfoArray();
+            if ($ownerPickup) {
+                return $ownerPickup;
+            }
+        } else if ($this->owner) {
+            $ownerPickup = $this->owner->pickupInfoArray();
+            if ($ownerPickup) {
+                return $ownerPickup;
+            }
+        }
+
+        // Fallback to legacy per-gear pickup fields.
+        if ($this->pickup_method || $this->pickup_address) {
+            return [
+                'method' => $this->pickup_method,
+                'address' => $this->pickup_address,
+                'landmark' => $this->pickup_landmark,
+                'hours' => $this->pickup_hours,
+                'instructions' => $this->pickup_instructions,
+                'contact_number' => $this->contact_number,
+            ];
+        }
+
+        return null;
+    }
 }

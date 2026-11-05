@@ -54,6 +54,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/user/avatar', [AuthController::class, 'uploadAvatar']);
     Route::post('/logout',[AuthController::class, 'logout']);
 
+    // Pickup info — set once, applies to all this user's gear listings.
+    Route::get('/user/pickup', [\App\Http\Controllers\UserPickupController::class, 'show']);
+    Route::put('/user/pickup', [\App\Http\Controllers\UserPickupController::class, 'update']);
+
     // Guide upgrade flow: existing customer → guide (needs admin approval)
     Route::post('/user/become-guide', [AuthController::class, 'becomeGuide']);
 

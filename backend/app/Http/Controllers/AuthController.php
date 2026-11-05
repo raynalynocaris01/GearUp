@@ -98,7 +98,11 @@ class AuthController extends Controller
 
     public function user(Request $request)
     {
-        return response()->json($request->user());
+        $user = $request->user();
+        // Attach gear_count so the frontend can decide whether to nudge
+        // the user to set up pickup info.
+        $user->setAttribute('gear_count', $user->gearItems()->count());
+        return response()->json($user);
     }
 
     /**
