@@ -51,6 +51,14 @@ class GearItemController extends Controller
         // Pickup fields are hidden from serialization via User::$hidden.
         $gearItem->load('owner');
 
+        // Expose the owner's first campsite so the frontend can route
+        // campsite-owned gear directly to the campsite booking form
+        // with the gear pre-selected.
+        if ($gearItem->owner?->role === 'owner') {
+            $primaryCampsite = $gearItem->owner->campsites()->first();
+            $gearItem->setAttribute('campsite_id', $primaryCampsite?->id);
+        }
+
         $privileged = $this->privilegedGearIds($request, collect([$gearItem]));
         $viewerId = $request->user()?->id;
 
