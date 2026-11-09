@@ -17,6 +17,7 @@ interface TourGuide {
   price_per_trip: string;
   is_independent: boolean;
   location: string | null;
+  facebook_url?: string | null;
   created_at: string;
   campsite?: {
     id: number;
@@ -188,6 +189,28 @@ export default async function TourGuideDetailPage({
                     </div>
                     <span className="text-xs text-gearup-600 font-semibold">
                       Email →
+                    </span>
+                  </a>
+                )}
+
+                {guide.facebook_url && (
+                  <a
+                    href={guide.facebook_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-3 bg-gray-50 hover:bg-gray-100 transition rounded-lg px-4 py-3"
+                  >
+                    <span className="text-xl">📘</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                        Facebook
+                      </p>
+                      <p className="text-sm font-semibold text-gray-900 truncate">
+                        {guide.facebook_url}
+                      </p>
+                    </div>
+                    <span className="text-xs text-gearup-600 font-semibold">
+                      Message →
                     </span>
                   </a>
                 )}
