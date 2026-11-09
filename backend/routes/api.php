@@ -49,54 +49,59 @@ Route::get('/home/recommended', [\App\Http\Controllers\HomeController::class, 'r
 // ─── Authenticated (any role) ────────────────────────────
 Route::post('/webhooks/paymongo', [\App\Http\Controllers\BookingController::class, 'paymongoWebhook']);
 Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/user',   [AuthController::class, 'user']);
+    // These routes must stay open even when password_must_change is true
+    Route::get('/user', [AuthController::class, 'user']);
     Route::post('/user/change-password', [AuthController::class, 'changePassword']);
-    Route::post('/user/avatar', [AuthController::class, 'uploadAvatar']);
-    Route::post('/logout',[AuthController::class, 'logout']);
+    Route::post('/logout', [AuthController::class, 'logout']);
 
-    // Pickup info — set once, applies to all this user's gear listings.
-    Route::get('/user/pickup', [\App\Http\Controllers\UserPickupController::class, 'show']);
-    Route::put('/user/pickup', [\App\Http\Controllers\UserPickupController::class, 'update']);
+    // Everything else in this group requires the password to already be changed
+    Route::middleware('password.changed')->group(function () {
 
-    // Guide upgrade flow: existing customer → guide (needs admin approval)
-    Route::post('/user/become-guide', [AuthController::class, 'becomeGuide']);
+        Route::post('/user/avatar', [AuthController::class, 'uploadAvatar']);
 
-    // Event registrations (customer)
-    Route::get('/my/events', [EventRegistrationController::class, 'mine']);
-    Route::post('/events/{event}/register', [EventRegistrationController::class, 'store']);
-    Route::post('/registrations/{registration}/cancel', [EventRegistrationController::class, 'cancel']);
-    Route::get('/events/{event}/registration-status', [EventRegistrationController::class, 'status']);
+        // Pickup info — set once, applies to all this user's gear listings.
+        Route::get('/user/pickup', [\App\Http\Controllers\UserPickupController::class, 'show']);
+        Route::put('/user/pickup', [\App\Http\Controllers\UserPickupController::class, 'update']);
 
-    // My Gear (any authenticated user can list and manage their own gear)
-    // Notifications
-    Route::get('/notifications', [NotificationController::class, 'index']);
-    Route::get('/notifications/unread-count', [NotificationController::class, 'unreadCount']);
-    Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead']);
-    Route::post('/notifications/{notification}/read', [NotificationController::class, 'markRead']);
+        // Guide upgrade flow: existing customer → guide (needs admin approval)
+        Route::post('/user/become-guide', [AuthController::class, 'becomeGuide']);
 
-    // My gear
-    Route::get('/my/gear', [MyGearItemController::class, 'index']);
-    Route::post('/my/gear', [MyGearItemController::class, 'store']);
-    Route::get('/my/gear/{gearItem}', [MyGearItemController::class, 'show']);
-    Route::put('/my/gear/{gearItem}', [MyGearItemController::class, 'update']);
-    Route::delete('/my/gear/{gearItem}', [MyGearItemController::class, 'destroy']);
-    Route::post('/my/gear/{gearItem}/image', [MyGearItemController::class, 'uploadImage']);
-    Route::get('/my/gear-bookings', [MyGearBookingController::class, 'index']);
-    Route::get('/my/gear-bookings/{booking}', [MyGearBookingController::class, 'show']);
-    Route::post('/my/gear-bookings/{booking}/confirm', [MyGearBookingController::class, 'confirm']);
-    Route::post('/my/gear-bookings/{booking}/complete', [MyGearBookingController::class, 'complete']);
-    Route::post('/my/gear-bookings/{booking}/cancel', [MyGearBookingController::class, 'cancel']);
+        // Event registrations (customer)
+        Route::get('/my/events', [EventRegistrationController::class, 'mine']);
+        Route::post('/events/{event}/register', [EventRegistrationController::class, 'store']);
+        Route::post('/registrations/{registration}/cancel', [EventRegistrationController::class, 'cancel']);
+        Route::get('/events/{event}/registration-status', [EventRegistrationController::class, 'status']);
 
-    // Customer bookings
-    Route::get('/bookings',                   [BookingController::class, 'index']);
-    Route::post('/bookings',                  [BookingController::class, 'store']);
-    Route::get('/bookings/{booking}',         [BookingController::class, 'show']);
-    Route::post('/bookings/{booking}/cancel', [BookingController::class, 'cancel']);
-    Route::post('/bookings/{booking}/pay', [BookingController::class, 'pay']);
+        // Notifications
+        Route::get('/notifications', [NotificationController::class, 'index']);
+        Route::get('/notifications/unread-count', [NotificationController::class, 'unreadCount']);
+        Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead']);
+        Route::post('/notifications/{notification}/read', [NotificationController::class, 'markRead']);
 
-    // Reviews
-    Route::post('/campsites/{campsite}/reviews', [ReviewController::class, 'store']);
-    Route::delete('/reviews/{review}', [ReviewController::class, 'destroy']);
+        // My gear
+        Route::get('/my/gear', [MyGearItemController::class, 'index']);
+        Route::post('/my/gear', [MyGearItemController::class, 'store']);
+        Route::get('/my/gear/{gearItem}', [MyGearItemController::class, 'show']);
+        Route::put('/my/gear/{gearItem}', [MyGearItemController::class, 'update']);
+        Route::delete('/my/gear/{gearItem}', [MyGearItemController::class, 'destroy']);
+        Route::post('/my/gear/{gearItem}/image', [MyGearItemController::class, 'uploadImage']);
+        Route::get('/my/gear-bookings', [MyGearBookingController::class, 'index']);
+        Route::get('/my/gear-bookings/{booking}', [MyGearBookingController::class, 'show']);
+        Route::post('/my/gear-bookings/{booking}/confirm', [MyGearBookingController::class, 'confirm']);
+        Route::post('/my/gear-bookings/{booking}/complete', [MyGearBookingController::class, 'complete']);
+        Route::post('/my/gear-bookings/{booking}/cancel', [MyGearBookingController::class, 'cancel']);
+
+        // Customer bookings
+        Route::get('/bookings', [BookingController::class, 'index']);
+        Route::post('/bookings', [BookingController::class, 'store']);
+        Route::get('/bookings/{booking}', [BookingController::class, 'show']);
+        Route::post('/bookings/{booking}/cancel', [BookingController::class, 'cancel']);
+        Route::post('/bookings/{booking}/pay', [BookingController::class, 'pay']);
+
+        // Reviews
+        Route::post('/campsites/{campsite}/reviews', [ReviewController::class, 'store']);
+        Route::delete('/reviews/{review}', [ReviewController::class, 'destroy']);
+    });
 });
 
 // ─── Owner only ──────────────────────────────────────────
