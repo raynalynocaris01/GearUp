@@ -12,6 +12,7 @@ interface GuideProfile {
   contact_number: string;
   is_independent: boolean;
   campsite_id: number | null;
+  meeting_instructions?: string | null;
 }
 
 const inputClass =
@@ -24,6 +25,7 @@ export function GuideProfileForm({ profile }: { profile: GuideProfile }) {
     location: profile.location ?? '',
     contact_number: profile.contact_number,
     description: profile.description ?? '',
+    meeting_instructions: profile.meeting_instructions ?? '',
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -44,6 +46,7 @@ export function GuideProfileForm({ profile }: { profile: GuideProfile }) {
           location: form.location.trim() || null,
           contact_number: form.contact_number.trim(),
           description: form.description.trim() || null,
+          meeting_instructions: form.meeting_instructions.trim() || null,
         }),
       });
 
@@ -110,7 +113,7 @@ export function GuideProfileForm({ profile }: { profile: GuideProfile }) {
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1.5">
-            Location
+            Meeting Area
           </label>
           <input
             type="text"
@@ -119,6 +122,28 @@ export function GuideProfileForm({ profile }: { profile: GuideProfile }) {
             placeholder="e.g. Valencia, Negros Oriental"
             className={inputClass}
           />
+          <p className="text-xs text-gray-500 mt-1">
+            City, town, or general region where you meet customers.
+          </p>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            Detailed meet-up instructions
+          </label>
+          <textarea
+            value={form.meeting_instructions}
+            onChange={(e) =>
+              setForm({ ...form, meeting_instructions: e.target.value })
+            }
+            placeholder="e.g. Meet by the blue tent at the trail entrance. Arrive 15 minutes early. Call me when you reach the parking lot."
+            rows={4}
+            maxLength={500}
+            className={`${inputClass} resize-none`}
+          />
+          <p className="text-xs text-gray-500 mt-1">
+            {form.meeting_instructions.length}/500 characters. Shown to customers after they book.
+          </p>
         </div>
 
         <div>

@@ -124,6 +124,13 @@ interface Booking {
     id: number;
     name: string;
     price_per_trip: string;
+    contact_number?: string | null;
+    email?: string | null;
+    location?: string | null;
+    description?: string | null;
+    meeting_instructions?: string | null;
+    is_independent?: boolean;
+    campsite_id?: number | null;
   } | null;
   gear_item?: {
     id: number;
@@ -415,7 +422,8 @@ export default async function BookingDetailPage({
                     : `${booking.guests} ${booking.guests === 1 ? 'guest' : 'guests'}`}
                 </div>
               )}
-              {!isGearOnly && (
+              {/* Check-in policy: only for campsite bookings */}
+              {!isGearOnly && booking.campsite && (
                 <div className="mt-4 flex flex-col md:flex-row gap-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 shadow-sm">
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
@@ -444,6 +452,76 @@ export default async function BookingDetailPage({
                       </p>
                     </div>
                   )}
+                </div>
+              )}
+
+              {/* Guide contact card: only for independent (no-campsite) guide bookings */}
+              {!isGearOnly && !booking.campsite && booking.tour_guide && (
+                <div className="mt-4 rounded-xl border border-gearup-200 bg-gearup-50 p-4 text-sm">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-lg">🧭</span>
+                    <span className="font-bold text-gearup-900">
+                      Your tour guide — {booking.tour_guide.name}
+                    </span>
+                  </div>
+
+                  {booking.tour_guide.location && (
+                    <p className="text-gearup-900 mt-1">
+                      <span className="font-semibold">Meeting area: </span>
+                      {booking.tour_guide.location}
+                    </p>
+                  )}
+
+                  {booking.tour_guide.meeting_instructions && (
+                    <div className="text-gearup-900 mt-1">
+                      <p className="font-semibold">How to find us: </p>
+                      <p className="text-xs mt-1 whitespace-pre-line bg-white border border-gearup-200 rounded-lg p-3">
+                        {booking.tour_guide.meeting_instructions}
+                      </p>
+                    </div>
+                  )}
+
+                  {booking.tour_guide.contact_number && (
+                    <p className="text-gearup-900 mt-1">
+                      <span className="font-semibold">Contact: </span>
+                      <a
+                        href={`tel:${booking.tour_guide.contact_number.replace(/\s+/g, '')}`}
+                        className="underline font-semibold"
+                      >
+                        {booking.tour_guide.contact_number}
+                      </a>
+                    </p>
+                  )}
+
+                  {booking.tour_guide.email && (
+                    <p className="text-gearup-900 mt-1">
+                      <span className="font-semibold">Email: </span>
+                      <a
+                        href={`mailto:${booking.tour_guide.email}`}
+                        className="underline"
+                      >
+                        {booking.tour_guide.email}
+                      </a>
+                    </p>
+                  )}
+
+                  {booking.tour_guide.description && (
+                    <p className="text-gearup-900 mt-2 text-xs italic">
+                      {booking.tour_guide.description}
+                    </p>
+                  )}
+
+                  <p className="mt-3 text-xs text-gearup-700">
+                    Coordinate the exact meet-up time and place with your guide
+                    at least 24 hours before the trip.
+                  </p>
+
+                  <a
+                    href={`/tour-guides/${booking.tour_guide.id}`}
+                    className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-gearup-700 hover:underline"
+                  >
+                    View full guide profile →
+                  </a>
                 </div>
               )}
               {isGearOnly && booking.status !== 'pending' && booking.status !== 'cancelled' && (

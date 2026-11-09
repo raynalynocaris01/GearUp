@@ -13,6 +13,7 @@ interface GuideProfile {
   contact_number: string;
   is_independent: boolean;
   campsite_id: number | null;
+  meeting_instructions?: string | null;
 }
 
 async function getProfile(token: string): Promise<GuideProfile | null> {
