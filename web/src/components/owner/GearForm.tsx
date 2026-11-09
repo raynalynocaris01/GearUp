@@ -13,6 +13,8 @@ interface GearItem {
   image_url: string;
   stock: number;
   is_available: boolean;
+  payment_mode?: 'online' | 'pay_at_campsite';
+  down_payment_percent?: string | number;
 }
 
 interface Props {
@@ -28,6 +30,8 @@ const EMPTY: GearItem = {
   image_url: '',
   stock: 1,
   is_available: true,
+  payment_mode: 'online',
+  down_payment_percent: 0,
 };
 
 const CATEGORIES = [
@@ -89,6 +93,8 @@ export function GearForm({ mode, initial }: Props) {
         image_url: form.image_url || 'https://picsum.photos/seed/newgear/600/400',
         stock: Number(form.stock),
         is_available: form.is_available,
+        payment_mode: form.payment_mode || 'online',
+        down_payment_percent: Number(form.down_payment_percent) || 0,
       };
 
       const url =
@@ -217,6 +223,61 @@ export function GearForm({ mode, initial }: Props) {
             </span>
           </label>
         </Field>
+      </div>
+
+      <div className="pt-4 border-t border-gray-100">
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Payment Mode
+        </label>
+        <div className="space-y-2">
+          <label className={`flex items-start gap-3 p-3 border rounded-lg cursor-pointer ${form.payment_mode === 'online' ? 'border-gearup-600 bg-gearup-50' : 'border-gray-200'}`}>
+            <input
+              type="radio"
+              name="payment_mode"
+              value="online"
+              checked={form.payment_mode === 'online'}
+              onChange={() => update('payment_mode', 'online')}
+              className="mt-1"
+            />
+            <div>
+              <p className="font-semibold text-gray-900 text-sm">Online Payment</p>
+              <p className="text-xs text-gray-500">Guests can pay online or choose to pay cash on arrival.</p>
+            </div>
+          </label>
+          <label className={`flex items-start gap-3 p-3 border rounded-lg cursor-pointer ${form.payment_mode === 'pay_at_campsite' ? 'border-gearup-600 bg-gearup-50' : 'border-gray-200'}`}>
+            <input
+              type="radio"
+              name="payment_mode"
+              value="pay_at_campsite"
+              checked={form.payment_mode === 'pay_at_campsite'}
+              onChange={() => update('payment_mode', 'pay_at_campsite')}
+              className="mt-1"
+            />
+            <div>
+              <p className="font-semibold text-gray-900 text-sm">Pay Cash on Arrival</p>
+              <p className="text-xs text-gray-500">Guests must pay cash when they pick up the gear. Online payment options will be hidden.</p>
+            </div>
+          </label>
+        </div>
+
+        <div className="mt-4">
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            Down payment (%)
+          </label>
+          <input
+            type="number"
+            min={0}
+            max={100}
+            step="1"
+            value={form.down_payment_percent}
+            onChange={(e) => update('down_payment_percent', e.target.value)}
+            className={inputClass}
+            disabled={form.payment_mode === 'pay_at_campsite'}
+          />
+          <p className="text-xs text-gray-500 mt-1">
+            How much of the total does the guest pay online to lock in the booking? The rest is due on pickup. Set to 0 for full online payment.
+          </p>
+        </div>
       </div>
 
       <Field label="Gear Image" error={errors.image_url?.[0]}>

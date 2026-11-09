@@ -46,6 +46,8 @@ interface GearItem {
   image_url: string | null;
   stock: number;
   is_available: boolean;
+  payment_mode?: 'online' | 'pay_at_campsite';
+  down_payment_percent?: string | number;
 }
 
 interface TourGuide {
@@ -152,7 +154,12 @@ export function BookingForm({
   // Multi-gear (campsite bookings only)
   const [selectedGear, setSelectedGear] = useState<
     { gear_item_id: number; quantity: number }[]
-  >([]);
+  >(
+    // If we arrived from a gear detail page with ?gear_id=X, auto-select it
+    initialGearItemId && campsite
+      ? [{ gear_item_id: initialGearItemId, quantity: 1 }]
+      : [],
+  );
 
   // Accommodation variant — null = book the campsite itself.
   // When set, it's the id of a child campsite (a room).
@@ -181,11 +188,23 @@ export function BookingForm({
         if (!res.ok) return;
         const data: GearItem[] = await res.json();
         setAvailableGear(data);
+
+        // If we arrived with ?gear_id=X, add it to selectedGear once we
+        // know it exists in availableGear. This makes the checkbox and
+        // price preview reflect the pre-selection.
+        if (initialGearItemId && data.some((g) => g.id === initialGearItemId)) {
+          setSelectedGear((prev) => {
+            if (prev.some((r) => r.gear_item_id === initialGearItemId)) {
+              return prev; // already there
+            }
+            return [...prev, { gear_item_id: initialGearItemId, quantity: 1 }];
+          });
+        }
       } catch {
         // silent
       }
     })();
-  }, [campsite]);
+  }, [campsite, initialGearItemId]);
 
  
 
@@ -469,6 +488,10 @@ export function BookingForm({
       payload.gear_quantity = gearQuantity;
       payload.gear_start_date = checkIn;
       payload.gear_end_date = checkOut;
+      // If the gear requires cash on arrival, tell the backend
+      if ((activeGear as any).payment_mode === 'pay_at_campsite') {
+        payload.payment_method = 'cash';
+      }
     }
 
     const res = await fetch('/api/bookings', {
@@ -927,9 +950,6 @@ export function BookingForm({
               const campsiteGuides = guides.filter(
                 (g) => g.campsite_id !== null,
               );
-              const independentGuides = guides.filter(
-                (g) => g.campsite_id === null,
-              );
 
               const renderRow = (g: TourGuide) => {
                 const price = parseFloat(g.price_per_trip);
@@ -998,7 +1018,7 @@ export function BookingForm({
           {ownerGear.length > 0 && (
             <div className="mb-4">
               <p className="text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">
-                Provided by this campsite
+                Rentable at this campsite
               </p>
               <div className="space-y-2">
                 {ownerGear.map((g) => {
