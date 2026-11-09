@@ -68,8 +68,13 @@ export function GuideBookingForm({ guide, onDone }: Props) {
         );
       }
       onDone?.();
-      router.push('/bookings?success=1');
-      router.refresh();
+      if (data?.id) {
+        router.push(`/bookings/${data.id}/confirmed`);
+        router.refresh();
+      } else {
+        router.push('/bookings?success=1');
+        router.refresh();
+      }
     } catch (err: any) {
       setError(err?.message ?? 'Something went wrong.');
     } finally {
