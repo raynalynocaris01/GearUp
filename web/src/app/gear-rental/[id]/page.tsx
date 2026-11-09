@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { cookies } from 'next/headers';
 import { Navbar } from '@/components/Navbar';
 import { appImageSrc } from '@/components/AppImage';
+import { Package, Tag } from 'lucide-react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL!;
 
@@ -158,10 +159,10 @@ export default async function GearDetailPage({
 
             <div className="flex flex-wrap items-center gap-4 mt-4 text-sm">
               <span className="flex items-center gap-1 text-gray-600">
-                📦 {gear.stock} in stock
+                {<Package size={14} className="inline -mt-0.5" />} {gear.stock} in stock
               </span>
               <span className="flex items-center gap-1 text-gray-600">
-                🏷️ {gear.category}
+                {<Tag size={14} className="inline -mt-0.5" />} {gear.category}
               </span>
             </div>
 
