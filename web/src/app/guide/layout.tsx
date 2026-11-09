@@ -35,7 +35,9 @@ export default async function GuideLayout({
   if (!user) redirect('/login');
   if (user.role !== 'guide') redirect('/');
 
-  // Pending guide — show banner, no dashboard
+  // Pending guide — show banner, no dashboard.
+  // (Password change is handled inside the pages themselves —
+  //  /guide dashboard redirects, /guide/profile shows the banner.)
   if (!user.is_approved) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center px-6">
@@ -57,7 +59,7 @@ export default async function GuideLayout({
               Upload / replace resume
             </Link>
             <Link
-              href="/"
+              href="/profile/change-password"
               className="inline-flex items-center gap-2 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold text-sm px-6 py-3 rounded-lg transition"
             >
               Continue as Customer

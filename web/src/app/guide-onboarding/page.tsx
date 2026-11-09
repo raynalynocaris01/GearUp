@@ -4,6 +4,9 @@ import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
+// We need to check the user's password_must_change flag on mount
+// and redirect to the forced change page if it's true.
+
 interface ResumeStatus {
   has_application: boolean;
   application_id: number | null;
@@ -25,24 +28,22 @@ export default function GuideOnboardingPage() {
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
 
-  const fetchStatus = async () => {
-    try {
-      const res = await fetch('/api/guide/resume', { cache: 'no-store' });
-      if (res.status === 401) {
-        router.replace('/login');
-        return;
-      }
-      const data = await res.json();
-      setStatus(data);
-    } catch {
-      setError('Could not load your application status.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchStatus();
+    // Check the user's password_must_change flag FIRST
+    fetch('/api/user', { cache: 'no-store' })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((user) => {
+        if (user && user.password_must_change) {
+          router.replace('/guide/profile?force=true');
+          return;
+        }
+        // Only fetch resume status if password is already changed
+        fetchStatus();
+      })
+      .catch(() => {
+        setError('Could not load your account.');
+        setLoading(false);
+      });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
