@@ -189,6 +189,7 @@ export function MyTourGuidesClient({ guides }: Props) {
       );
       if (res.ok) {
         setConfirmDelete(null);
+        setError('');
         router.refresh();
       } else {
         const data = await res.json().catch(() => ({}));
@@ -522,7 +523,26 @@ export function MyTourGuidesClient({ guides }: Props) {
         </div>
       )}
 
-            {/* Guides list */}
+            {/* Inline error banner — always shows, even when the create form is closed */}
+      {error && !creating && (
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
+          <span className="text-red-600 font-bold text-lg leading-none">!</span>
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-red-900">Could not complete action</p>
+            <p className="text-sm text-red-700 mt-1">{error}</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setError('')}
+            className="text-red-600 hover:text-red-900 font-bold text-lg leading-none"
+            aria-label="Dismiss"
+          >
+            ×
+          </button>
+        </div>
+      )}
+
+      {/* Guides list */}
       {visible.length === 0 ? (
         <div className="bg-slate-50 rounded-2xl border border-dashed border-gray-200 p-12 text-center">
           <p className="text-base font-bold text-gray-900 mb-1">
@@ -599,7 +619,10 @@ export function MyTourGuidesClient({ guides }: Props) {
                     </button>
                     <button
                       type="button"
-                      onClick={() => setConfirmDelete(g)}
+                      onClick={() => {
+                        setError('');
+                        setConfirmDelete(g);
+                      }}
                       disabled={deletingId === g.id}
                       className="text-xs font-semibold text-red-600 border border-red-200 bg-red-50 hover:bg-red-100 px-3 py-2 rounded-lg transition disabled:opacity-50"
                     >

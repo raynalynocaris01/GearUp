@@ -221,7 +221,7 @@ export default async function GearDetailPage({
       PICKUP & DELIVERY
     </p>
     {gear.owner_pickup ? (
-      <>
+      <div className="space-y-3 text-sm text-gray-700">
         <p className="font-semibold text-gray-900">
           {gear.owner_pickup.method === 'pickup'
             ? "Pick up at the owner's place"
@@ -231,30 +231,55 @@ export default async function GearDetailPage({
                 ? 'Meet-up, pickup, or delivery available'
                 : 'Meet-up at an agreed place'}
         </p>
-        {gear.owner_pickup.landmark && (
-          <p className="text-sm text-gray-600 mt-1">
-            Landmark: {gear.owner_pickup.landmark}
-          </p>
-        )}
-        {gear.owner_pickup.hours && (
-          <p className="text-sm text-gray-600 mt-1">
-            Hours: {gear.owner_pickup.hours}
-          </p>
-        )}
+        
         {gear.owner_pickup.address && (
-          <p className="text-sm text-gray-600 mt-1">
-            Address: {gear.owner_pickup.address}
-          </p>
+          <div>
+            <p className="text-xs font-bold text-gray-500 uppercase">Address</p>
+            <p>{gear.owner_pickup.address}</p>
+            <a
+              href={`https://maps.google.com/?q=${encodeURIComponent(gear.owner_pickup.address)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block mt-1 text-xs font-semibold text-gearup-600 hover:underline"
+            >
+              Open in Google Maps →
+            </a>
+          </div>
         )}
+
+        {gear.owner_pickup.landmark && (
+          <div>
+            <p className="text-xs font-bold text-gray-500 uppercase">Landmark</p>
+            <p>{gear.owner_pickup.landmark}</p>
+          </div>
+        )}
+
+        {gear.owner_pickup.hours && (
+          <div>
+            <p className="text-xs font-bold text-gray-500 uppercase">Hours</p>
+            <p>{gear.owner_pickup.hours}</p>
+          </div>
+        )}
+
         {gear.owner_pickup.instructions && (
-          <p className="text-sm text-gray-600 mt-1">
-            Instructions: {gear.owner_pickup.instructions}
-          </p>
+          <div>
+            <p className="text-xs font-bold text-gray-500 uppercase">Instructions</p>
+            <p className="whitespace-pre-line">{gear.owner_pickup.instructions}</p>
+          </div>
         )}
-        <p className="text-xs text-gray-500 mt-3 italic">
-          Full details including contact number shown after booking confirmation.
-        </p>
-      </>
+
+        {gear.owner_pickup.contact_number && (
+          <div>
+            <p className="text-xs font-bold text-gray-500 uppercase">Contact</p>
+            <a
+              href={`tel:${gear.owner_pickup.contact_number.replace(/\s+/g, '')}`}
+              className="font-semibold text-gearup-600 hover:underline"
+            >
+              {gear.owner_pickup.contact_number}
+            </a>
+          </div>
+        )}
+      </div>
     ) : (
       <p className="text-sm text-gray-500 italic">
         Pickup details not yet provided by the seller.

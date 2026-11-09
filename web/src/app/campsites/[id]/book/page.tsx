@@ -80,10 +80,14 @@ async function getCampsite(id: string): Promise<Campsite | null> {
 
 export default async function BookCampsitePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ gear_id?: string }>;
 }) {
   const { id } = await params;
+  const { gear_id } = await searchParams;
+  const initialGearItemId = gear_id ? Number(gear_id) : undefined;
   const [user, campsite] = await Promise.all([
     getCurrentUser(),
     getCampsite(id),
@@ -131,7 +135,7 @@ export default async function BookCampsitePage({
             </p>
 
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
-              <BookingForm campsite={campsite} />
+              <BookingForm campsite={campsite} initialGearItemId={initialGearItemId} />
             </div>
           </div>
 

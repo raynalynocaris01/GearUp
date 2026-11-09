@@ -27,7 +27,7 @@ export function CampsiteProvidedGear({ gear }: Props) {
   return (
     <div className="mt-8">
       <h2 className="text-xl font-bold text-gray-900 mb-3">
-        Gear Rentable by this Campsite
+        Gear Rentable at this Campsite
       </h2>
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
         {visible.map((item) => {
