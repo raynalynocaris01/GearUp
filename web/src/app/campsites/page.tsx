@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { cookies } from 'next/headers';
 import { Navbar } from '@/components/Navbar';
 import { CampsitesGrid } from '@/components/CampsitesGrid';
@@ -76,6 +77,20 @@ export default async function CampsitesPage({
           </p>
         </div>
 
+        {/* Cross-search banner */}
+        {search && (
+          <div className="mb-6 flex items-center justify-between gap-4 rounded-xl border border-gearup-200 bg-gearup-50 px-5 py-4">
+            <p className="text-sm text-gearup-900">
+              Looking for <strong>&quot;{search}&quot;</strong> in gear rentals?
+            </p>
+            <Link
+              href={`/gear-rental?search=${encodeURIComponent(search)}`}
+              className="shrink-0 rounded-lg bg-gearup-600 px-4 py-2 text-sm font-semibold text-white hover:bg-gearup-700 transition"
+            >
+              Search Gear
+            </Link>
+          </div>
+        )}
         <CampsitesGrid campsites={campsites} initialSearch={search ?? ''} />
       </div>
     </div>

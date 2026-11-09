@@ -1,4 +1,5 @@
-﻿import { cookies } from 'next/headers';
+﻿import Link from 'next/link';
+import { cookies } from 'next/headers';
 import { Navbar } from '@/components/Navbar';
 import { GearRentalGrid } from '@/components/GearRentalGrid';
 import type { GearItem, Campsite } from '@gearup/shared';
@@ -50,7 +51,12 @@ async function getAllCampsites(): Promise<Campsite[]> {
   }
 }
 
-export default async function GearRentalPage() {
+export default async function GearRentalPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ search?: string }>;
+}) {
+  const { search } = await searchParams;
   const [user, gear, campsites] = await Promise.all([
     getCurrentUser(),
     getAllGear(),
@@ -69,7 +75,20 @@ export default async function GearRentalPage() {
           </p>
         </div>
 
-        <GearRentalGrid gear={gear} campsites={campsites} />
+        {search && (
+  <div className="mb-6 flex items-center justify-between gap-4 rounded-xl border border-gearup-200 bg-gearup-50 px-5 py-4">
+    <p className="text-sm text-gearup-900">
+      Looking for <strong>&quot;{search}&quot;</strong> in campsites?
+    </p>
+    <Link
+      href={`/campsites?search=${encodeURIComponent(search)}`}
+      className="shrink-0 rounded-lg bg-gearup-600 px-4 py-2 text-sm font-semibold text-white hover:bg-gearup-700 transition"
+    >
+      Search Campsites
+    </Link>
+  </div>
+)}
+<GearRentalGrid gear={gear} campsites={campsites} />
       </div>
     </div>
   );
