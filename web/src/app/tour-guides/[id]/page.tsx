@@ -19,6 +19,7 @@ interface TourGuide {
   is_independent: boolean;
   location: string | null;
   facebook_url?: string | null;
+  user?: { avatar_url: string | null } | null; // <-- ADDED THIS
   created_at: string;
   campsite?: {
     id: number;
@@ -124,9 +125,21 @@ export default async function TourGuideDetailPage({
           <div className="lg:col-span-2">
             {/* Name + avatar */}
             <div className="flex items-start gap-4">
-              <div className="w-16 h-16 rounded-full bg-gearup-600 text-white flex items-center justify-center text-2xl font-black shrink-0">
-                {guide.name.charAt(0).toUpperCase()}
-              </div>
+              {guide.user?.avatar_url ? (
+                <div className="relative w-16 h-16 rounded-full overflow-hidden shrink-0">
+                  <Image
+                    src={appImageSrc(guide.user.avatar_url)}
+                    alt={guide.name}
+                    fill
+                    unoptimized
+                    className="object-cover"
+                  />
+                </div>
+              ) : (
+                <div className="w-16 h-16 rounded-full bg-gearup-600 text-white flex items-center justify-center text-2xl font-black shrink-0">
+                  {guide.name.charAt(0).toUpperCase()}
+                </div>
+              )}
               <div>
                 <h1 className="text-4xl font-black text-gray-900 leading-tight">
                   {guide.name}

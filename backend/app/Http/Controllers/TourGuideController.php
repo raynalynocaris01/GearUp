@@ -15,8 +15,10 @@ class TourGuideController extends Controller
     public function index(Request $request)
     {
         // Public listing — only approved (or legacy) guides.
-        $query = TourGuide::with('campsite:id,name,location,image_url,owner_id')
-            ->approved();
+        $query = TourGuide::with([
+            'campsite:id,name,location,image_url,owner_id',
+            'user:id,avatar_url',
+        ])->approved();
 
         if ($request->boolean('independent')) {
             $query->where('is_independent', true);
@@ -61,7 +63,10 @@ class TourGuideController extends Controller
         }
 
         return response()->json(
-            $tourGuide->load('campsite:id,name,location,image_url,owner_id')
+            $tourGuide->load([
+                'campsite:id,name,location,image_url,owner_id',
+                'user:id,avatar_url'
+            ])
         );
     }
 }

@@ -15,6 +15,7 @@ interface TourGuide {
   description: string | null;
   price_per_trip: string;
   is_independent: boolean;
+  user?: { avatar_url: string | null } | null;
   location: string | null;
   campsite?: {
     id: number;
@@ -197,20 +198,19 @@ function GuideCard({ guide }: { guide: TourGuide }) {
       href={href}
       className="group bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-lg transition flex flex-col"
     >
-      {/* Image (campsite photo if attached) */}
-      <div className="relative h-44 overflow-hidden bg-gearup-50">
-        {guide.campsite?.image_url ? (
+      {/* Image (profile picture or placeholder) */}
+      <div className="relative h-44 overflow-hidden bg-gray-100 flex items-center justify-center">
+        {guide.user?.avatar_url ? (
           <Image
-            src={appImageSrc(guide.campsite.image_url)}
+            src={appImageSrc(guide.user.avatar_url)}
             alt={guide.name}
             fill
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-            className="object-cover group-hover:scale-105 transition duration-500"
-            unoptimized
+            unoptimized 
+            className="object-cover"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gearup-50 to-green-100">
-            <Compass size={64} className="text-gearup-600" />
+          <div className="w-20 h-20 rounded-full bg-gearup-600 text-white flex items-center justify-center text-3xl font-black shadow-lg">
+            {guide.name.charAt(0).toUpperCase()}
           </div>
         )}
 
@@ -224,9 +224,21 @@ function GuideCard({ guide }: { guide: TourGuide }) {
       {/* Body */}
       <div className="p-5 flex-1 flex flex-col">
         <div className="flex items-start gap-3 mb-3">
-          <div className="w-11 h-11 rounded-full bg-gearup-600 text-white flex items-center justify-center font-bold shrink-0">
-            {guide.name.charAt(0).toUpperCase()}
-          </div>
+          {guide.user?.avatar_url ? (
+            <div className="w-11 h-11 rounded-full overflow-hidden shrink-0 relative">
+              <Image
+                src={appImageSrc(guide.user.avatar_url)}
+                alt={guide.name}
+                fill
+                unoptimized
+                className="object-cover"
+              />
+            </div>
+          ) : (
+            <div className="w-11 h-11 rounded-full bg-gearup-600 text-white flex items-center justify-center font-bold shrink-0">
+              {guide.name.charAt(0).toUpperCase()}
+            </div>
+          )}
           <div className="flex-1 min-w-0">
             <h3 className="font-bold text-gray-900 truncate">
               {guide.name}

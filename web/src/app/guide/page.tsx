@@ -1,6 +1,8 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
+import Image from 'next/image';
 import { GuideBookingsClient } from '@/components/guide/GuideBookingsClient';
+import { appImageSrc } from '@/components/AppImage';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL!;
 
@@ -19,6 +21,7 @@ interface Booking {
 interface GuideProfile {
   id: number;
   name: string;
+  user?: { avatar_url: string | null } | null;
   price_per_trip: string;
   location: string | null;
   description: string | null;
@@ -95,13 +98,30 @@ export default async function GuideDashboardPage() {
   return (
     <div>
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-black text-gray-900">
-          Tour Guide Dashboard
-        </h1>
-        <p className="text-sm text-gray-500 mt-1">
-          Manage your bookings and profile.
-        </p>
+      <div className="mb-8 flex items-center gap-4">
+        {profile?.user?.avatar_url ? (
+          <div className="relative w-16 h-16 rounded-full overflow-hidden shadow-sm shrink-0">
+            <Image
+              src={appImageSrc(profile.user.avatar_url)}
+              alt={profile.name}
+              fill
+              unoptimized
+              className="object-cover"
+            />
+          </div>
+        ) : (
+          <div className="w-16 h-16 rounded-full bg-gearup-600 text-white flex items-center justify-center text-2xl font-black shadow-sm shrink-0">
+            {profile?.name.charAt(0).toUpperCase() || 'G'}
+          </div>
+        )}
+        <div>
+          <h1 className="text-3xl font-black text-gray-900">
+            Tour Guide Dashboard
+          </h1>
+          <p className="text-sm text-gray-500 mt-1">
+            Manage your bookings and profile.
+          </p>
+        </div>
       </div>
 
       {/* Stats */}

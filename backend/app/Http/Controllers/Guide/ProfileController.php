@@ -21,6 +21,9 @@ class ProfileController extends Controller
             ], 404);
         }
 
+        // Eager load the user so avatar_url is included
+        $profile->load('user:id,avatar_url');
+
         return response()->json($profile);
     }
 

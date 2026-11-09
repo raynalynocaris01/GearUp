@@ -14,10 +14,40 @@ const nextConfig: NextConfig = {
     "10.137.45.49",
     "10.137.45.49:3000",
     "10.0.18.161",
-     "10.0.18.161:3000",
-     "192.168.0.103",
-     "192.168.0.103:3000"
+    "10.0.18.161:3000",
+    "192.168.0.102",
+    "192.168.0.102:3000",
+    "192.168.0.103",
+    "192.168.0.103:3000"
   ],
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '8000',
+        pathname: '/storage/**',
+      },
+      {
+        protocol: 'http',
+        hostname: '127.0.0.1',
+        port: '8000',
+        pathname: '/storage/**',
+      },
+      {
+        protocol: 'http',
+        hostname: '192.168.0.102',
+        port: '8000',
+        pathname: '/storage/**',
+      },
+      {
+        protocol: 'http',
+        hostname: '192.168.0.103',
+        port: '8000',
+        pathname: '/storage/**',
+      },
+    ],
+  },
 };
 
 export default nextConfig;
