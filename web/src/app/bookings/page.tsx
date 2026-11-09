@@ -6,6 +6,7 @@ import { Navbar } from '@/components/Navbar';
 import { CancelBookingButton } from '@/components/CancelBookingButton';
 export const dynamic = 'force-dynamic';
 import { appImageSrc } from '@/components/AppImage';
+import { MapPin, Calendar, Users, Compass, Backpack, Tent } from 'lucide-react';
 const API_URL = process.env.NEXT_PUBLIC_API_URL!;
 
 interface BookingGearLine {
@@ -231,7 +232,7 @@ export default async function BookingsPage() {
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-4xl">
-                        {isGearOnly ? '🎒' : '⛺'}
+                        {isGearOnly ? <Backpack size={40} /> : <Tent size={40} />}
                       </div>
                     )}
                   </div>
@@ -269,7 +270,7 @@ export default async function BookingsPage() {
                         )}
                         {location && (
                           <p className="text-xs text-gray-500">
-                            📍 {location}
+                            {<MapPin size={12} className="inline -mt-0.5" />} {location}
                           </p>
                         )}
                         {isGearOnly && (
@@ -288,13 +289,13 @@ export default async function BookingsPage() {
                     <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-gray-600 mt-4">
                       {startDate && endDate && (
                         <span>
-                          📅 {formatDate(startDate)} → {formatDate(endDate)} (
+                          {<Calendar size={12} className="inline -mt-0.5" />} {formatDate(startDate)} → {formatDate(endDate)} (
                           {nights} {nights === 1 ? 'day' : 'days'})
                         </span>
                       )}
                       {!isGearOnly && (
                         <span>
-                          👥{' '}
+                          {<Users size={12} className="inline -mt-0.5" />}{' '}
                           {b.pricing_lines && b.pricing_lines.length > 0
                             ? [
                                 b.adults && b.adults > 0
@@ -320,7 +321,7 @@ export default async function BookingsPage() {
                           href={`/tour-guides/${b.tour_guide.id}`}
                           className="flex items-center gap-1 text-gearup-700 font-semibold hover:underline"
                         >
-                          🧭 Guide: {b.tour_guide.name}
+                          {<Compass size={12} className="inline -mt-0.5" />} Guide: {b.tour_guide.name}
                         </Link>
                       )}
                     </div>
@@ -328,7 +329,7 @@ export default async function BookingsPage() {
                                         {/* Gear summary — condensed multi-gear line */}
                     {b.gear_items && b.gear_items.length > 0 && (
                       <div className="mt-3 text-sm text-gray-600 flex items-start gap-2">
-                        <span className="shrink-0">🎒</span>
+                        <Backpack size={14} className="shrink-0" />
                         <span>
                           {b.gear_items.map((line, i) => (
                             <span key={line.id}>
@@ -345,7 +346,7 @@ export default async function BookingsPage() {
                     {/* Legacy single-gear line (gear-only rentals) */}
                     {isGearOnly && b.gear_item && (
                       <div className="mt-2 text-sm text-gray-600 flex items-center gap-2">
-                        <span>🎒</span>
+                        <Backpack size={14} className="shrink-0" />
                         <span>
                           <span className="font-semibold text-gray-900">
                             {b.gear_item.name}
