@@ -55,11 +55,33 @@ async function getGuides(): Promise<TourGuide[]> {
   }
 }
 
-export default async function TourGuidesPage() {
-  const [user, guides] = await Promise.all([
+export default async function TourGuidesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ search?: string }>;
+}) {
+  const { search } = await searchParams;
+  const [user, allGuides] = await Promise.all([
     getCurrentUser(),
     getGuides(),
   ]);
+
+  // Client-side filter by name / location / description
+  const q = (search ?? '').trim().toLowerCase();
+  const guides = q
+    ? allGuides.filter((g) => {
+        const haystack = [
+          g.name,
+          g.location ?? '',
+          g.description ?? '',
+          g.campsite?.name ?? '',
+          g.campsite?.location ?? '',
+        ]
+          .join(' ')
+          .toLowerCase();
+        return haystack.includes(q);
+      })
+    : allGuides;
 
   // Split: attached vs independent
   const attached = guides.filter((g) => !g.is_independent);
@@ -86,9 +108,24 @@ export default async function TourGuidesPage() {
       </section>
 
       <div className="max-w-7xl mx-auto px-6 py-12">
+        {q && (
+          <div className="mb-6 flex items-center justify-between gap-4 rounded-xl border border-gearup-200 bg-gearup-50 px-5 py-3">
+            <p className="text-sm text-gearup-900">
+              Showing guides matching <strong>&quot;{search}&quot;</strong>
+            </p>
+            <Link
+              href="/tour-guides"
+              className="shrink-0 text-xs font-semibold text-gearup-700 hover:underline"
+            >
+              Clear search
+            </Link>
+          </div>
+        )}
         {guides.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-gray-200 p-12 text-center text-gray-500">
-            No tour guides available yet. Check back soon.
+            {q
+              ? `No guides match "${search}". Try a different name or location.`
+              : 'No tour guides available yet. Check back soon.'}
           </div>
         ) : (
           <>
