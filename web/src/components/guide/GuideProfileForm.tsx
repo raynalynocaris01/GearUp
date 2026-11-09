@@ -13,6 +13,7 @@ interface GuideProfile {
   is_independent: boolean;
   campsite_id: number | null;
   meeting_instructions?: string | null;
+  facebook_url?: string | null;
 }
 
 const inputClass =
@@ -26,6 +27,7 @@ export function GuideProfileForm({ profile }: { profile: GuideProfile }) {
     contact_number: profile.contact_number,
     description: profile.description ?? '',
     meeting_instructions: profile.meeting_instructions ?? '',
+    facebook_url: profile.facebook_url ?? '',
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -47,6 +49,7 @@ export function GuideProfileForm({ profile }: { profile: GuideProfile }) {
           contact_number: form.contact_number.trim(),
           description: form.description.trim() || null,
           meeting_instructions: form.meeting_instructions.trim() || null,
+          facebook_url: form.facebook_url.trim() || null,
         }),
       });
 
@@ -143,6 +146,21 @@ export function GuideProfileForm({ profile }: { profile: GuideProfile }) {
           />
           <p className="text-xs text-gray-500 mt-1">
             {form.meeting_instructions.length}/500 characters. Shown to customers after they book.
+          </p>
+        </div>
+                <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            Facebook Profile Link
+          </label>
+          <input
+            type="url"
+            value={form.facebook_url}
+            onChange={(e) => setForm({ ...form, facebook_url: e.target.value })}
+            placeholder="https://www.facebook.com/markcedrix.ravelo"
+            className={inputClass}
+          />
+          <p className="text-xs text-gray-500 mt-1">
+            Optional. Shown to customers so they can message you directly.
           </p>
         </div>
 

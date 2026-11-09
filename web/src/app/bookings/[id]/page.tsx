@@ -129,6 +129,7 @@ interface Booking {
     location?: string | null;
     description?: string | null;
     meeting_instructions?: string | null;
+    facebook_url?: string | null;
     is_independent?: boolean;
     campsite_id?: number | null;
   } | null;
@@ -493,14 +494,16 @@ export default async function BookingDetailPage({
                     </p>
                   )}
 
-                  {booking.tour_guide.email && (
+                  {booking.tour_guide.facebook_url && (
                     <p className="text-gearup-900 mt-1">
-                      <span className="font-semibold">Email: </span>
+                      <span className="font-semibold">Facebook: </span>
                       <a
-                        href={`mailto:${booking.tour_guide.email}`}
+                        href={booking.tour_guide.facebook_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
                         className="underline"
                       >
-                        {booking.tour_guide.email}
+                        View Profile
                       </a>
                     </p>
                   )}
