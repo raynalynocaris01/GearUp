@@ -10,9 +10,27 @@ export function HomeSearch() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const q = query.trim();
-    router.push(
-      q ? `/campsites?search=${encodeURIComponent(q)}` : '/campsites',
-    );
+    
+    if (!q) {
+      router.push('/campsites');
+      return;
+    }
+
+    // Common gear keywords to intelligently route the search
+    const gearKeywords = [
+      'tent', 'stove', 'backpack', 'bag', 'sleeping', 'cook', 
+      'lamp', 'light', 'chair', 'table', 'hammock', 'tool', 
+      'tarp', 'cooler', 'bottle', 'tripod', 'jacket', 'boots'
+    ];
+    
+    const lowerQ = q.toLowerCase();
+    const isGearSearch = gearKeywords.some(keyword => lowerQ.includes(keyword));
+
+    if (isGearSearch) {
+      router.push(`/gear-rental?search=${encodeURIComponent(q)}`);
+    } else {
+      router.push(`/campsites?search=${encodeURIComponent(q)}`);
+    }
   };
 
   return (

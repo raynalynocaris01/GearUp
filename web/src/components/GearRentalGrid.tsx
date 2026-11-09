@@ -17,11 +17,12 @@ const FILTERS: { key: FilterKey; label: string }[] = [
 interface Props {
   gear: GearItem[];
   campsites: Campsite[];
+  initialSearch?: string;
 }
 
-export function GearRentalGrid({ gear, campsites }: Props) {
+export function GearRentalGrid({ gear, campsites, initialSearch = '' }: Props) {
   const [filter, setFilter] = useState<FilterKey>('all');
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState(initialSearch);
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
 
   const toggleGroup = (groupName: string) => {
