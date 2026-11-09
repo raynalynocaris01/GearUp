@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
@@ -49,7 +49,7 @@ export function UserMenu({ user }: UserMenuProps) {
     try {
       await fetch('/api/auth/logout', { method: 'POST' });
     } catch {
-      // ignore â€” clear locally anyway
+      // ignore — clear locally anyway
     }
     setOpen(false);
     router.push('/');
@@ -87,7 +87,7 @@ export function UserMenu({ user }: UserMenuProps) {
             open ? 'rotate-180' : ''
           }`}
         >
-          â–¾
+          ▾
         </span>
       </button>
 
@@ -106,7 +106,7 @@ export function UserMenu({ user }: UserMenuProps) {
             onClick={() => setOpen(false)}
             className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition"
           >
-            <User size={18} strokeWidth={2} className="text-gray-500" />
+            <span className="text-base">👤</span>
             <span>Profile</span>
           </Link>
 
@@ -116,7 +116,7 @@ export function UserMenu({ user }: UserMenuProps) {
               onClick={() => setOpen(false)}
               className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition border-t border-gray-100"
             >
-              <span className="text-base">ðŸ§­</span>
+              <span className="text-base">🧭</span>
               <span>Guide Dashboard</span>
             </Link>
           )}
@@ -127,7 +127,7 @@ export function UserMenu({ user }: UserMenuProps) {
               onClick={() => setOpen(false)}
               className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition border-t border-gray-100"
             >
-              <span className="text-base">ðŸ•ï¸</span>
+              <span className="text-base">🏕️</span>
               <span>Owner Dashboard</span>
             </Link>
           )}
@@ -138,7 +138,7 @@ export function UserMenu({ user }: UserMenuProps) {
               onClick={() => setOpen(false)}
               className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition border-t border-gray-100"
             >
-              <span className="text-base">ðŸ›¡ï¸</span>
+              <span className="text-base">🛡️</span>
               <span>Admin Panel</span>
             </Link>
           )}
@@ -148,7 +148,7 @@ export function UserMenu({ user }: UserMenuProps) {
             disabled={loading}
             className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition border-t border-gray-100 disabled:opacity-60"
           >
-            <span className="text-base">ðŸšª</span>
+            <span className="text-base">🚪</span>
             <span>{loading ? 'Logging out...' : 'Log out'}</span>
           </button>
         </div>
