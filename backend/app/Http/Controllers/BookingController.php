@@ -59,6 +59,7 @@ class BookingController extends Controller
             'notes' => ['nullable', 'string', 'max:500'],
             'preferred_arrival' => ['nullable', 'string', 'in:Morning,Afternoon,Evening'],
             'confirmed_override' => ['nullable', 'boolean'],
+            'payment_method' => ['nullable', 'string', 'in:cash,online'],
         ]);
 
         // Business Rule: Campsite owners' gear can only be rented if booking the campsite
