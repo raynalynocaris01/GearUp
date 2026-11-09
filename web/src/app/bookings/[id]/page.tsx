@@ -7,6 +7,7 @@ import { CancelBookingButton } from '@/components/CancelBookingButton';
 import { BookingStatusTracker } from '@/components/BookingStatusTracker';
 import { appImageSrc } from '@/components/AppImage';
 import { CopyButton } from '@/components/CopyButton';
+import { Calendar, Users, Compass, Backpack } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 const API_URL = process.env.NEXT_PUBLIC_API_URL!;
@@ -322,7 +323,7 @@ export default async function BookingDetailPage({
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-5xl">
-                🎒
+                {<Backpack size={40} />}
               </div>
             )}
           </div>
@@ -490,7 +491,7 @@ export default async function BookingDetailPage({
               {!isGearOnly && !booking.campsite && booking.tour_guide && (
                 <div className="mt-4 rounded-xl border border-gearup-200 bg-gearup-50 p-4 text-sm">
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="text-lg">🧭</span>
+                    <Compass size={20} className="text-gearup-700 shrink-0" />
                     <span className="font-bold text-gearup-900">
                       Your tour guide — {booking.tour_guide.name}
                     </span>
