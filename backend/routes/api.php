@@ -178,7 +178,7 @@ Route::middleware(['auth:sanctum', 'role:guide', 'password.changed'])->prefix('g
 });
 
 // ─── Guide only (role=guide, approved) ───────────────────
-Route::middleware(['auth:sanctum', 'role:guide', 'approved'])->prefix('guide')->group(function () {
+Route::middleware(['auth:sanctum', 'role:guide', 'approved', 'password.changed'])->prefix('guide')->group(function () {
     // Profile
     Route::get('/profile', [GuideProfileController::class, 'show']);
     Route::put('/profile', [GuideProfileController::class, 'update']);
