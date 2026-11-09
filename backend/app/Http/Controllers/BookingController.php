@@ -480,6 +480,9 @@ class BookingController extends Controller
             $downPercent = (int) ($campsite->down_payment_percent ?? 0);
         } elseif (!$campsite && $tourGuide && $tourGuide->payment_mode === 'online' && $method !== 'cash') {
             $downPercent = (int) ($tourGuide->down_payment_percent ?? 0);
+        } elseif (!$campsite && !$tourGuide && $gearItem && $gearItem->payment_mode === 'online' && $method !== 'cash') {
+            // NEW: Handle standalone gear rentals
+            $downPercent = (int) ($gearItem->down_payment_percent ?? 0);
         }
 
         if ($downPercent > 0) {

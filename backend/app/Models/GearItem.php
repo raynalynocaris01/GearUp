@@ -27,6 +27,8 @@ class GearItem extends Model
         'pickup_hours',
         'pickup_instructions',
         'contact_number',
+        'payment_mode',
+        'down_payment_percent',
     ];
 
     protected $casts = [
