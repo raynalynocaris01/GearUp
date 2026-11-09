@@ -495,7 +495,7 @@ export default async function BookingDetailPage({
                   )}
 
                   {booking.tour_guide.facebook_url && (
-                    <p className="text-gearup-900 mt-1">
+                    <p className="text-gearup-900 mt-1 truncate">
                       <span className="font-semibold">Facebook: </span>
                       <a
                         href={booking.tour_guide.facebook_url}
@@ -503,7 +503,7 @@ export default async function BookingDetailPage({
                         rel="noopener noreferrer"
                         className="underline"
                       >
-                        View Profile
+                        {booking.tour_guide.facebook_url}
                       </a>
                     </p>
                   )}
