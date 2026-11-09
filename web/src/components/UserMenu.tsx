@@ -106,7 +106,7 @@ export function UserMenu({ user }: UserMenuProps) {
             onClick={() => setOpen(false)}
             className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition"
           >
-            <span className="text-base">👤</span>
+            <User size={18} strokeWidth={2} className="text-gray-500" />
             <span>Profile</span>
           </Link>
 
@@ -116,7 +116,7 @@ export function UserMenu({ user }: UserMenuProps) {
               onClick={() => setOpen(false)}
               className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition border-t border-gray-100"
             >
-              <span className="text-base">🧭</span>
+              <Compass size={18} strokeWidth={2} className="text-gray-500" />
               <span>Guide Dashboard</span>
             </Link>
           )}
@@ -127,7 +127,7 @@ export function UserMenu({ user }: UserMenuProps) {
               onClick={() => setOpen(false)}
               className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition border-t border-gray-100"
             >
-              <span className="text-base">🏕️</span>
+              <Tent size={18} strokeWidth={2} className="text-gray-500" />
               <span>Owner Dashboard</span>
             </Link>
           )}
@@ -138,7 +138,7 @@ export function UserMenu({ user }: UserMenuProps) {
               onClick={() => setOpen(false)}
               className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition border-t border-gray-100"
             >
-              <span className="text-base">🛡️</span>
+              <Shield size={18} strokeWidth={2} className="text-gray-500" />
               <span>Admin Panel</span>
             </Link>
           )}
@@ -148,7 +148,7 @@ export function UserMenu({ user }: UserMenuProps) {
             disabled={loading}
             className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition border-t border-gray-100 disabled:opacity-60"
           >
-            <span className="text-base">🚪</span>
+            <LogOut size={18} strokeWidth={2} className="text-red-500" />
             <span>{loading ? 'Logging out...' : 'Log out'}</span>
           </button>
         </div>
