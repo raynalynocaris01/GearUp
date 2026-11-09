@@ -43,6 +43,8 @@ class ProfileController extends Controller
             'email' => ['sometimes', 'nullable', 'email', 'max:255'],
             'description' => ['sometimes', 'nullable', 'string', 'max:2000'],
             'price_per_trip' => ['sometimes', 'numeric', 'min:0'],
+            'payment_mode' => ['sometimes', 'string', 'in:online,pay_at_campsite'],
+            'down_payment_percent' => ['sometimes', 'numeric', 'min:0', 'max:100'],
             'location' => ['sometimes', 'nullable', 'string', 'max:255'],
             'meeting_instructions' => ['sometimes', 'nullable', 'string', 'max:500'],
             'facebook_url' => ['sometimes', 'nullable', 'url', 'max:255'],
