@@ -111,6 +111,11 @@ interface Booking {
     image_url: string;
     price_per_night?: string;
     price_unit?: string;
+    owner?: {
+      name: string;
+      email: string;
+      facebook_url?: string | null;
+    } | null;
   } | null;
   room_campsite?: {
     id: number;
@@ -452,6 +457,31 @@ export default async function BookingDetailPage({
                         Please pay ₱{Number(booking.total_price).toFixed(2)} to the host when you arrive.
                       </p>
                     </div>
+                  )}
+                </div>
+              )}
+
+              {/* Owner contact card for campsite bookings */}
+              {!isGearOnly && booking.campsite?.owner && (
+                <div className="mt-4 rounded-xl border border-gray-200 bg-white p-4 text-sm">
+                  <p className="text-xs font-bold text-gray-500 uppercase mb-2">
+                    Contact the Host
+                  </p>
+                  <p className="font-semibold text-gray-900">
+                    {booking.campsite.owner.name}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    {booking.campsite.owner.email}
+                  </p>
+                  {booking.campsite.owner.facebook_url && (
+                    <a
+                      href={booking.campsite.owner.facebook_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-block mt-2 text-sm font-semibold text-gearup-600 hover:underline"
+                    >
+                      Message on Facebook →
+                    </a>
                   )}
                 </div>
               )}

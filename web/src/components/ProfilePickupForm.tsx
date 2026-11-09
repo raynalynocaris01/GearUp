@@ -11,6 +11,7 @@ interface Props {
     hours?: string | null;
     instructions?: string | null;
     contact_number?: string | null;
+    facebook_url?: string | null;
   } | null;
 }
 
@@ -31,6 +32,9 @@ export function ProfilePickupForm({ initial }: Props) {
   const [contactNumber, setContactNumber] = useState(
     initial?.contact_number ?? '',
   );
+  const [facebookUrl, setFacebookUrl] = useState(
+    initial?.facebook_url ?? '',
+  );
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -49,6 +53,7 @@ export function ProfilePickupForm({ initial }: Props) {
       pickup_hours: pickupHours.trim() || null,
       pickup_instructions: pickupInstructions.trim() || null,
       pickup_contact_number: contactNumber.trim() || null,
+      facebook_url: facebookUrl.trim() || null,
     };
 
     try {
@@ -182,6 +187,22 @@ export function ProfilePickupForm({ initial }: Props) {
             placeholder="e.g. 0917 123 4567"
             className={inputClass}
           />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            Facebook Profile Link (optional)
+          </label>
+          <input
+            type="url"
+            value={facebookUrl}
+            onChange={(e) => setFacebookUrl(e.target.value)}
+            placeholder="https://www.facebook.com/yourprofile"
+            className={inputClass}
+          />
+          <p className="text-xs text-gray-500 mt-1">
+            Shown to customers so they can message you directly.
+          </p>
         </div>
       </div>
 
