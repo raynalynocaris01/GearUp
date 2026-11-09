@@ -28,6 +28,22 @@ export default function GuideOnboardingPage() {
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
 
+  const fetchStatus = async () => {
+    try {
+      const res = await fetch('/api/guide/resume', { cache: 'no-store' });
+      if (res.status === 401) {
+        router.replace('/login');
+        return;
+      }
+      const data = await res.json();
+      setStatus(data);
+    } catch {
+      setError('Could not load your application status.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     // Check the user's password_must_change flag FIRST
     fetch('/api/user', { cache: 'no-store' })
