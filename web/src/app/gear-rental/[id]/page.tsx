@@ -38,7 +38,10 @@ interface GearItem {
     id: number;
     name: string;
     email: string;
+    role?: string;
   };
+  campsite_id?: number | null;
+  campsite_name?: string | null;
 }
 
 async function getCurrentUser() {
@@ -85,7 +88,20 @@ export default async function GearDetailPage({
 
   const isGuest = !user;
   const isOwnGear = !isGuest && user?.id === gear.owner_id;
-  const bookHref = isGuest ? '/login' : `/gear-rental/${gear.id}/book`;
+  
+  // Determine where the button should go
+  let bookHref = isGuest ? '/login' : `/gear-rental/${gear.id}/book`;
+  let isCampsiteGear = false;
+
+  // If the owner is a campsite owner, we need the campsite ID. 
+  // Assuming the backend passes `campsite_id` on the gear object or owner object.
+  const ownerCampsiteId = gear.campsite_id ?? (gear as any).owner?.campsite_id;
+
+  if (gear.owner?.role === 'owner' && ownerCampsiteId) {
+    // Redirect directly to the campsite booking page and auto-select this gear
+    bookHref = `/campsites/${ownerCampsiteId}/book?gear_id=${gear.id}`;
+    isCampsiteGear = true;
+  }
 
   return (
     <div className="min-h-screen bg-white">
@@ -156,6 +172,39 @@ export default async function GearDetailPage({
               </p>
             </div>
 
+            {/* Campsite gear notice */}
+            {isCampsiteGear && (
+              <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50 p-4 flex items-start gap-3">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="text-amber-600 shrink-0 mt-0.5"
+                >
+                  <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                  <line x1="12" y1="9" x2="12" y2="13" />
+                  <line x1="12" y1="17" x2="12.01" y2="17" />
+                </svg>
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-amber-900">
+                    Campsite-only gear
+                  </p>
+                  <p className="text-xs text-amber-800 mt-1">
+                    This item is only available to guests who have booked a
+                    stay at {gear.campsite_name ?? 'the campsite'}. You&apos;ll
+                    be able to add it to your booking when you reserve a
+                    campsite.
+                  </p>
+                </div>
+              </div>
+            )}
+
             {gear.owner && (
   <div className="bg-white rounded-2xl border border-gray-100 p-6">
     <p className="text-xs font-extrabold tracking-wider text-gray-500 mb-2">
@@ -165,53 +214,54 @@ export default async function GearDetailPage({
     <p className="text-sm text-gray-500">{gear.owner.email}</p>
   </div>
 )}
-
-{/* Pickup & delivery */}
-<div className="bg-white rounded-2xl border border-gray-100 p-6">
-  <p className="text-xs font-extrabold tracking-wider text-gray-500 mb-2">
-    PICKUP & DELIVERY
-  </p>
-  {gear.owner_pickup ? (
-    <>
-      <p className="font-semibold text-gray-900">
-        {gear.owner_pickup.method === 'pickup'
-          ? "Pick up at the owner's place"
-          : gear.owner_pickup.method === 'deliver'
-            ? 'Delivered to you'
-            : gear.owner_pickup.method === 'all'
-              ? 'Meet-up, pickup, or delivery available'
-              : 'Meet-up at an agreed place'}
-      </p>
-      {gear.owner_pickup.landmark && (
-        <p className="text-sm text-gray-600 mt-1">
-          Landmark: {gear.owner_pickup.landmark}
-        </p>
-      )}
-      {gear.owner_pickup.hours && (
-        <p className="text-sm text-gray-600 mt-1">
-          Hours: {gear.owner_pickup.hours}
-        </p>
-      )}
-      {gear.owner_pickup.address && (
-        <p className="text-sm text-gray-600 mt-1">
-          Address: {gear.owner_pickup.address}
-        </p>
-      )}
-      {gear.owner_pickup.instructions && (
-        <p className="text-sm text-gray-600 mt-1">
-          Instructions: {gear.owner_pickup.instructions}
-        </p>
-      )}
-      <p className="text-xs text-gray-500 mt-3 italic">
-        Full details including contact number shown after booking confirmation.
-      </p>
-    </>
-  ) : (
-    <p className="text-sm text-gray-500 italic">
-      Pickup details not yet provided by the seller.
+{/* Pickup & delivery (only for individual rentals, not campsite gear) */}
+{gear.owner?.role !== 'owner' && (
+  <div className="bg-white rounded-2xl border border-gray-100 p-6">
+    <p className="text-xs font-extrabold tracking-wider text-gray-500 mb-2">
+      PICKUP & DELIVERY
     </p>
-  )}
-</div>
+    {gear.owner_pickup ? (
+      <>
+        <p className="font-semibold text-gray-900">
+          {gear.owner_pickup.method === 'pickup'
+            ? "Pick up at the owner's place"
+            : gear.owner_pickup.method === 'deliver'
+              ? 'Delivered to you'
+              : gear.owner_pickup.method === 'all'
+                ? 'Meet-up, pickup, or delivery available'
+                : 'Meet-up at an agreed place'}
+        </p>
+        {gear.owner_pickup.landmark && (
+          <p className="text-sm text-gray-600 mt-1">
+            Landmark: {gear.owner_pickup.landmark}
+          </p>
+        )}
+        {gear.owner_pickup.hours && (
+          <p className="text-sm text-gray-600 mt-1">
+            Hours: {gear.owner_pickup.hours}
+          </p>
+        )}
+        {gear.owner_pickup.address && (
+          <p className="text-sm text-gray-600 mt-1">
+            Address: {gear.owner_pickup.address}
+          </p>
+        )}
+        {gear.owner_pickup.instructions && (
+          <p className="text-sm text-gray-600 mt-1">
+            Instructions: {gear.owner_pickup.instructions}
+          </p>
+        )}
+        <p className="text-xs text-gray-500 mt-3 italic">
+          Full details including contact number shown after booking confirmation.
+        </p>
+      </>
+    ) : (
+      <p className="text-sm text-gray-500 italic">
+        Pickup details not yet provided by the seller.
+      </p>
+    )}
+  </div>
+)}
           </div>
 
           {/* Right: rental card */}
@@ -242,7 +292,11 @@ export default async function GearDetailPage({
                       href={bookHref}
                       className="block w-full bg-gearup-600 hover:bg-gearup-700 text-white font-semibold text-center py-3 rounded-lg transition"
                     >
-                      {isGuest ? 'Sign in to Rent' : 'Rent this Gear'}
+                      {isGuest 
+                        ? 'Sign in to Rent' 
+                        : isCampsiteGear 
+                          ? `Book Campsite & Add ${gear.name}`
+                          : 'Rent this Gear'}
                     </Link>
                   )}
                   {isGuest && (
@@ -261,24 +315,26 @@ export default async function GearDetailPage({
               )}
 
               <p className="text-xs text-gray-500 text-center mt-3">
-                {(() => {
-                  const method = gear.pickup_method ?? 'meetup';
-                  const label =
-                    method === 'pickup' ? "Pick up at the owner's place"
-                    : method === 'deliver' ? 'Delivered to you'
-                    : method === 'all' ? 'Meet-up, pickup, or delivery available'
-                    : 'Meet-up at an agreed place';
-                  const city = (gear as any).pickup_city
-                    ?? (gear.pickup_address
-                      ? (() => {
-                          const parts = gear.pickup_address.split(',').map((s: string) => s.trim()).filter(Boolean);
-                          return parts.length >= 2 ? parts[parts.length - 2] : null;
-                        })()
-                      : null);
-                  return city
-                    ? `${label} in ${city}. Full details shown after booking. Free cancellation up to 48 hours before the rental date.`
-                    : `${label}. Full details shown after booking. Free cancellation up to 48 hours before the rental date.`;
-                })()}
+                {gear.owner?.role === 'owner'
+                  ? 'Available at the campsite during your stay. Free cancellation up to 48 hours before the rental date.'
+                  : (() => {
+                      const method = gear.pickup_method ?? 'meetup';
+                      const label =
+                        method === 'pickup' ? "Pick up at the owner's place"
+                        : method === 'deliver' ? 'Delivered to you'
+                        : method === 'all' ? 'Meet-up, pickup, or delivery available'
+                        : 'Meet-up at an agreed place';
+                      const city = (gear as any).pickup_city
+                        ?? (gear.pickup_address
+                          ? (() => {
+                              const parts = gear.pickup_address.split(',').map((s: string) => s.trim()).filter(Boolean);
+                              return parts.length >= 2 ? parts[parts.length - 2] : null;
+                            })()
+                          : null);
+                      return city
+                        ? `${label} in ${city}. Full details shown after booking. Free cancellation up to 48 hours before the rental date.`
+                        : `${label}. Full details shown after booking. Free cancellation up to 48 hours before the rental date.`;
+                    })()}
               </p>
             </div>
           </div>
