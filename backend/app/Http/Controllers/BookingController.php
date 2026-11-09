@@ -614,7 +614,7 @@ class BookingController extends Controller
 
         return response()->json(
             $booking->load([
-                'campsite',
+                'campsite.owner:id,name,email,facebook_url', // Add this
                 'roomCampsite',
                 'tourGuide',
                 'gearItem',

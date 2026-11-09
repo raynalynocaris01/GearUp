@@ -16,6 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
      $middleware->alias([
         'role'     => \App\Http\Middleware\EnsureRole::class,
         'approved' => \App\Http\Middleware\EnsureApproved::class,
+        'password.changed' => \App\Http\Middleware\EnsurePasswordChanged::class,
     ]);
 
     // For API requests, return 401 JSON instead of redirecting to a login route
