@@ -57,6 +57,7 @@ class GearItemController extends Controller
         if ($gearItem->owner?->role === 'owner') {
             $primaryCampsite = $gearItem->owner->campsites()->first();
             $gearItem->setAttribute('campsite_id', $primaryCampsite?->id);
+            $gearItem->setAttribute('campsite_name', $primaryCampsite?->name);
         }
 
         $privileged = $this->privilegedGearIds($request, collect([$gearItem]));
