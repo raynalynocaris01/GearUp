@@ -2,6 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { cookies } from 'next/headers';
+import { Phone, Mail, ExternalLink } from 'lucide-react';
 import { Navbar } from '@/components/Navbar';
 import { BookGuideButton } from '@/components/BookGuideButton';
 import { appImageSrc } from '@/components/AppImage';
@@ -155,63 +156,82 @@ export default async function TourGuideDetailPage({
                 Contact
               </h2>
               <div className="space-y-3">
+                {/* Phone */}
                 <a
                   href={`tel:${guide.contact_number}`}
-                  className="flex items-center gap-3 bg-gray-50 hover:bg-gray-100 transition rounded-lg px-4 py-3"
+                  className="group flex items-center gap-4 bg-gray-50 hover:bg-gray-100 transition rounded-lg px-4 py-3"
                 >
-                  <span className="text-xl">📞</span>
-                  <div className="flex-1">
-                    <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                  <div className="w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center shrink-0 text-gearup-600">
+                    <Phone size={18} strokeWidth={2} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">
                       Phone
                     </p>
-                    <p className="text-sm font-semibold text-gray-900">
+                    <p className="text-sm font-semibold text-gray-900 truncate">
                       {guide.contact_number}
                     </p>
                   </div>
-                  <span className="text-xs text-gearup-600 font-semibold">
+                  <span className="text-xs font-semibold text-gearup-600 opacity-0 group-hover:opacity-100 transition">
                     Call →
                   </span>
                 </a>
 
+                {/* Email */}
                 {guide.email && (
                   <a
                     href={`mailto:${guide.email}`}
-                    className="flex items-center gap-3 bg-gray-50 hover:bg-gray-100 transition rounded-lg px-4 py-3"
+                    className="group flex items-center gap-4 bg-gray-50 hover:bg-gray-100 transition rounded-lg px-4 py-3"
                   >
-                    <span className="text-xl">✉️</span>
-                    <div className="flex-1">
-                      <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                    <div className="w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center shrink-0 text-gearup-600">
+                      <Mail size={18} strokeWidth={2} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">
                         Email
                       </p>
                       <p className="text-sm font-semibold text-gray-900 truncate">
                         {guide.email}
                       </p>
                     </div>
-                    <span className="text-xs text-gearup-600 font-semibold">
+                    <span className="text-xs font-semibold text-gearup-600 opacity-0 group-hover:opacity-100 transition">
                       Email →
                     </span>
                   </a>
                 )}
 
+                {/* Facebook */}
                 {guide.facebook_url && (
                   <a
                     href={guide.facebook_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-3 bg-gray-50 hover:bg-gray-100 transition rounded-lg px-4 py-3"
+                    className="group flex items-center gap-4 bg-gray-50 hover:bg-gray-100 transition rounded-lg px-4 py-3"
                   >
-                    <span className="text-xl">📘</span>
+                    <div className="w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center shrink-0 text-[#1877F2]">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="18"
+                        height="18"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                      >
+                        <path d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" />
+                      </svg>
+                    </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                      <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">
                         Facebook
                       </p>
                       <p className="text-sm font-semibold text-gray-900 truncate">
                         {guide.facebook_url}
                       </p>
                     </div>
-                    <span className="text-xs text-gearup-600 font-semibold">
-                      Message →
-                    </span>
+                    <ExternalLink
+                      size={16}
+                      strokeWidth={2}
+                      className="text-gray-400 group-hover:text-gearup-600 transition shrink-0"
+                    />
                   </a>
                 )}
               </div>
