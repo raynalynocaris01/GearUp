@@ -3,6 +3,7 @@ import Image from 'next/image';
 import { cookies } from 'next/headers';
 import { Navbar } from '@/components/Navbar';
 import { appImageSrc } from '@/components/AppImage';
+import { Compass } from 'lucide-react';
 const API_URL = process.env.NEXT_PUBLIC_API_URL!;
 
 interface TourGuide {
@@ -209,7 +210,7 @@ function GuideCard({ guide }: { guide: TourGuide }) {
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gearup-50 to-green-100">
-            <span className="text-6xl">🧭</span>
+            <Compass size={64} className="text-gearup-600" />
           </div>
         )}
 

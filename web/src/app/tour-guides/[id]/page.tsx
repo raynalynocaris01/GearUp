@@ -2,7 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { cookies } from 'next/headers';
-import { Phone, Mail, ExternalLink } from 'lucide-react';
+import { Phone, Mail, ExternalLink, Compass } from 'lucide-react';
 import { Navbar } from '@/components/Navbar';
 import { BookGuideButton } from '@/components/BookGuideButton';
 import { appImageSrc } from '@/components/AppImage';
@@ -108,7 +108,7 @@ export default async function TourGuideDetailPage({
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
-              <span className="text-8xl">🧭</span>
+              <Compass size={96} className="text-gearup-600" />
             </div>
           )}
 

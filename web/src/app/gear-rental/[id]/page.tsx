@@ -138,7 +138,7 @@ export default async function GearDetailPage({
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-8xl">
-              🎒
+              <Package size={80} className="text-gray-400" />
             </div>
           )}
           <div className="absolute top-4 left-4 bg-gearup-600 text-white text-xs font-bold px-3 py-1.5 rounded-full">
