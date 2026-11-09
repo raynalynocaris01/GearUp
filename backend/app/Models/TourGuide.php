@@ -24,6 +24,7 @@ class TourGuide extends Model
         'application_id',
         'location',
         'meeting_instructions',
+        'facebook_url',
     ];
 
     protected $casts = [
