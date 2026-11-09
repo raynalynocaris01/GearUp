@@ -1,4 +1,4 @@
-import Image from 'next/image';
+﻿import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { cookies } from 'next/headers';
@@ -6,6 +6,7 @@ import { Navbar } from '@/components/Navbar';
 import { ReviewsSection } from '@/components/ReviewsSection';
 import { ReviewForm } from '@/components/ReviewForm';
 import { appImageSrc } from '@/components/AppImage';
+import { MapPin, Star, Users } from 'lucide-react';
 import { CampsiteGallery } from '@/components/CampsiteGallery';
 import { CampsiteProvidedGear } from '@/components/CampsiteProvidedGear';
 
@@ -209,10 +210,10 @@ export default async function CampsiteDetailPage({
 
             <div className="flex flex-wrap items-center gap-4 mt-4 text-sm">
               <span className="flex items-center gap-1 text-gray-600">
-                📍 {campsite.location}
+                ðŸ“ {campsite.location}
               </span>
               <span className="flex items-center gap-1 text-gray-600">
-                <span className="text-yellow-500">★</span>
+                <span className="text-yellow-500">â˜…</span>
                 <span className="font-semibold text-gray-900">
                   {campsite.rating}
                 </span>
@@ -221,7 +222,7 @@ export default async function CampsiteDetailPage({
                 </span>
               </span>
               <span className="flex items-center gap-1 text-gray-600">
-                👥 Up to {campsite.capacity} people
+                ðŸ‘¥ Up to {campsite.capacity} people
               </span>
             </div>
 
@@ -340,7 +341,7 @@ export default async function CampsiteDetailPage({
               <div className="flex items-baseline justify-between">
                 <div>
                   <p className="text-3xl font-black text-gearup-600">
-                    ₱{campsite.price_per_night}
+                    â‚±{campsite.price_per_night}
                   </p>
                   <p className="text-sm text-gray-500">
                     per {campsite.price_unit}
