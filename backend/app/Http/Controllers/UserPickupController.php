@@ -31,6 +31,7 @@ class UserPickupController extends Controller
             'pickup_hours' => ['nullable', 'string', 'max:255'],
             'pickup_instructions' => ['nullable', 'string', 'max:1000'],
             'pickup_contact_number' => ['nullable', 'string', 'max:30'],
+            'facebook_url' => ['nullable', 'url', 'max:255'],
         ]);
 
         $method = $data['pickup_method'] ?? null;

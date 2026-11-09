@@ -27,6 +27,7 @@ class User extends Authenticatable
         'pickup_hours',
         'pickup_instructions',
         'pickup_contact_number',
+        'facebook_url',
     ];
 
     protected $hidden = [
@@ -122,6 +123,7 @@ class User extends Authenticatable
             'hours' => $this->pickup_hours,
             'instructions' => $this->pickup_instructions,
             'contact_number' => $this->pickup_contact_number,
+            'facebook_url' => $this->facebook_url,
         ];
     }
 
