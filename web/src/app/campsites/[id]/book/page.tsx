@@ -5,6 +5,7 @@ import { cookies } from 'next/headers';
 import { Navbar } from '@/components/Navbar';
 import { BookingForm } from '@/components/BookingForm';
 import { appImageSrc } from '@/components/AppImage';
+import { MapPin, Star } from 'lucide-react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL!;
 
@@ -155,10 +156,10 @@ export default async function BookCampsitePage({
               <div className="p-5">
                 <h3 className="font-bold text-gray-900">{campsite.name}</h3>
                 <p className="text-xs text-gray-500 mt-1">
-                  📍 {campsite.location}
+                  {<MapPin size={14} className="inline -mt-0.5" />} {campsite.location}
                 </p>
                 <p className="text-xs text-gray-700 mt-1">
-                  <span className="text-yellow-500">★</span> {campsite.rating}{' '}
+                  <Star size={14} className="inline -mt-0.5 fill-yellow-500 text-yellow-500" /> {campsite.rating}{' '}
                   ({campsite.reviews_count} reviews)
                 </p>
                 <div className="border-t border-gray-100 my-4" />
