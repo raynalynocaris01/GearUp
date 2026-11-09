@@ -40,6 +40,8 @@ class GearItemController extends Controller
             'pickup_hours' => ['nullable', 'string', 'max:255'],
             'pickup_instructions' => ['nullable', 'string', 'max:1000'],
             'contact_number' => ['nullable', 'string', 'max:30'],
+            'payment_mode' => ['sometimes', 'string', 'in:online,pay_at_campsite'],
+            'down_payment_percent' => ['sometimes', 'numeric', 'min:0', 'max:100'],
         ]);
 
         $method = $data['pickup_method'] ?? 'meetup';
@@ -67,6 +69,8 @@ class GearItemController extends Controller
             'pickup_hours' => $data['pickup_hours'] ?? null,
             'pickup_instructions' => $data['pickup_instructions'] ?? null,
             'contact_number' => $data['contact_number'] ?? null,
+            'payment_mode' => $data['payment_mode'] ?? 'online',
+            'down_payment_percent' => $data['down_payment_percent'] ?? 0,
         ]);
 
         return response()->json($item, 201);
@@ -103,6 +107,8 @@ class GearItemController extends Controller
             'pickup_hours' => ['nullable', 'string', 'max:255'],
             'pickup_instructions' => ['nullable', 'string', 'max:1000'],
             'contact_number' => ['nullable', 'string', 'max:30'],
+            'payment_mode' => ['sometimes', 'string', 'in:online,pay_at_campsite'],
+            'down_payment_percent' => ['sometimes', 'numeric', 'min:0', 'max:100'],
         ]);
 
         // Coerce nullable fields to empty strings to satisfy NOT NULL columns
