@@ -136,7 +136,7 @@ export function PayNowButton({ bookingId, amount, paidAmount, balanceDue = 0, pa
           Connecting to PayMongo... This may take a few seconds.
         </p>
       )}
-      {!(paymentStatus === 'paid' && balanceDue > 0) && (
+      {balanceDue <= 0 && (
         <button
           type="button"
           onClick={handleCashPay}
