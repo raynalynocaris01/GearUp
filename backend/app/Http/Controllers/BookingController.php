@@ -476,12 +476,10 @@ class BookingController extends Controller
         $downPercent = 0;
         $method = $data['payment_method'] ?? null;
 
-        if (
-            $campsite &&
-            $campsite->payment_mode === 'online' &&
-            $method !== 'cash'
-        ) {
+        if ($campsite && $campsite->payment_mode === 'online' && $method !== 'cash') {
             $downPercent = (int) ($campsite->down_payment_percent ?? 0);
+        } elseif (!$campsite && $tourGuide && $tourGuide->payment_mode === 'online' && $method !== 'cash') {
+            $downPercent = (int) ($tourGuide->down_payment_percent ?? 0);
         }
 
         if ($downPercent > 0) {

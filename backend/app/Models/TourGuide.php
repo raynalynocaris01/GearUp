@@ -24,6 +24,8 @@ class TourGuide extends Model
         'location',
         'meeting_instructions',
         'facebook_url',
+        'payment_mode',
+        'down_payment_percent',
     ];
 
     protected static function booted(): void
