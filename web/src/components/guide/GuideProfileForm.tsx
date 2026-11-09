@@ -170,6 +170,40 @@ export function GuideProfileForm({ profile }: { profile: GuideProfile }) {
           </p>
         </div>
 
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            Contact number *
+          </label>
+          <input
+            type="text"
+            value={form.contact_number}
+            onChange={(e) =>
+              setForm({ ...form, contact_number: e.target.value })
+            }
+            placeholder="09171234567"
+            required
+            className={inputClass}
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            Description
+          </label>
+          <textarea
+            value={form.description}
+            onChange={(e) =>
+              setForm({ ...form, description: e.target.value })
+            }
+            placeholder="Tell customers about your guiding experience, specialties, and what makes your trips memorable."
+            rows={5}
+            className={`${inputClass} resize-none`}
+          />
+          <p className="text-xs text-gray-500 mt-1">
+            {form.description.length}/2000 characters
+          </p>
+        </div>
+
         <div className="pt-4 border-t border-gray-100">
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Payment Mode
@@ -223,40 +257,6 @@ export function GuideProfileForm({ profile }: { profile: GuideProfile }) {
               How much of the total does the guest pay online to lock in the booking? The rest is due on arrival. Set to 0 for full online payment.
             </p>
           </div>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">
-            Contact number *
-          </label>
-          <input
-            type="text"
-            value={form.contact_number}
-            onChange={(e) =>
-              setForm({ ...form, contact_number: e.target.value })
-            }
-            placeholder="09171234567"
-            required
-            className={inputClass}
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">
-            Description
-          </label>
-          <textarea
-            value={form.description}
-            onChange={(e) =>
-              setForm({ ...form, description: e.target.value })
-            }
-            placeholder="Tell customers about your guiding experience, specialties, and what makes your trips memorable."
-            rows={5}
-            className={`${inputClass} resize-none`}
-          />
-          <p className="text-xs text-gray-500 mt-1">
-            {form.description.length}/2000 characters
-          </p>
         </div>
 
         {error && (
