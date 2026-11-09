@@ -16,17 +16,24 @@ export function HomeSearch() {
       return;
     }
 
-    // Common gear keywords to intelligently route the search
+    // Common keyword lists to intelligently route the search
     const gearKeywords = [
-      'tent', 'stove', 'backpack', 'bag', 'sleeping', 'cook', 
-      'lamp', 'light', 'chair', 'table', 'hammock', 'tool', 
-      'tarp', 'cooler', 'bottle', 'tripod', 'jacket', 'boots'
+      'tent', 'stove', 'backpack', 'bag', 'sleeping', 'cook',
+      'lamp', 'light', 'chair', 'table', 'hammock', 'tool',
+      'tarp', 'cooler', 'bottle', 'tripod', 'jacket', 'boots',
     ];
-    
-    const lowerQ = q.toLowerCase();
-    const isGearSearch = gearKeywords.some(keyword => lowerQ.includes(keyword));
+    const guideKeywords = [
+      'guide', 'tour', 'trek', 'hike', 'hiking', 'mountain',
+      'adventure', 'trail', 'local', 'tourguide',
+    ];
 
-    if (isGearSearch) {
+    const lowerQ = q.toLowerCase();
+    const isGuideSearch = guideKeywords.some((kw) => lowerQ.includes(kw));
+    const isGearSearch = !isGuideSearch && gearKeywords.some((kw) => lowerQ.includes(kw));
+
+    if (isGuideSearch) {
+      router.push(`/tour-guides?search=${encodeURIComponent(q)}`);
+    } else if (isGearSearch) {
       router.push(`/gear-rental?search=${encodeURIComponent(q)}`);
     } else {
       router.push(`/campsites?search=${encodeURIComponent(q)}`);
