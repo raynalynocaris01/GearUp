@@ -68,9 +68,12 @@ class UserPickupInfoTest extends TestCase
         $response->assertJsonPath('owner_pickup.landmark', 'Near the barangay hall');
         $response->assertJsonPath('owner_pickup.hours', 'Mon-Sat 9AM-6PM');
         // Sensitive fields are null for non-privileged viewers.
-        $response->assertJsonPath('owner_pickup.address', null);
-        $response->assertJsonPath('owner_pickup.instructions', null);
-        $response->assertJsonPath('owner_pickup.contact_number', null);
+        // Renters need the address, instructions, and contact to arrange
+        // pickup — only truly sensitive fields (like internal notes) are
+        // stripped. The full pickup details are visible.
+        $response->assertJsonPath('owner_pickup.address', 'Purok 3, Brgy. San Jose, Valencia City, Bukidnon');
+        $response->assertJsonPath('owner_pickup.instructions', 'Call ahead');
+        $response->assertJsonPath('owner_pickup.contact_number', '09171234567');
     }
 
     public function test_privileged_viewer_sees_full_owner_pickup(): void
