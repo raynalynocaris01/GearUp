@@ -15,13 +15,15 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? '';
 export function appImageSrc(url: string | null | undefined): string {
   if (!url) return '';
 
-  // Already absolute, protocol-relative, or local browser URI — return as-is
+  // Already absolute, protocol-relative, local browser URI, or Next.js
+  // public folder asset — return as-is (don't prepend storage URL)
   if (
     url.startsWith('http://') ||
     url.startsWith('https://') ||
     url.startsWith('//') ||
     url.startsWith('blob:') ||
-    url.startsWith('data:')
+    url.startsWith('data:') ||
+    url.startsWith('/images/')
   ) {
     return url;
   }
