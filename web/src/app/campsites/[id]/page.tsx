@@ -8,6 +8,7 @@ import { ReviewForm } from '@/components/ReviewForm';
 import { appImageSrc } from '@/components/AppImage';
 import { CampsiteGallery } from '@/components/CampsiteGallery';
 import { CampsiteProvidedGear } from '@/components/CampsiteProvidedGear';
+import { MapPin, Star, Users } from 'lucide-react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL!;
 
@@ -209,10 +210,10 @@ export default async function CampsiteDetailPage({
 
             <div className="flex flex-wrap items-center gap-4 mt-4 text-sm">
               <span className="flex items-center gap-1 text-gray-600">
-                📍 {campsite.location}
+                {<MapPin size={14} className="inline -mt-0.5" />} {campsite.location}
               </span>
               <span className="flex items-center gap-1 text-gray-600">
-                <span className="text-yellow-500">★</span>
+                <Star size={14} className="inline -mt-0.5 fill-yellow-500 text-yellow-500" />
                 <span className="font-semibold text-gray-900">
                   {campsite.rating}
                 </span>
@@ -221,7 +222,7 @@ export default async function CampsiteDetailPage({
                 </span>
               </span>
               <span className="flex items-center gap-1 text-gray-600">
-                👥 Up to {campsite.capacity} people
+                {<Users size={14} className="inline -mt-0.5" />} Up to {campsite.capacity} people
               </span>
             </div>
 
