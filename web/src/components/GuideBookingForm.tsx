@@ -7,6 +7,8 @@ interface TourGuide {
   id: number;
   name: string;
   price_per_trip: string;
+  payment_mode?: 'online' | 'pay_at_campsite';
+  down_payment_percent?: string | number;
 }
 
 interface Props {
@@ -57,6 +59,7 @@ export function GuideBookingForm({ guide, onDone }: Props) {
           check_out: checkOut,
           guests,
           notes: notes.trim() || undefined,
+          payment_method: guide.payment_mode === 'pay_at_campsite' ? 'cash' : undefined,
         }),
       });
       const data = await res.json().catch(() => ({}));

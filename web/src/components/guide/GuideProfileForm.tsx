@@ -14,6 +14,8 @@ interface GuideProfile {
   campsite_id: number | null;
   meeting_instructions?: string | null;
   facebook_url?: string | null;
+  payment_mode?: 'online' | 'pay_at_campsite';
+  down_payment_percent?: string | number;
 }
 
 const inputClass =
@@ -28,6 +30,8 @@ export function GuideProfileForm({ profile }: { profile: GuideProfile }) {
     description: profile.description ?? '',
     meeting_instructions: profile.meeting_instructions ?? '',
     facebook_url: profile.facebook_url ?? '',
+    payment_mode: profile.payment_mode ?? 'online',
+    down_payment_percent: profile.down_payment_percent ?? 0,
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -50,6 +54,8 @@ export function GuideProfileForm({ profile }: { profile: GuideProfile }) {
           description: form.description.trim() || null,
           meeting_instructions: form.meeting_instructions.trim() || null,
           facebook_url: form.facebook_url.trim() || null,
+          payment_mode: form.payment_mode,
+          down_payment_percent: Number(form.down_payment_percent),
         }),
       });
 
@@ -162,6 +168,61 @@ export function GuideProfileForm({ profile }: { profile: GuideProfile }) {
           <p className="text-xs text-gray-500 mt-1">
             Optional. Shown to customers so they can message you directly.
           </p>
+        </div>
+
+        <div className="pt-4 border-t border-gray-100">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Payment Mode
+          </label>
+          <div className="space-y-2">
+            <label className={`flex items-start gap-3 p-3 border rounded-lg cursor-pointer ${form.payment_mode === 'online' ? 'border-gearup-600 bg-gearup-50' : 'border-gray-200'}`}>
+              <input
+                type="radio"
+                name="payment_mode"
+                value="online"
+                checked={form.payment_mode === 'online'}
+                onChange={() => setForm({ ...form, payment_mode: 'online' })}
+                className="mt-1"
+              />
+              <div>
+                <p className="font-semibold text-gray-900 text-sm">Online Payment</p>
+                <p className="text-xs text-gray-500">Guests can pay online or choose to pay cash on arrival.</p>
+              </div>
+            </label>
+            <label className={`flex items-start gap-3 p-3 border rounded-lg cursor-pointer ${form.payment_mode === 'pay_at_campsite' ? 'border-gearup-600 bg-gearup-50' : 'border-gray-200'}`}>
+              <input
+                type="radio"
+                name="payment_mode"
+                value="pay_at_campsite"
+                checked={form.payment_mode === 'pay_at_campsite'}
+                onChange={() => setForm({ ...form, payment_mode: 'pay_at_campsite' })}
+                className="mt-1"
+              />
+              <div>
+                <p className="font-semibold text-gray-900 text-sm">Pay Cash on Arrival</p>
+                <p className="text-xs text-gray-500">Guests must pay cash on the day of the trip. Online payment options will be hidden.</p>
+              </div>
+            </label>
+          </div>
+
+          <div className="mt-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              Down payment (%)
+            </label>
+            <input
+              type="number"
+              min={0}
+              max={100}
+              step="1"
+              value={form.down_payment_percent}
+              onChange={(e) => setForm({ ...form, down_payment_percent: e.target.value })}
+              className={inputClass}
+              disabled={form.payment_mode === 'pay_at_campsite'}
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              How much of the total does the guest pay online to lock in the booking? The rest is due on arrival. Set to 0 for full online payment.
+            </p>
+          </div>
         </div>
 
         <div>
