@@ -20,6 +20,10 @@ const nextConfig: NextConfig = {
     "192.168.0.103",
     "192.168.0.103:3000"
   ],
+
+
+
+  
   images: {
     remotePatterns: [
       {
