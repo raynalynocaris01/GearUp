@@ -27,7 +27,7 @@ export function CampsiteProvidedGear({ gear }: Props) {
   return (
     <div className="mt-8">
       <h2 className="text-xl font-bold text-gray-900 mb-3">
-        Gear Provided by this Campsite
+        Gear Rentable by this Campsite
       </h2>
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
         {visible.map((item) => {
@@ -60,8 +60,12 @@ export function CampsiteProvidedGear({ gear }: Props) {
                 <p className="font-bold text-gray-900 text-sm truncate mb-1">
                   {item.name}
                 </p>
-                <p className="text-sm font-black text-gray-900 mt-auto">
-                  {isFree ? 'Free' : `₱${item.price_per_day}/day`}
+                <p className="text-sm font-black mt-auto">
+                  {isFree ? (
+                    <span className="text-gearup-600">Included (Free)</span>
+                  ) : (
+                    <span className="text-gray-900">₱{item.price_per_day}/day</span>
+                  )}
                 </p>
               </div>
             </div>
