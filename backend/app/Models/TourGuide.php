@@ -19,13 +19,20 @@ class TourGuide extends Model
         'email',
         'description',
         'price_per_trip',
-        'is_independent',
         'approval_status',
         'application_id',
         'location',
         'meeting_instructions',
         'facebook_url',
     ];
+
+    protected static function booted(): void
+    {
+        static::saving(function (TourGuide $guide) {
+            // Keep is_independent in sync with campsite_id.
+            $guide->is_independent = $guide->campsite_id === null;
+        });
+    }
 
     protected $casts = [
         'price_per_trip' => 'decimal:2',
