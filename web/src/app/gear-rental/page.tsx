@@ -88,7 +88,7 @@ export default async function GearRentalPage({
     </Link>
   </div>
 )}
-<GearRentalGrid gear={gear} campsites={campsites} />
+<GearRentalGrid gear={gear} campsites={campsites} initialSearch={search ?? ''} />
       </div>
     </div>
   );
