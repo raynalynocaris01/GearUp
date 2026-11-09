@@ -33,12 +33,14 @@ interface GearItem {
     hours: string | null;
     instructions: string | null;
     contact_number: string | null;
+    facebook_url?: string | null;
   } | null;
   owner?: {
     id: number;
     name: string;
     email: string;
     role?: string;
+    facebook_url?: string | null;
   };
   campsite_id?: number | null;
   campsite_name?: string | null;
@@ -276,6 +278,20 @@ export default async function GearDetailPage({
               className="font-semibold text-gearup-600 hover:underline"
             >
               {gear.owner_pickup.contact_number}
+            </a>
+          </div>
+        )}
+
+        {gear.owner?.facebook_url && (
+          <div>
+            <p className="text-xs font-bold text-gray-500 uppercase">Facebook</p>
+            <a
+              href={gear.owner.facebook_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold text-gearup-600 hover:underline break-all"
+            >
+              {gear.owner.facebook_url}
             </a>
           </div>
         )}
