@@ -23,6 +23,7 @@ class TourGuide extends Model
         'approval_status',
         'application_id',
         'location',
+        'meeting_instructions',
     ];
 
     protected $casts = [

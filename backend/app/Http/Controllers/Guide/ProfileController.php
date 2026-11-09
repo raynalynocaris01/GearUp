@@ -44,6 +44,7 @@ class ProfileController extends Controller
             'description' => ['sometimes', 'nullable', 'string', 'max:2000'],
             'price_per_trip' => ['sometimes', 'numeric', 'min:0'],
             'location' => ['sometimes', 'nullable', 'string', 'max:255'],
+            'meeting_instructions' => ['sometimes', 'nullable', 'string', 'max:500'],
             'campsite_id' => ['sometimes', 'nullable', 'integer', 'exists:campsites,id'],
         ]);
 
