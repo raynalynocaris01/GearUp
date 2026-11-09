@@ -129,9 +129,9 @@ class GearItemController extends Controller
         $item->setAttribute('pickup_city', $this->derivePickupCity($address));
 
         // Strip sensitive fields from the legacy per-gear columns for
-        // non-privileged viewers. The `owner_pickup` array is still
-        // included, but its `address` and `instructions` should be
-        // stripped too for non-privileged viewers.
+        // non-privileged viewers. 
+        // NOTE: We are now allowing address, instructions, and contact_number 
+        // to be visible to help renters know where to meet.
         if (!$isPrivileged) {
             $item->setAttribute('pickup_address', null);
             $item->setAttribute('pickup_landmark', null);
@@ -141,11 +141,11 @@ class GearItemController extends Controller
             if ($effective && is_array($effective)) {
                 $item->setAttribute('owner_pickup', [
                     'method' => $effective['method'] ?? null,
-                    'address' => null,
+                    'address' => $effective['address'] ?? null,
                     'landmark' => $effective['landmark'] ?? null,
                     'hours' => $effective['hours'] ?? null,
-                    'instructions' => null,
-                    'contact_number' => null,
+                    'instructions' => $effective['instructions'] ?? null,
+                    'contact_number' => $effective['contact_number'] ?? null,
                 ]);
             }
         }
