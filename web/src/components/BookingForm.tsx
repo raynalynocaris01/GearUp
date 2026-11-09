@@ -158,22 +158,14 @@ export function BookingForm({
   // When set, it's the id of a child campsite (a room).
   const [selectedRoomId, setSelectedRoomId] = useState<number | null>(null);
 
-  // Fetch tour guides for this campsite
+  // Fetch tour guides for this campsite (campsite-attached only)
   useEffect(() => {
     if (!campsite) return;
     (async () => {
       try {
-        const [campsiteRes, independentRes] = await Promise.all([
-          fetch(`/api/tour-guides?campsite_id=${campsite.id}`),
-          fetch(`/api/tour-guides?independent=true`),
-        ]);
-        const campsiteData: TourGuide[] = campsiteRes.ok
-          ? await campsiteRes.json()
-          : [];
-        const independentData: TourGuide[] = independentRes.ok
-          ? await independentRes.json()
-          : [];
-        setGuides([...campsiteData, ...independentData]);
+        const res = await fetch(`/api/tour-guides?campsite_id=${campsite.id}`);
+        const data: TourGuide[] = res.ok ? await res.json() : [];
+        setGuides(data);
       } catch {
         // silent
       }
@@ -987,14 +979,6 @@ export function BookingForm({
                         Guides at this campsite
                       </p>
                       {campsiteGuides.map(renderRow)}
-                    </>
-                  )}
-                  {independentGuides.length > 0 && (
-                    <>
-                      <p className="text-xs font-bold text-gray-700 uppercase tracking-wider mt-4 mb-1">
-                        Independent guides (available anywhere)
-                      </p>
-                      {independentGuides.map(renderRow)}
                     </>
                   )}
                 </>
